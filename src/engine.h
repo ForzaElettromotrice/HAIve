@@ -15,19 +15,24 @@
 typedef struct Piece
 {
     Pieces_t type;
+    Colors_t color;
     uint8_t x;
     uint8_t y;
     uint8_t z;
-}Piece_t;
+} Piece_t;
 
 typedef struct Board
 {
     uint8_t piecesCount;
     Piece_t board[28];
-}Board_t;
+} Board_t;
 
-int initGame(Board_t **board);
-void cleanGame(Board_t *board);
 
-bool isEncodingValid(const char *encoding, int *move);
-bool isMoveValid(const int *move, Board_t *board, int *idx);
+int initGame();
+void cleanGame();
+
+bool isEncodingValid(const char *encoding, int *move, bool *add);
+bool isMoveValid(const int *move, int *idx, bool add);
+
+void addPiece(const Pieces_t type, const uint8_t x, const uint8_t y, const uint8_t z);
+void movePiece(Piece_t *piece, const int *newPos);

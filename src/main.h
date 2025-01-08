@@ -12,4 +12,4 @@
 size_t getline(char **lineptr, size_t *n, FILE *stream);
 #endif
 
-int mainLoop(Board_t *board);
+int mainLoop();

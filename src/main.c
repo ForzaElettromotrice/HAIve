@@ -8,59 +8,68 @@ int main(void)
     printf("Started in Debug mode!\n");
 #endif
 
-    Board_t *board;
-    if(initGame(&board))
+    if (initGame())
         return EXIT_FAILURE;
 
-    int out = mainLoop(board);
+    const int out = mainLoop();
 
 
-
-    cleanGame(board);
+    cleanGame();
     return out;
 }
 
 #ifdef WIN32
-size_t getline(char **lineptr, size_t *n, FILE *stream) {
+size_t getline(char **lineptr, size_t *n, FILE *stream)
+{
     char *bufptr = NULL;
     char *p = bufptr;
     size_t size;
     int c;
 
-    if (lineptr == NULL) {
+    if (lineptr == NULL)
+    {
         return -1;
     }
-    if (stream == NULL) {
+    if (stream == NULL)
+    {
         return -1;
     }
-    if (n == NULL) {
+    if (n == NULL)
+    {
         return -1;
     }
     bufptr = *lineptr;
     size = *n;
 
     c = fgetc(stream);
-    if (c == EOF) {
+    if (c == EOF)
+    {
         return -1;
     }
-    if (bufptr == NULL) {
+    if (bufptr == NULL)
+    {
         bufptr = malloc(128);
-        if (bufptr == NULL) {
+        if (bufptr == NULL)
+        {
             return -1;
         }
         size = 128;
     }
     p = bufptr;
-    while(c != EOF) {
-        if ((p - bufptr) > (size - 1)) {
+    while (c != EOF)
+    {
+        if ((p - bufptr) > (size - 1))
+        {
             size = size + 128;
             bufptr = realloc(bufptr, size);
-            if (bufptr == NULL) {
+            if (bufptr == NULL)
+            {
                 return -1;
             }
         }
         *p++ = c;
-        if (c == '\n') {
+        if (c == '\n')
+        {
             break;
         }
         c = fgetc(stream);
@@ -83,28 +92,32 @@ int mainLoop(Board_t *board)
     //TODO: printare lo stato della board
 
     int move[6];
+    bool add;
     int idx;
     size_t bytesRead;
     while ((int) (bytesRead = getline(&line, &lineSize, stdin)) != -1)
     {
         if (bytesRead == 1)
             continue;
-        if(bytesRead == 2 && strcmp(line, "q\n") == 0)
+        if (bytesRead == 2 && strcmp(line, "q\n") == 0)
             break;
         line[bytesRead - 1] = '\0';
 
-        if(!isEncodingValid(line, move))
+        if (!isEncodingValid(line, move, &add))
         {
             E_Print("Encoding not valid!\n");
             continue;
         }
-        if(!isMoveValid(move, board, &idx))
+        if (!isMoveValid(move, &idx, add))
         {
             E_Print("Move is not valid!\n");
             continue;
         }
-        //TODO: fare la mossa
-
+        if (add)
+            addPiece(move[3], move[0], move[1], move[2]);
+        else
+            movePiece(&board->board[idx], move + 3);
+        //TODO: controllare se si ha vinto
     }
     free(line);
 

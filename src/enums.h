@@ -8,11 +8,18 @@ typedef enum Pieces
 {
     NULLPIECE = -1,
     QUEEN,
-    SPIDER,
-    BEETLE,
-    GRASSHOPPER,
-    ANT,
-    MOSQUITO,
+    PILLBUG,
     LADYBUG,
-    PILLBUG
+    MOSQUITO,
+    ANT,
+    GRASSHOPPER,
+    BEETLE,
+    SPIDER
 } Pieces_t;
+
+typedef enum Colors
+{
+    NULLCOLOR = 0,
+    WHITE = 1,
+    BLACK = -1
+} Colors_t;
