@@ -83,7 +83,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream)
 }
 #endif
 
-int mainLoop(Board_t *board)
+int mainLoop()
 {
     size_t lineSize = 64;
     char *line = malloc(64 * sizeof(char));
@@ -116,7 +116,7 @@ int mainLoop(Board_t *board)
         if (add)
             addPiece(move[3], move[0], move[1], move[2]);
         else
-            movePiece(&board->board[idx], move + 3);
+            movePiece(idx, move + 3);
         //TODO: controllare se si ha vinto
     }
     free(line);

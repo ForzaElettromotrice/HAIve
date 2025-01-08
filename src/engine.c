@@ -165,8 +165,9 @@ void addPiece(const Pieces_t type, const uint8_t x, const uint8_t y, const uint8
 
     colorTurn *= -1; //Passa il turno al giocatore successivo
 }
-void movePiece(Piece_t *piece, const int *newPos)
+void movePiece(int idx, const int *newPos)
 {
+    Piece_t *piece = &board->board[idx];
     piece->x = newPos[0];
     piece->y = newPos[1];
     piece->z = newPos[2];

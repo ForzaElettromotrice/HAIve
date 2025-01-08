@@ -35,4 +35,4 @@ bool isEncodingValid(const char *encoding, int *move, bool *add);
 bool isMoveValid(const int *move, int *idx, bool add);
 
 void addPiece(const Pieces_t type, const uint8_t x, const uint8_t y, const uint8_t z);
-void movePiece(Piece_t *piece, const int *newPos);
+void movePiece(int idx, const int *newPos);
