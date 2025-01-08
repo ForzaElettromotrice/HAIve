@@ -82,8 +82,10 @@ int mainLoop(Board_t *board)
     //TODO: printare come scrivere una mossa
     //TODO: printare lo stato della board
 
+    int move[6];
+    int idx;
     size_t bytesRead;
-    while (((int) (bytesRead = getline(&line, &lineSize, stdin))) != -1)
+    while ((int) (bytesRead = getline(&line, &lineSize, stdin)) != -1)
     {
         if (bytesRead == 1)
             continue;
@@ -91,8 +93,16 @@ int mainLoop(Board_t *board)
             break;
         line[bytesRead - 1] = '\0';
 
-        //TODO: controllare se è una codifica valida
-        //TODO: controllare se è una mossa valida
+        if(!isEncodingValid(line, move))
+        {
+            E_Print("Encoding not valid!\n");
+            continue;
+        }
+        if(!isMoveValid(move, board, &idx))
+        {
+            E_Print("Move is not valid!\n");
+            continue;
+        }
         //TODO: fare la mossa
 
     }

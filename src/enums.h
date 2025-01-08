@@ -6,5 +6,13 @@
 
 typedef enum Pieces
 {
-
+    NULLPIECE = -1,
+    QUEEN,
+    SPIDER,
+    BEETLE,
+    GRASSHOPPER,
+    ANT,
+    MOSQUITO,
+    LADYBUG,
+    PILLBUG
 } Pieces_t;
