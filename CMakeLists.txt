@@ -11,8 +11,8 @@ add_compile_definitions(Debug)
 
 add_executable(HAIve src/main.c
         src/enums.h
-        src/engine.c
-        src/engine.h
         src/logger.c
         src/logger.h
-        src/main.h)
+        src/main.h
+        src/engine.c
+        src/engine.h)

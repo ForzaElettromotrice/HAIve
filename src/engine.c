@@ -1,11 +1,8 @@
 //
-// Created by minga on 06/01/2025.
+// Created by minga on 16/01/2025.
 //
 
 #include "engine.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 const uint8_t defaultPieces[] = {1, 1, 1, 1, 3, 3, 2, 2};
 const int8_t directions[6][2] =
@@ -18,23 +15,101 @@ const int8_t directions[6][2] =
     {1, 1} //in basso a destra
 };
 
-Board_t *board = NULL;
+uint8_t piecesCount;
+Piece_t board[28];
+bool boardGraph[28][28];
 uint8_t *whitePiecesCount = NULL;
 uint8_t *blackPiecesCount = NULL;
 Colors_t colorTurn = NULLCOLOR;
 bool firstMove = false;
 
+Piece_t *findPiece(const int8_t x, const int8_t y, const int8_t z, uint8_t *idx)
+{
+    for (uint8_t i = 0; i < piecesCount; i++)
+    {
+        Piece_t *piece = &board[i];
+        if (piece->x == x && piece->y == y && piece->z == z)
+        {
+            *idx = i;
+            return piece;
+        }
+    }
+    *idx = 255;
+    return NULL;
+}
+bool hasPiece(const Pieces_t type)
+{
+    if (colorTurn == WHITE)
+        return whitePiecesCount[type] > 0;
+    return blackPiecesCount[type] > 0;
+}
+bool hasNeighbor(const int8_t x, const int8_t y, const int8_t z)
+{
+    if (z > 0)
+    {
+        uint8_t idx;
+        findPiece(x, y, z - 1, &idx);
+        return idx != 255;
+    }
+
+    for (int i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        uint8_t idx;
+        findPiece(offX + x, offY + y, z, &idx);
+        if (idx != 255)
+            return true;
+    }
+    return false;
+}
+bool dfs(const uint8_t node, bool *visited)
+{
+    bool toFree = false;
+    if (visited == NULL)
+    {
+        toFree = true;
+        visited = calloc(piecesCount, sizeof(bool));
+        if (!visited)
+        {
+            E_Print("malloc: %s\n", strerror(errno));
+            return false;
+        }
+    }
+
+    visited[node] = true;
+    bool *neighbors = boardGraph[node];
+    for (int i = 0; i < piecesCount; ++i)
+    {
+        if (neighbors[i] && !visited[i])
+            dfs(i, visited);
+    }
+
+
+    if (toFree)
+    {
+        bool out = true;
+        for (int i = 0; i < piecesCount; ++i)
+        {
+            if (!visited[i])
+            {
+                out = false;
+                break;
+            }
+        }
+        free(visited);
+        return out;
+    }
+    return false;
+}
 
 int initGame()
 {
-    board = calloc(1, sizeof(Board_t));
-    if (!board)
-    {
-        E_Print("malloc: %s\n", strerror(errno));
-        return EXIT_FAILURE;
-    }
-    whitePiecesCount = malloc(8 * sizeof(int));
-    blackPiecesCount = malloc(8 * sizeof(int));
+    memset(board, 0, sizeof(board));
+    memset(boardGraph, 0, sizeof(boardGraph));
+    whitePiecesCount = malloc(8 * sizeof(uint8_t));
+    blackPiecesCount = malloc(8 * sizeof(uint8_t));
     if (!whitePiecesCount || !blackPiecesCount)
     {
         E_Print("malloc: %s\n", strerror(errno));
@@ -51,39 +126,12 @@ int initGame()
 }
 void cleanGame()
 {
-    free(board);
     free(whitePiecesCount);
     free(blackPiecesCount);
     colorTurn = NULLCOLOR;
 }
 
-bool haveNeighbors(const int x, const int y, const int z)
-{
-    for (int i = 0; i < 6; ++i)
-    {
-        const int8_t offX = directions[i][0];
-        const int8_t offY = directions[i][1];
-
-        for (int j = 0; j < board->piecesCount; ++j)
-        {
-            const Piece_t piece = board->board[j];
-            if (piece.x == x + offX && piece.y == y + offY && (piece.z == z || piece.z == z - 1))
-                return true;
-        }
-    }
-    return false;
-}
-
-bool canAddPiece(const int *move)
-{
-    if (move[3] < 0 || move[3] > 8)
-        return false;
-
-    if (colorTurn == WHITE)
-        return whitePiecesCount[move[3]] > 0 && haveNeighbors(move[0], move[1], move[2]);
-    return blackPiecesCount[move[3]] > 0 && haveNeighbors(move[0], move[1], move[2]);
-}
-bool isEncodingValid(const char *encoding, int *move, bool *add)
+bool isEncodingValid(const char *encoding, int8_t *move, bool *add)
 {
     char *copy = strdup(encoding);
     if (!copy)
@@ -94,7 +142,9 @@ bool isEncodingValid(const char *encoding, int *move, bool *add)
 
     int i = 0;
     for (const char *token = strtok(copy, ","); token != NULL; token = strtok(NULL, ","))
-        move[i++] = strtol(token, NULL, 10);
+    {
+        move[i++] = (int8_t) strtol(token, NULL, 10);
+    }
 
 
     if (i != 6 && i != 4)
@@ -108,69 +158,91 @@ bool isEncodingValid(const char *encoding, int *move, bool *add)
     free(copy);
     return true;
 }
-bool isMoveValid(const int *move, int *idx, bool add)
+bool isMoveValid(const int8_t *move, uint8_t *idx, const bool add)
 {
-    if (firstMove && move[0] == 0 && move[1] == 0 && move[2] == 0)
+    const int8_t x = move[0];
+    const int8_t y = move[1];
+    const int8_t z = move[2];
+    if (firstMove && add && x == 0 && y == 0 && z == 0)
     {
         firstMove = false;
         return true;
     }
 
-    Piece_t *found = NULL;
-    for (int i = 0; i < board->piecesCount; i++)
-    {
-        Piece_t *piece = &board->board[i];
-        if (piece->x == move[0] && piece->y == move[1] && piece->z == move[2])
-        {
-            found = piece;
-            *idx = i;
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        if (!add)
-            return false;
-        if (canAddPiece(move))
-            return true;
-        return false;
-    }
+    const Piece_t *piece = findPiece(x, y, z, idx);
 
     if (add)
     {
-        return false;
+        const Pieces_t type = (unsigned char) move[3];
+        if (*idx != 255) //Se la posizione è occupata
+            return false;
+        if (!hasPiece(type)) //Se il player ha il pezzo disponibile in riserva
+            return false;
+        if (!hasNeighbor(x, y, z)) //Se il pezzo è posizionato vicino ad un altro
+            return false;
+        return true;
     }
 
-    if (found->color != colorTurn)
+    const int8_t dx = move[3];
+    const int8_t dy = move[4];
+    const int8_t dz = move[5];
+
+    if (*idx == 255) //Se il pezzo esiste
         return false;
 
-    //TODO: controllare se spezza in 2 la board
-    //TODO: controllare la destinazione
-    //TODO: controllare il percorso
+    if (piece->color != colorTurn) //Se il pezzo è del giocatore che fa la mossa
+        return false;
+
+    if (!hasNeighbor(dx, dy, dz)) //Se alla destinazione il pezzo avrà dei vicini
+        return false;
+
+    //TODO: fare si che il pezzo venga "rimosso" e si controlla se la board è divisa
 
     return true;
 }
 
 
-void addPiece(const Pieces_t type, const uint8_t x, const uint8_t y, const uint8_t z)
+void movePiece(const uint8_t idx, const int8_t x, const int8_t y, const int8_t z)
 {
-    const Piece_t piece = {type, colorTurn, x, y, z};
-    memcpy(&board->board[board->piecesCount], &piece, sizeof(Piece_t));
-    board->piecesCount++;
-    if (colorTurn == WHITE)
-        whitePiecesCount[type]--;
-    else
-        blackPiecesCount[type]--;
+    Piece_t *piece = &board[idx];
 
-    colorTurn *= -1; //Passa il turno al giocatore successivo
+    for (int i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        uint8_t idxNeighbor;
+        findPiece((int8_t) (offX + piece->x), (int8_t) (offY + piece->y), piece->z, &idxNeighbor);
+        if (idxNeighbor == 255)
+            continue;
+        boardGraph[idx][idxNeighbor] = false;
+        boardGraph[idxNeighbor][idx] = false;
+    }
+    piece->x = x;
+    piece->y = y;
+    piece->z = z;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        uint8_t idxNeighbor;
+        findPiece((int8_t) (offX + piece->x), (int8_t) (offY + piece->y), piece->z, &idxNeighbor);
+        if (idxNeighbor == 255)
+            continue;
+        boardGraph[idx][idxNeighbor] = true;
+        boardGraph[idxNeighbor][idx] = true;
+    }
 }
-void movePiece(int idx, const int *newPos)
-{
-    Piece_t *piece = &board->board[idx];
-    piece->x = newPos[0];
-    piece->y = newPos[1];
-    piece->z = newPos[2];
 
-    colorTurn *= -1; //Passa il turno al giocatore successivo
+void printBoardStatus()
+{
+    if (piecesCount == 0)
+        printf("Board Empty!\n");
+    for (int i = 0; i < piecesCount; ++i)
+    {
+        Piece_t piece = board[i];
+        printf("%d - %d,%d,%d - %s\n", i, piece.x, piece.y, piece.z, piece.color == WHITE ? "white" : "black");
+    }
 }

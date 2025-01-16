@@ -10,10 +10,7 @@ int main(void)
 
     if (initGame())
         return EXIT_FAILURE;
-
     const int out = mainLoop();
-
-
     cleanGame();
     return out;
 }
@@ -89,11 +86,11 @@ int mainLoop()
     char *line = malloc(64 * sizeof(char));
 
     //TODO: printare come scrivere una mossa
-    //TODO: printare lo stato della board
+    printBoardStatus();
 
-    int move[6];
+    int8_t move[6];
     bool add;
-    int idx;
+    uint8_t idx;
     size_t bytesRead;
     while ((int) (bytesRead = getline(&line, &lineSize, stdin)) != -1)
     {
@@ -113,11 +110,9 @@ int mainLoop()
             E_Print("Move is not valid!\n");
             continue;
         }
-        if (add)
-            addPiece(move[3], move[0], move[1], move[2]);
-        else
-            movePiece(idx, move + 3);
+
         //TODO: controllare se si ha vinto
+        printBoardStatus();
     }
     free(line);
 
