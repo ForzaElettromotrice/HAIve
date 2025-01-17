@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "enums.h"
 #include "logger.h"

@@ -88,12 +88,12 @@ int mainLoop()
     //TODO: printare come scrivere una mossa
     printBoardStatus();
 
-    int8_t move[6];
     bool add;
     uint8_t idx;
     size_t bytesRead;
     while ((int) (bytesRead = getline(&line, &lineSize, stdin)) != -1)
     {
+        int8_t move[6];
         if (bytesRead == 1)
             continue;
         if (bytesRead == 2 && strcmp(line, "q\n") == 0)

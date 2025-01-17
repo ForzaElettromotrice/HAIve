@@ -64,7 +64,7 @@ bool hasNeighbor(const int8_t x, const int8_t y, const int8_t z)
     }
     return false;
 }
-bool dfs(const uint8_t node, bool *visited)
+bool dfs(const uint8_t node, bool *visited, bool graph[][])
 {
     bool toFree = false;
     if (visited == NULL)
@@ -79,13 +79,12 @@ bool dfs(const uint8_t node, bool *visited)
     }
 
     visited[node] = true;
-    bool *neighbors = boardGraph[node];
+    const bool *neighbors = graph[node];
     for (int i = 0; i < piecesCount; ++i)
     {
         if (neighbors[i] && !visited[i])
-            dfs(i, visited);
+            dfs(i, visited, graph);
     }
-
 
     if (toFree)
     {
@@ -102,6 +101,22 @@ bool dfs(const uint8_t node, bool *visited)
         return out;
     }
     return false;
+}
+void removeNeighbors(const uint8_t node, bool graph[][])
+{
+    const Piece_t *piece = &board[node];
+    for (int i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        uint8_t idxNeighbor;
+        findPiece((int8_t) (offX + piece->x), (int8_t) (offY + piece->y), piece->z, &idxNeighbor);
+        if (idxNeighbor == 255)
+            continue;
+        graph[node][idxNeighbor] = false;
+        graph[idxNeighbor][node] = false;
+    }
 }
 
 int initGame()
@@ -197,6 +212,11 @@ bool isMoveValid(const int8_t *move, uint8_t *idx, const bool add)
         return false;
 
     //TODO: fare si che il pezzo venga "rimosso" e si controlla se la board è divisa
+    bool graph[28][28];
+    memcpy(graph, boardGraph, sizeof(boardGraph));
+    removeNeighbors(*idx, graph);
+    if (!dfs(*idx, NULL, graph)) //Se la board viene divisa in 2 senza quel pezzo
+        return false;
 
     return true;
 }
