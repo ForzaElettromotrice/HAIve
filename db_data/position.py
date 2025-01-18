@@ -10,17 +10,22 @@ class PieceType(Enum):
     GRASSHOPPER = 6,
     BEETLE = 7,
     SPIDER = 8
+    
+class Color(Enum):
+    BLACK = 0,
+    WHITE = 1
 
 class Position:
     
-    def __init__(self, id: PieceType, x: int, y: int, z: int):
+    def __init__(self, id: PieceType, x: int, y: int, z: int, color: Color):
         self.id: PieceType = id
         self.x: int = x
         self.y: int = y
         self.z: int = z
+        self.color: Color = color
 
     def __repr__(self):
-        return f'({self.id},{self.x},{self.y},{self.z})'
+        return f'({self.id},{self.x},{self.y},{self.z},{self.color})'
     
     def __str__(self):
         return self.__repr__()
@@ -28,5 +33,5 @@ class Position:
     @staticmethod
     def parse(s: str) -> 'Position':
         s = s.strip('()')
-        id_str, x, y, z = s.split(',')
-        return Position(PieceType[id_str], int(x), int(y), int(z))
+        id_str, x, y, z, color = s.split(',')
+        return Position(PieceType[id_str], int(x), int(y), int(z), Color[color])
