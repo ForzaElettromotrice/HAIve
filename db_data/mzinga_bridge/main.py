@@ -14,12 +14,16 @@ if __name__ == '__main__':
         start_time: float = time.time()
         looped = False
         while not g_string.game_state_string.is_game_ended():
-            if time.time() - start_time > 600:  # 600 seconds = 10 minutes
+            if time.time() - start_time > 1200: 
                 looped = True
                 break
             
             # move = game_interface.best_move_time(10)
             move = game_interface.best_move_depth(max_depth)
+            
+            if move is None or "err" in str(move):
+                looped = True
+                break
             
             g_string = game_interface.play(move)
         if looped:
