@@ -29,6 +29,7 @@ void cleanGame();
 bool isEncodingValid(const char *encoding, int8_t *move, bool *add);
 bool isMoveValid(const int8_t *move, uint8_t *idx, bool add);
 
+void addPiece(Pieces_t type, int8_t x, int8_t y, int8_t z);
 void movePiece(uint8_t idx, int8_t x, int8_t y, int8_t z);
 
 void printBoardStatus();
