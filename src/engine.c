@@ -51,7 +51,7 @@ bool hasNeighbor(const int8_t x, const int8_t y, const int8_t z)
     if (z > 0)
     {
         uint8_t idx;
-        findPiece(x, y, z - 1, &idx);
+        findPiece(x, y, (int8_t) (z - 1), &idx);
         return idx != 255;
     }
 
@@ -61,7 +61,7 @@ bool hasNeighbor(const int8_t x, const int8_t y, const int8_t z)
         const int8_t offY = directions[i][1];
 
         uint8_t idx;
-        findPiece(offX + x, offY + y, z, &idx);
+        findPiece((int8_t) (offX + x), (int8_t) (offY + y), z, &idx);
         if (idx != 255)
             return true;
     }
@@ -174,6 +174,58 @@ bool queenRoute(const int8_t sx, const int8_t sy, const int8_t ex, const int8_t 
     }
     return false;
 }
+bool beetleRoute(const int8_t sx, const int8_t sy, const int8_t sz, const int8_t ex, const int8_t ey, const int8_t ez)
+{
+    for (int8_t i = 0; i < 6; ++i)
+    {
+        const int8_t newX = (int8_t) (directions[i][0] + sx);
+        const int8_t newY = (int8_t) (directions[i][1] + sy);
+
+        uint8_t idx;
+        findPiece(newX, newY, ez, &idx);
+        if (idx == 255)
+            continue;
+        if (!isBlocked(i, newX, newY, ez))
+            continue;
+        if (newX == ex && newY == ey)
+            return true;
+    }
+
+    return false;
+}
+bool grasshopperRoute(const int8_t sx, const int8_t sy, const int8_t ex, const int8_t ey)
+{
+    int8_t dx;
+    if (sx - ex > 0)
+        dx = 1;
+    else if (sx - ex == 0)
+        dx = 0;
+    else
+        dx = -1;
+    const int8_t dy = sy - ey > 0 ? 2 : (sy - ey == 0 ? 0 : -2);
+
+
+    uint8_t idx;
+    findPiece(sx + dx, sy + dy, 0, &idx);
+    if (idx == 255)
+        return false;
+    int8_t j = sy + dy;
+    for (int8_t i = sx + dx; i != ex; i += dx)
+    {
+        j += dy;
+
+        if (i == ex && j == ey)
+            return true;
+
+        findPiece(i, j, 0, &idx);
+        if (idx == 255)
+            return false;
+    }
+
+
+    return false;
+}
+
 bool existRoute(const Pieces_t type, const int8_t sx, const int8_t sy, const int8_t sz, const int8_t ex, const int8_t ey, const int8_t ez)
 {
     switch (type)
@@ -192,9 +244,9 @@ bool existRoute(const Pieces_t type, const int8_t sx, const int8_t sy, const int
         case ANT:
             break;
         case GRASSHOPPER:
-            break;
+            return grasshopperRoute(sx, sy, ex, ey);
         case BEETLE:
-            break;
+            return beetleRoute(sx, sy, sz, ex, ey, ez);
         case SPIDER:
             break;
     }
