@@ -111,6 +111,14 @@ int mainLoop()
             continue;
         }
 
+        if (add)
+        {
+            addPiece(move[3], move[0], move[1], move[2]);
+        } else
+        {
+            movePiece(idx, move[3], move[4], move[5]);
+        }
+
         //TODO: controllare se si ha vinto
         printBoardStatus();
     }
