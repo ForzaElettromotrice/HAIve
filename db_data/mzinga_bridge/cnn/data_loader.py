@@ -15,8 +15,8 @@ class Layer(Enum):
     MOSQUITO3 = 10
     LADYBUG = 11
     PILLBUG = 12
-    
-    def get_layer(self, id: str, position_z: int) -> int:
+
+def get_layer(id: str, position_z: int) -> int:
         if "Q" in id:
             return Layer.QUEEN.value
         if "A" in id:
@@ -56,10 +56,12 @@ class MatrixDataset(data.Dataset):
             piece = piece.split(')')
             x, y, z = piece[0][1:].split(",")
             x, y, z = int(x), int(y), int(z)
+            x += 25
+            y += 25
             piece = piece[1].split(",")
-            color = piece[0]
-            id = piece[1]
-            layer = Layer.get_layer(id, z)
+            color = piece[1]
+            id = piece[2]
+            layer = get_layer(id, z)
             matrix[x, y, layer] = 1 if color == "w" else -1
             
         if self.transform:
