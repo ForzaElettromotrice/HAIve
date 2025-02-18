@@ -16,19 +16,19 @@ class Layer(Enum):
     LADYBUG = 11
     PILLBUG = 12
     
-    def get_layer(self, id: str, position: tuple[int, int, int]) -> int:
+    def get_layer(self, id: str, position_z: int) -> int:
         if "Q" in id:
             return Layer.QUEEN.value
         if "A" in id:
             return Layer.ANT.value
         if "B" in id:
-            return Layer.BEETLE1.value + position[2]
+            return Layer.BEETLE1.value + position_z
         if "S" in id:
             return Layer.SPIDER.value
         if "G" in id:
             return Layer.GRASSHOPPER.value
         if "M" in id:
-            return Layer.MOSQUITO1.value + position[2]
+            return Layer.MOSQUITO1.value + position_z
         if "L" in id:
             return Layer.LADYBUG.value
         if "P" in id:
@@ -59,7 +59,7 @@ class MatrixDataset(data.Dataset):
             piece = piece[1].split(",")
             color = piece[0]
             id = piece[1]
-            layer = Layer.get_layer(id, (x, y, z))
+            layer = Layer.get_layer(id, z)
             matrix[x, y, layer] = 1 if color == "w" else -1
             
         if self.transform:
@@ -76,4 +76,3 @@ class MatrixDataset(data.Dataset):
         
         matrix = self.preprocess(matrix)
         return matrix, label
-        
