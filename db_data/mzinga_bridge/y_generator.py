@@ -15,13 +15,18 @@ if __name__ == "__main__":
         game_moves = game_moves[-N:]
     
     for game_move in game_moves:
-        game_move = game_move.replace("//", "/")
         game_move = game_move.split()
         game_interface = GameInterface()
         g_string: uhb_structs.GameString = game_interface.newgame()
         game_state_string: uhb_structs.GameString = game_interface.play(game_move[0])
-        for i in range(1, len(game_move))[::2]:
-            game_state_string = game_interface.play(game_move[i] + " " + game_move[i+1])
+        i: int = 1
+        while True:
+            if game_move[i] == "pass":
+                game_state_string = game_interface.play("pass")
+                i += 1
+            else:
+                game_state_string = game_interface.play(game_move[i] + " " + game_move[i+1])
+                i += 2
             if game_state_string.game_state_string.is_black_winner():
                 with open(label_file, "a") as lf:
                     lf.write("-1\n")
@@ -29,6 +34,10 @@ if __name__ == "__main__":
             elif game_state_string.game_state_string.is_white_winner():
                 with open(label_file, "a") as lf:
                     lf.write("1\n")
+                break
+            elif game_state_string.game_state_string.is_game_draw():
+                with open(label_file, "a") as lf:
+                    lf.write("0\n")
                 break
         
         
