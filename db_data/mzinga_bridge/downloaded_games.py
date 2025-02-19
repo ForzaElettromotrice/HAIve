@@ -1,9 +1,10 @@
-downloaded_file = "game.txt"
-
 class DownloadedGame():
 
-    def downloaded_game():
-        with open(downloaded_file, "r") as file:
+    def __init__(self, downloaded_file: str = "game.txt"):
+        self.downloaded_file = downloaded_file
+
+    def downloaded_game(self):
+        with open(self.downloaded_file, "r") as file:
             game = file.read()
         moves = []
         for line in game.split("\n"):
