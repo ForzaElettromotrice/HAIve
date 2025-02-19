@@ -22,17 +22,18 @@ class MaskedConv2d(nn.Module):
         self.mask = self.mask.expand(self.out_channels, self.in_channels, -1, -1)
         
         # SHARED WEIGHTS: To allow rotational invariance
-        self.shared_weight = nn.Parameter(torch.randn(1))
-        self.center_weight = nn.Parameter(torch.randn(1))
+        # self.shared_weight = nn.Parameter(torch.randn(1))
+        # self.center_weight = nn.Parameter(torch.randn(1))
 
     def forward(self, x):
         x = x.permute(0, 3, 1, 2)
         
         # Force SHARED WEIGHTS
-        weight = self.shared_weight * torch.ones_like(self.conv.weight)
-        weight[:, :, 2, 2] = self.center_weight
+        # weight = self.shared_weight * torch.ones_like(self.conv.weight)
+        # weight[:, :, 2, 2] = self.center_weight
 
         # Apply MASK
+        weight = self.conv.weight
         masked_weight = weight * self.mask.to(weight.device)
 
         self.conv.weight = nn.Parameter(masked_weight, requires_grad=True)

@@ -48,11 +48,14 @@ def train(model, train_loader, criterion, optimizer, num_epochs=50):
             total_loss += loss.item()
             
             predicted = outputs
-        
-        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {total_loss / len(train_loader):.4f}")
+            
+        loss_value = total_loss / len(train_loader)
+        train_accuracy = test(model, train_loader, in_train=True)
+        test_accuracy = test(model, test_loader, in_train=True)
+        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Train Accuracy: {train_accuracy:.4f}, Test Accuracy: {test_accuracy:.4f}")
 
 
-def test(model, test_loader):
+def test(model, test_loader, in_train: bool = False):
     model.eval()
     correct = 0
     total = 0
@@ -66,17 +69,26 @@ def test(model, test_loader):
             total += labels.size(0)
     
     accuracy = correct / total
-    print(f"Test Accuracy: {accuracy:.4f}")
+    if in_train:
+        return accuracy
+    else:
+        print(f"Test Accuracy: {accuracy:.4f}")
     
 
 if __name__ == "__main__":
     
     train_loader, test_loader = get_loaders('train_set.txt')
     
+    load_model: bool = False
     model = HiveCNN()
-    criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
+    criterion = nn.MSELoss()
+
+    if load_model:
+        model.load_model(optimizer)
     
     train(model, train_loader, criterion, optimizer)
     test(model, test_loader)
+    
+    model.save_model(optimizer)
 
