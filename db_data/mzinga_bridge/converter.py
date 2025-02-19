@@ -1,6 +1,3 @@
-import uhb_structs
-from game_interface import GameInterface
-
 class Piece:
     
     def __init__(self, color: str, position: tuple[int, int, int], id: str):
@@ -116,6 +113,8 @@ class Converter:
                 
     def dump_string(self, collector: Collector, label: str):
         with open(self.result_file, "a") as file:
+            if label[-1] != "\n":
+                label += "\n"
             file.write(str(collector) + label)
             
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ def get_loaders(input_file: str, train_size: float = 0.75) -> tuple[DataLoader, 
     return train_loader, test_loader
 
 
-def train(model, train_loader, criterion, optimizer, num_epochs=50):
+def train(model, train_loader, criterion, optimizer, num_epochs=40):
     model.train()
     
     for epoch in range(num_epochs):
@@ -50,9 +50,9 @@ def train(model, train_loader, criterion, optimizer, num_epochs=50):
             predicted = outputs
             
         loss_value = total_loss / len(train_loader)
-        train_accuracy = test(model, train_loader, in_train=True)
+        # train_accuracy = test(model, train_loader, in_train=True)
         test_accuracy = test(model, test_loader, in_train=True)
-        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Train Accuracy: {train_accuracy:.4f}, Test Accuracy: {test_accuracy:.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Test Accuracy: {test_accuracy:.4f}")
 
 
 def test(model, test_loader, in_train: bool = False):

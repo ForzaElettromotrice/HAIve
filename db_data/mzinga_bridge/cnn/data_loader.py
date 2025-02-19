@@ -128,12 +128,36 @@ def player_shift(sample: str) -> str:
         new_sample += label
     return new_sample
     
+class Preprocessor():
+    
+    @classmethod
+    def preprocess(cls, matrix: str, size: tuple = (60, 60)):
+        matrix = matrix.strip('[]')
+        rows = matrix.split(';')
+        
+        matrix = torch.zeros((*size, len(Layer) + 1), dtype=torch.float16)
+        if rows[-1] == '':
+            rows = rows[:-1]
+        for piece in rows:
+            piece = piece.split(')')
+            x, y, z = piece[0][1:].split(",")
+            x, y, z = int(x), int(y), int(z)
+            x += 30
+            y += 30
+            piece = piece[1].split(",")
+            color = piece[1]
+            id = piece[2]
+            layer = get_layer(id, z)
+            matrix[x, y, layer] = 1 if color == "w" else -1
+        return matrix
+    
 
 class MatrixDataset(data.Dataset):
     
-    def __init__(self, input_file: str, transform=None, size = (50, 50), data_augmentation: float = 1):
+    def __init__(self, input_file: str, transform=None, size = (60, 60), data_augmentation: float = 1):
         self.input_file = input_file
         self.transform = transform
+        self.preprocessor = Preprocessor
         with open(self.input_file, 'r') as f:
             self.data: list[str] = f.readlines()
         # self.data = [sample for sample in self.data if sample.split(']')[1] != '0']
@@ -157,24 +181,7 @@ class MatrixDataset(data.Dataset):
         self.size = size
         
     def preprocess(self, matrix):
-        matrix = matrix.strip('[]')
-        rows = matrix.split(';')
-        
-        matrix = torch.zeros((*self.size, len(Layer)), dtype=torch.float16)
-        if rows[-1] == '':
-            rows = rows[:-1]
-        for piece in rows:
-            piece = piece.split(')')
-            x, y, z = piece[0][1:].split(",")
-            x, y, z = int(x), int(y), int(z)
-            x += 25
-            y += 25
-            piece = piece[1].split(",")
-            color = piece[1]
-            id = piece[2]
-            layer = get_layer(id, z)
-            matrix[x, y, layer] = 1 if color == "w" else -1
-            
+        matrix = self.preprocessor.preprocess(matrix, self.size)
         if self.transform:
             matrix = self.transform(matrix)
         return matrix

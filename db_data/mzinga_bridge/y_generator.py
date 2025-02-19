@@ -12,6 +12,8 @@ if __name__ == "__main__":
             labels = lf.readlines()
         
         N = len(game_moves) - len(labels)
+        if N <= 0:
+            raise ValueError("The game_moves file must have more rows than the label file")
         game_moves = game_moves[-N:]
     
     for game_move in game_moves:
