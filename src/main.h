@@ -5,7 +5,10 @@
 #pragma once
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 
+#include "logger.h"
 #include "engine.h"
 
 #ifdef WIN32

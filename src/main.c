@@ -1,6 +1,5 @@
 #include "main.h"
 
-#include <string.h>
 
 int main(void)
 {
@@ -88,8 +87,6 @@ int mainLoop()
     //TODO: printare come scrivere una mossa
     printBoardStatus();
 
-    bool add;
-    uint8_t idx;
     size_t bytesRead;
     while ((int) (bytesRead = getline(&line, &lineSize, stdin)) != -1)
     {
@@ -100,24 +97,19 @@ int mainLoop()
             break;
         line[bytesRead - 1] = '\0';
 
-        if (!isEncodingValid(line, move, &add))
+        if (!isEncodingValid(line, move))
         {
             E_Print("Encoding not valid!\n");
             continue;
         }
-        if (!isMoveValid(move, &idx, add))
+        if (!isMoveValid(move[0], move[1], move[2], move[3]))
         {
             E_Print("Move is not valid!\n");
             continue;
         }
 
-        if (add)
-        {
-            addPiece(move[3], move[0], move[1], move[2]);
-        } else
-        {
-            movePiece(idx, move[3], move[4], move[5]);
-        }
+
+        doMove(move[0], move[1], move[2], move[3]);
 
         //TODO: controllare se si ha vinto
         printBoardStatus();

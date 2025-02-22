@@ -1,10 +1,4 @@
 //
-// Created by f3m on 22/02/25.
-//
-
-#pragma once
-
-//
 // Created by minga on 16/01/2025.
 //
 
@@ -32,8 +26,9 @@ int initGame();
 void cleanGame();
 
 bool isEncodingValid(const char *encoding, int8_t *move);
-bool isMoveValid(Pieces_t id, int8_t x, int8_t y, int8_t z);
+bool isMoveValid(uint8_t id, int8_t x, int8_t y, int8_t z);
 
-void doMove(Pieces_t id, int8_t x, int8_t y, int8_t z);
+void addPiece(Pieces_t type, int8_t x, int8_t y, int8_t z);
+void movePiece(uint8_t idx, int8_t x, int8_t y, int8_t z);
 
 void printBoardStatus();

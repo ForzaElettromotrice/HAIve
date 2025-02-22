@@ -1,17 +1,11 @@
 # HAIve
 
-Per muovere un pezzo bisogna scrivere: 
+Per aggiungere o muovere un pezzo bisogna scrivere: 
 
-``xi,yi,zi,xf,yf,zf``
-
-dove:
-- ``xi,yi,zi`` sono le coordinate iniziali
-- ``xf,yf,zf`` sono le coordinate finali
-
-Per aggiungere un nuovo pezzo si deve scrivere:
-
-``x,y,z,id``
+``id,x,y,z``
 
 dove:
-- ``x,y,z`` sono le coordinate dove lo si vuole inserire 
-- ``id`` è l'id del pezzo da inserire 
+* ``id`` è l'id del pezzo
+* ``x,y,z`` sono le coordinate finali
+
+
