@@ -77,7 +77,7 @@ class GameInterface:
         """
         return self.send_command(self.INFO_CMD)
 
-    def newgame(self) -> GameString:
+    def newgame_no_expansion(self) -> GameString:
         """
         Runs the *newgame* command without parameters.
         From UHP: "The newgame command asks the engine to start a new base game with no expansion pieces and should return a GameString.".
@@ -107,6 +107,10 @@ class GameInterface:
         :return: The GameString of the new game started.
         """
         ret = self.send_command(self.NEWGAME_CMD + " " + str(game_string) + "\n")
+        return parse_game_string(ret)
+    
+    def newgame(self) -> GameString:
+        ret = self.send_command(self.NEWGAME_CMD + " Base+MLP\n")
         return parse_game_string(ret)
 
     def play(self, move: MoveString) -> GameString:

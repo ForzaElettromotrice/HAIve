@@ -8,6 +8,7 @@ max_depth: int      = 5
 out_file_name: str  = 'game_moves.txt'
 
 if __name__ == '__main__':
+
     for i in range(0, play_num):
         game_interface = GameInterface()
         g_string: GameString = game_interface.newgame()
@@ -26,7 +27,9 @@ if __name__ == '__main__':
                 break
             
             g_string = game_interface.play(move)
+
         if looped:
             continue
+        
         with open(out_file_name, 'a') as file:
             file.write(' '.join([str(move) for move in g_string.moves]) + '\n')
