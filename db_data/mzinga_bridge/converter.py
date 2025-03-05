@@ -1,3 +1,11 @@
+"""
+    Takes the x_file and the y_file and converts them into a single file
+    with the following format:
+    
+    [((1, 2, 3), "W", "Q");((2, 3, 4), "B", "Q");...]1
+    [((1, 2, 3), "W", "Q");((2, 3, 4), "B", "Q");...]0
+"""
+
 class Piece:
     
     def __init__(self, color: str, position: tuple[int, int, int], id: str):
@@ -106,7 +114,8 @@ class Converter:
                 else:
                     new_move = game_move[i] + " " + game_move[i+1]
                     collector.manage_piece(new_move)
-                    self.dump_string(collector, label)
+                    if i >= 4: 
+                        self.dump_string(collector, label)
                     i += 2
                 if i >= len(game_move):
                     break
