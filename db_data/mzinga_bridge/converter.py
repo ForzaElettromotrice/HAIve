@@ -114,7 +114,7 @@ class Converter:
                 else:
                     new_move = game_move[i] + " " + game_move[i+1]
                     collector.manage_piece(new_move)
-                    if i >= 4: 
+                    if i >= 8: 
                         self.dump_string(collector, label)
                     i += 2
                 if i >= len(game_move):

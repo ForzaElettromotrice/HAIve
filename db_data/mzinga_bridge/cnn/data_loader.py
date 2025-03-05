@@ -52,7 +52,7 @@ def vertical_shift(sample: str, possible_shifts: list[int] = [-5, -4, -3, -2, -1
     new_sample += label
     return new_sample
 
-def horizontal_shift(sample: str, possible_shifts: list[int] = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]) -> str:
+def horizontal_shift(sample: str, possible_shifts: list[int] = [-4, -3, -2, -1, 1, 2, 3, 4]) -> str:
     sample, label = sample.split("]")[0:2]
     sample += "]"
     pieces = sample.strip('[]').split(';')
@@ -62,7 +62,7 @@ def horizontal_shift(sample: str, possible_shifts: list[int] = [-5, -4, -3, -2, 
         if piece != '':
             coords, rest = piece.split(')', 1)
             x, y, z = map(int, coords[1:].split(','))
-            x += random_shift
+            x += random_shift * 2
             new_sample += f'({x},{y},{z}){rest}'
             new_sample += ";"
     new_sample += "]"
@@ -165,13 +165,15 @@ class MatrixDataset(data.Dataset):
         to_vertical_shift = random.sample(self.data, int(to_augment / 6))
         for sample in to_vertical_shift:
             self.data.append(vertical_shift(sample))
+        """
         to_horizontal_shift = random.sample(self.data, int(to_augment / 6))
         for sample in to_horizontal_shift:
             self.data.append(horizontal_shift(sample))
-        to_diagonal_shift = random.sample(self.data, int(to_augment / 6))
+        to_diagonal_shift = random.sample(self.data, int(to_augment))
         for sample in to_diagonal_shift:
             self.data.append(diagonal_shift(sample))
-        to_rotate_shift = random.sample(self.data, int(to_augment / 4))
+        """
+        to_rotate_shift = random.sample(self.data, int(to_augment))
         for sample in to_rotate_shift:
             self.data.append(rotate_shift(sample))
         to_player_shift = random.sample(self.data, int(to_augment / 4))

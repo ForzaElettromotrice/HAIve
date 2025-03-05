@@ -1,3 +1,7 @@
+"""
+    Read the downloaded game from the file and return the game string
+"""
+
 class DownloadedGame():
 
     def __init__(self, downloaded_file: str = "game.txt"):
