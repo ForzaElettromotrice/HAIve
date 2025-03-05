@@ -1,5 +1,11 @@
 from board import Board
 
+"""
+Game class
+    - A game is a list of boards
+    - A game is represented as a comma-separated string of boards
+"""
+
 class Game:
     
     def __init__(self, boards: list[Board]):

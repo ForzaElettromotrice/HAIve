@@ -13,12 +13,12 @@ class HiveCNN(nn.Module):
         
         self.activation_func = F.tanh
         
-        self.conv1 = MaskedConv2d(in_channels=13, out_channels=16)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1, bias=True)
+        self.conv1 = MaskedConv2d(in_channels=13, out_channels=24)
+        self.conv2 = nn.Conv2d(24, 32, kernel_size=3, padding=1, bias=True)
         self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, bias=True)
         self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, bias=True)
         self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1, bias=True)
-        self.pool = nn.MaxPool2d(kernel_size=3, stride=2)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         
         self.fc1 = nn.Linear(256, 256)
         self.dropout1 = nn.Dropout(0.2)

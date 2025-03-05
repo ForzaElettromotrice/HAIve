@@ -6,6 +6,14 @@ from torch.utils.data import DataLoader
 from hive_cnn import HiveCNN
 import random
 
+"""
+    To train and the test the model
+        1. Get the data loaders
+        2. Train the model
+        3. Test the model
+        4. Save the model
+"""
+
 def get_loaders(input_file: str, train_size: float = 0.75) -> tuple[DataLoader, DataLoader]:
     with open(input_file, 'r') as file:
         lines = [line for line in file.readlines() if line.strip()]
@@ -50,9 +58,12 @@ def train(model, train_loader, criterion, optimizer, num_epochs=40):
             predicted = outputs
             
         loss_value = total_loss / len(train_loader)
-        # train_accuracy = test(model, train_loader, in_train=True)
-        test_accuracy = test(model, test_loader, in_train=True)
-        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Test Accuracy: {test_accuracy:.4f}")
+        
+        if (epoch + 1) % 5 == 0:
+            test_accuracy = test(model, test_loader, in_train=True)
+            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Test Accuracy: {test_accuracy:.4f}")
+        else:
+            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}")
 
 
 def test(model, test_loader, in_train: bool = False):

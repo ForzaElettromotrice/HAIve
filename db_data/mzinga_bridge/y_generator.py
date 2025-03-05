@@ -3,6 +3,10 @@ import uhb_structs
 
 label_file: str = "labels.txt"
 
+"""
+    For every game in the game_moves file, play the game and write the result to the label file.
+"""
+
 if __name__ == "__main__":
     
     with open("game_moves.txt", "r") as file:
