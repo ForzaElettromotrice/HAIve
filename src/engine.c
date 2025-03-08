@@ -114,6 +114,150 @@ bool divideBoard(const Pieces_t id)
 
     return result;
 }
+bool isBlocked(const int8_t direction, const int8_t x, const int8_t y, const int8_t z)
+{
+    int8_t offX = directions[(direction - 1) % 6][0];
+    int8_t offY = directions[(direction - 1) % 6][1];
+    const bool result = isOccupied((int8_t) (x + offX), (int8_t) (y + offY), z, NULL);
+
+    offX = directions[(direction + 1) % 6][0];
+    offY = directions[(direction + 1) % 6][0];
+    return result && isOccupied((int8_t) (x + offX), (int8_t) (y + offY), z, NULL);
+}
+bool queenRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
+{
+    const Piece_t piece = board[id];
+    const int8_t ix = piece.x;
+    const int8_t iy = piece.y;
+
+    for (int8_t i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        if (ix + offX == fx && iy + offY == fy)
+            return !isBlocked(i, ix, iy, 0);
+    }
+    return false;
+}
+bool beetleRoute(const Pieces_t id, const int8_t fx, const int8_t fy, const int8_t fz)
+{
+    const Piece_t piece = board[id];
+    const int8_t ix = piece.x;
+    const int8_t iy = piece.y;
+    const int8_t iz = piece.z;
+
+    if (fz - iz > 1 || fz - iz < -1)
+        return false;
+
+    for (int8_t i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        if (ix + offX == fx && iy + offY == fy)
+            return !isBlocked(i, ix, iy, fz);
+    }
+    return false;
+}
+bool grasshopperRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
+{
+    const Piece_t piece = board[id];
+    const int8_t ix = piece.x;
+    const int8_t iy = piece.y;
+
+    int8_t offX;
+    int8_t offY;
+
+    if (ix - fx == 0)
+    {
+        if (abs(iy - fy) % 2 != 0)
+            return false;
+        offX = 0;
+        offY = fy - iy > 0 ? 2 : -2;
+    } else
+    {
+        if (abs(ix - fx) != abs(iy - fy))
+            return false;
+        offX = fx - ix > 0 ? 1 : -1;
+        offY = fy - iy > 0 ? 1 : -1;
+    }
+
+    int8_t currX = ix;
+    int8_t currY = iy;
+    while (currX != fx)
+    {
+        if (!isOccupied(currX, currY, 0, NULL))
+            return false;
+        currX += offX;
+        currY += offY;
+    }
+    return true;
+}
+bool spiderRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
+{
+    const Piece_t piece = board[id];
+    const int8_t ix = piece.x;
+    const int8_t iy = piece.y;
+
+    for (int8_t i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        if (isOccupied((int8_t) (ix + offX), (int8_t) (iy + offY), 0, NULL))
+            continue;
+        if (isBlocked(i, ix, iy, 0))
+            continue;
+
+        //TODO: fare un fake step e ripetere l'operazione
+
+    }
+}
+bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, int8_t z)
+{
+    switch (id)
+    {
+        case B_QUEEN:
+        case W_QUEEN:
+            return queenRoute(id, x, y);
+        case B_PILLBUG:
+        case W_PILLBUG:
+            break;
+        case B_LADYBUG:
+        case W_LADYBUG:
+            break;
+        case B_MOSQUITO:
+        case W_MOSQUITO:
+            break;
+        case B_ANT_1:
+        case B_ANT_2:
+        case B_ANT_3:
+        case W_ANT_1:
+        case W_ANT_2:
+        case W_ANT_3:
+            break;
+        case B_GRASSHOPPER_1:
+        case B_GRASSHOPPER_2:
+        case B_GRASSHOPPER_3:
+        case W_GRASSHOPPER_1:
+        case W_GRASSHOPPER_2:
+        case W_GRASSHOPPER_3:
+            return grasshopperRoute(id, x, y);
+        case B_BEETLE_1:
+        case B_BEETLE_2:
+        case W_BEETLE_1:
+        case W_BEETLE_2:
+            return beetleRoute(id, x, y, z);
+        case B_SPIDER_1:
+        case B_SPIDER_2:
+        case W_SPIDER_1:
+        case W_SPIDER_2:
+            return spiderRoute(id, x, y, 3);
+        case NULLPIECE:
+            break;
+    }
+}
 
 int initGame()
 {
@@ -185,7 +329,8 @@ bool isMoveValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t
     if (!divideBoard(id)) //se togliendolo la board si spezzerebbe...
         return false;
 
-    //TODO: controllare il percorso
+    if (!routeValid(id, x, y, z)) //se il percorso è valido
+        return false;
 
     return false;
 }
@@ -236,42 +381,6 @@ void printBoardStatus()
 }
 
 
-// bool queenRoute(const int8_t sx, const int8_t sy, const int8_t ex, const int8_t ey)
-// {
-//     for (int8_t i = 0; i < 6; ++i)
-//     {
-//         const int8_t newX = (int8_t) (directions[i][0] + sx);
-//         const int8_t newY = (int8_t) (directions[i][1] + sy);
-//         uint8_t idx;
-//         findPiece(newX, newY, 0, &idx);
-//         if (idx == 255)
-//             continue;
-//         if (!isBlocked(i, newX, newY, 0))
-//             continue;
-//         if (newX == ex && newY == ey)
-//             return true;
-//     }
-//     return false;
-// }
-// bool beetleRoute(const int8_t sx, const int8_t sy, const int8_t sz, const int8_t ex, const int8_t ey, const int8_t ez)
-// {
-//     for (int8_t i = 0; i < 6; ++i)
-//     {
-//         const int8_t newX = (int8_t) (directions[i][0] + sx);
-//         const int8_t newY = (int8_t) (directions[i][1] + sy);
-//
-//         uint8_t idx;
-//         findPiece(newX, newY, ez, &idx);
-//         if (idx == 255)
-//             continue;
-//         if (!isBlocked(i, newX, newY, ez))
-//             continue;
-//         if (newX == ex && newY == ey)
-//             return true;
-//     }
-//
-//     return false;
-// }
 // bool grasshopperRoute(const int8_t sx, const int8_t sy, const int8_t ex, const int8_t ey)
 // {
 //     int8_t dx;
