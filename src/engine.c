@@ -194,28 +194,155 @@ bool grasshopperRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
     }
     return true;
 }
-bool spiderRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
+bool pillbugRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
 {
-    const Piece_t piece = board[id];
-    const int8_t ix = piece.x;
-    const int8_t iy = piece.y;
+}
+bool ladybugRoute(const Pieces_t id, const int8_t ix, const int8_t iy, const int8_t fx, const int8_t fy, const int8_t depth)
+{
+    for (int i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+        const int8_t newX = (int8_t) (ix + offX);
+        const int8_t newY = (int8_t) (iy + offY);
+
+        if (depth == 3)
+        {
+            if (neighbors[id][i] == NULLPIECE)
+                continue;
+
+            if (isOccupied(newX, newY, 1, NULL))
+                continue;
+
+            if (ladybugRoute(id, newX, newY, fx, fy, 2))
+                return true;
+        }
+        if (depth == 2)
+        {
+            if (isOccupied(newX, newY, 1, NULL))
+            {
+                if (!isOccupied(newX, newY, 2, NULL) && ladybugRoute(id, newX, newY, fx, fy, 1))
+                    return true;
+            } else if (isOccupied(newX, newY, 0, NULL) && ladybugRoute(id, newX, newY, fx, fy, 1))
+                return true;
+            continue;
+        }
+        if (depth == 1)
+        {
+            if (newX != fx || newY != fy)
+                continue;
+            if (!isOccupied(newX, newY, 0, NULL))
+                return true;
+        }
+    }
+    return false;
+}
+bool antRoute(const Pieces_t id, const int8_t fx, const int8_t fy)
+{
+}
+bool spiderRoute(const int8_t ix, const int8_t iy, const int8_t fx, const int8_t fy, const int8_t depth)
+{
+    //TODO: vettore dei visitati
+    if (depth == 0)
+        return false;
+
+    if (ix == fx && iy == fy)
+        return true;
 
     for (int8_t i = 0; i < 6; ++i)
     {
         const int8_t offX = directions[i][0];
         const int8_t offY = directions[i][1];
 
-        if (isOccupied((int8_t) (ix + offX), (int8_t) (iy + offY), 0, NULL))
+        const int8_t newX = (int8_t) (ix + offX);
+        const int8_t newY = (int8_t) (iy + offY);
+
+        if (isOccupied(newX, newY, 0, NULL))
             continue;
         if (isBlocked(i, ix, iy, 0))
             continue;
 
-        //TODO: fare un fake step e ripetere l'operazione
-
+        if (spiderRoute(newX, newY, fx, fy, (int8_t) (depth - 1)))
+            return true;
     }
+    return false;
 }
-bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, int8_t z)
+bool mosquitoRoute(const Pieces_t id, const int8_t fx, const int8_t fy, const int8_t fz)
 {
+    const Piece_t piece = board[id];
+    const int8_t ix = piece.x;
+    const int8_t iy = piece.y;
+    const int8_t iz = piece.z;
+
+    if (iz > 0)
+        return beetleRoute(id, fx, fy, fz);
+
+    bool out = false;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        const Pieces_t neighbor = neighbors[id][i];
+        switch (neighbor)
+        {
+            case B_QUEEN:
+            case W_QUEEN:
+                out |= queenRoute(id, fx, fy);
+                break;
+            case B_PILLBUG:
+            case W_PILLBUG:
+                out |= pillbugRoute(id, fx, fy);
+                break;
+            case B_LADYBUG:
+            case W_LADYBUG:
+                out |= ladybugRoute(id, ix, iy, fx, fy, 3);
+                break;
+            case B_MOSQUITO:
+            case W_MOSQUITO:
+                out |= false;
+                break;
+            case B_ANT_1:
+            case B_ANT_2:
+            case B_ANT_3:
+            case W_ANT_1:
+            case W_ANT_2:
+            case W_ANT_3:
+                out |= antRoute(id, fx, fy);
+                break;
+            case B_GRASSHOPPER_1:
+            case B_GRASSHOPPER_2:
+            case B_GRASSHOPPER_3:
+            case W_GRASSHOPPER_1:
+            case W_GRASSHOPPER_2:
+            case W_GRASSHOPPER_3:
+                out |= grasshopperRoute(id, fx, fy);
+                break;
+            case B_BEETLE_1:
+            case B_BEETLE_2:
+            case W_BEETLE_1:
+            case W_BEETLE_2:
+                out |= beetleRoute(id, fx, fy, fz);
+                break;
+            case B_SPIDER_1:
+            case B_SPIDER_2:
+            case W_SPIDER_1:
+            case W_SPIDER_2:
+                out |= spiderRoute(ix, iy, fx, fy, 3);
+                break;
+            case NULLPIECE:
+                out |= false;
+                break;
+        }
+        if (out)
+            return out;
+    }
+    return false;
+}
+bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t z)
+{
+    const Piece_t piece = board[id];
+    const int8_t ix = piece.x;
+    const int8_t iy = piece.y;
+
     switch (id)
     {
         case B_QUEEN:
@@ -226,7 +353,9 @@ bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, int8_t z)
             break;
         case B_LADYBUG:
         case W_LADYBUG:
-            break;
+            if (z != 0)
+                return false;
+            return ladybugRoute(id, ix, iy, x, y, 3);
         case B_MOSQUITO:
         case W_MOSQUITO:
             break;
@@ -253,7 +382,7 @@ bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, int8_t z)
         case B_SPIDER_2:
         case W_SPIDER_1:
         case W_SPIDER_2:
-            return spiderRoute(id, x, y, 3);
+            return spiderRoute(ix, iy, x, y, 3);
         case NULLPIECE:
             break;
     }
@@ -380,63 +509,3 @@ void printBoardStatus()
     }
 }
 
-
-// bool grasshopperRoute(const int8_t sx, const int8_t sy, const int8_t ex, const int8_t ey)
-// {
-//     int8_t dx;
-//     if (sx - ex > 0)
-//         dx = 1;
-//     else if (sx - ex == 0)
-//         dx = 0;
-//     else
-//         dx = -1;
-//     const int8_t dy = sy - ey > 0 ? 2 : (sy - ey == 0 ? 0 : -2);
-//
-//
-//     uint8_t idx;
-//     findPiece(sx + dx, sy + dy, 0, &idx);
-//     if (idx == 255)
-//         return false;
-//     int8_t j = sy + dy;
-//     for (int8_t i = sx + dx; i != ex; i += dx)
-//     {
-//         j += dy;
-//
-//         if (i == ex && j == ey)
-//             return true;
-//
-//         findPiece(i, j, 0, &idx);
-//         if (idx == 255)
-//             return false;
-//     }
-//
-//
-//     return false;
-// }
-//
-// bool existRoute(const Pieces_t type, const int8_t sx, const int8_t sy, const int8_t sz, const int8_t ex, const int8_t ey, const int8_t ez)
-// {
-//     switch (type)
-//     {
-//         case NULLPIECE:
-//             E_Print("Invalid type piece!\n");
-//             return false;
-//         case QUEEN:
-//             return queenRoute(sx, sy, ex, ey);
-//         case PILLBUG:
-//             break;
-//         case LADYBUG:
-//             break;
-//         case MOSQUITO:
-//             break;
-//         case ANT:
-//             break;
-//         case GRASSHOPPER:
-//             return grasshopperRoute(sx, sy, ex, ey);
-//         case BEETLE:
-//             return beetleRoute(sx, sy, sz, ex, ey, ez);
-//         case SPIDER:
-//             break;
-//     }
-//     return false;
-// }
