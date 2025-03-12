@@ -16,6 +16,7 @@ const int8_t directions[6][2] =
 
 Piece_t board[28];
 Pieces_t neighbors[28][6];
+//TODO: vettore dei "pezzi mossi"
 
 Colors_t colorTurn = NULLCOLOR;
 bool firstMove = false;
@@ -337,16 +338,54 @@ bool mosquitoRoute(const Pieces_t id, const int8_t fx, const int8_t fy, const in
     }
     return false;
 }
+bool canPillbugMove(const Pieces_t id, const int8_t fx, const int8_t fy)
+{
+    bool isNear = false;
+    Piece_t pillbug = {};
+    for (int i = 0; i < 6; ++i)
+    {
+        if ((neighbors[id][i] == B_PILLBUG && colorTurn == BLACK) || (neighbors[id][i] == W_PILLBUG && colorTurn == WHITE))
+        {
+            isNear = true;
+            pillbug = board[neighbors[id][i]];
+            break;
+        }
+    }
+    if (!isNear)
+        return false;
+
+    const int8_t px = pillbug.x;
+    const int8_t py = pillbug.y;
+
+    if (isOccupied(px, py, 1,NULL))
+        return false;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        const int8_t offX = directions[i][0];
+        const int8_t offY = directions[i][1];
+
+        if (px + offX == fx && py + offY == fy)
+            return true;
+    }
+
+    return false;
+}
 bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t z)
 {
     const Piece_t piece = board[id];
     const int8_t ix = piece.x;
     const int8_t iy = piece.y;
 
+    if (z == 0 && canPillbugMove(id, x, y))
+        return true;
+
     switch (id)
     {
         case B_QUEEN:
         case W_QUEEN:
+            if (z != 0)
+                return false;
             return queenRoute(id, x, y);
         case B_PILLBUG:
         case W_PILLBUG:
@@ -358,7 +397,7 @@ bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t 
             return ladybugRoute(id, ix, iy, x, y, 3);
         case B_MOSQUITO:
         case W_MOSQUITO:
-            break;
+            return mosquitoRoute(id, x, y, z);
         case B_ANT_1:
         case B_ANT_2:
         case B_ANT_3:
@@ -372,6 +411,8 @@ bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t 
         case W_GRASSHOPPER_1:
         case W_GRASSHOPPER_2:
         case W_GRASSHOPPER_3:
+            if (z != 0)
+                return false;
             return grasshopperRoute(id, x, y);
         case B_BEETLE_1:
         case B_BEETLE_2:
@@ -382,6 +423,8 @@ bool routeValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t 
         case B_SPIDER_2:
         case W_SPIDER_1:
         case W_SPIDER_2:
+            if (z != 0)
+                return false;
             return spiderRoute(ix, iy, x, y, 3);
         case NULLPIECE:
             break;
@@ -460,6 +503,9 @@ bool isMoveValid(const Pieces_t id, const int8_t x, const int8_t y, const int8_t
 
     if (!routeValid(id, x, y, z)) //se il percorso è valido
         return false;
+
+    //TODO: il pezzo non può essere stato mosso il turno precedente
+    //TODO: il pezzo non può avere un pezzo sopra di lui
 
     return false;
 }
