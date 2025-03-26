@@ -24,9 +24,7 @@ def mzinga_to_coord(game: str) -> str:
     
 if __name__ == "__main__":
     move_string: str = DownloadedGame().downloaded_game()
-    move_string = mzinga_to_coord(move_string)
-    move_string = Preprocessor.preprocess(move_string)
-    move_string = move_string.reshape((1, move_string.shape[0], move_string.shape[1], move_string.shape[2]))
+    move_string = Preprocessor.mzinga_to_torch(move_string)
     
     model: HiveCNN = HiveCNN()
     model.load_model()

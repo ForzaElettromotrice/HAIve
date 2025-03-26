@@ -1,5 +1,11 @@
 import torch
 import torch.utils.data as data
+
+import sys
+import os
+sys.path.append(os.path.abspath(os.getcwd()))
+
+from db_data.mzinga_bridge.converter import Collector
 from enum import Enum
 import random
 
@@ -131,6 +137,29 @@ def player_shift(sample: str) -> str:
 class Preprocessor():
     
     @classmethod
+    def mzinga_to_coord(cls, game: str) -> str:
+        moves: list[str] = game.split(" ")
+        i: int = 1
+        collector: Collector = Collector(moves[0])
+        while True:
+            if i >= len(moves):
+                break
+            if moves[i] == "pass":
+                i += 1
+                continue
+            else:
+                collector.manage_piece(moves[i] + " " + moves[i+1])
+                i += 2
+                continue
+        return str(collector)
+    
+    """
+        Preprocess the string to the required format.
+        
+        @param matrix: The matrix to preprocess.
+        @param size: The size of the output matrix.
+    """
+    @classmethod
     def preprocess(cls, matrix: str, size: tuple = (60, 60)):
         matrix = matrix.strip('[]')
         rows = matrix.split(';')
@@ -150,6 +179,13 @@ class Preprocessor():
             layer = get_layer(id, z)
             matrix[x, y, layer] = 1 if color == "w" else -1
         return matrix
+    
+    @classmethod
+    def mzinga_to_torch(cls, game: str):
+        game = cls.mzinga_to_coord(game)
+        game = cls.preprocess(game)
+        game = game.reshape((1, game.shape[0], game.shape[1], game.shape[2]))
+        return game
     
 
 class MatrixDataset(data.Dataset):
