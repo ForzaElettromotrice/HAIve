@@ -40,7 +40,7 @@ class Agent:
         )
         return for_moves.valid_moves.split(";")
     
-    def montecarlo_search(self, board: BoardManager, depth: int):
+    def negamax_search(self, board: BoardManager, depth: int):
         if depth == 0:
             return self.board.evaluate(), None
         best_move = None
@@ -48,7 +48,7 @@ class Agent:
         moves = self.get_available_moves()
         for move in moves:
             board.push(move)
-            score, _ = self.montecarlo_search(board, depth-1)
+            score, _ = self.negamax_search(board, depth-1)
             score = -score
             board.pop()
             if score > best_score:
@@ -57,11 +57,11 @@ class Agent:
         return best_score, best_move
     
     def get_best_move(self):
-        return self.montecarlo_search(self.board, self.depth)[1]
+        return self.negamax_search(self.board, self.depth)[1]
     
 if __name__ == "__main__":
     
-    game_state_string = "Base+MLP;InProgress;White[4];wB1;bG1 -wB1;wS1 wB1/;bQ \\bG1;wS2 \\wS1;bA1 /bG1;wQ wS2-;bA1 \\wS2"
+    game_state_string = "Base+MLP;InProgress;Black[1];wB1"
     
     moves = game_state_string.split(";")
     moves = moves[3:]
