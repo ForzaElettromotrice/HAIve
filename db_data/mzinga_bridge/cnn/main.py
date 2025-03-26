@@ -14,7 +14,7 @@ import random
         4. Save the model
 """
 
-def get_loaders(input_file: str, train_size: float = 0.75) -> tuple[DataLoader, DataLoader]:
+def get_loaders(input_file: str, device, train_size: float = 0.75) -> tuple[DataLoader, DataLoader]:
     with open(input_file, 'r') as file:
         lines = [line for line in file.readlines() if line.strip()]
 
@@ -34,6 +34,12 @@ def get_loaders(input_file: str, train_size: float = 0.75) -> tuple[DataLoader, 
     
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
+    for inputs, labels in train_loader:
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+    for inputs, labels in test_loader:
+        inputs = inputs.to(device)
+        labels = labels.to(device)
 
     return train_loader, test_loader
 
@@ -88,11 +94,11 @@ def test(model, test_loader, in_train: bool = False):
 
 if __name__ == "__main__":
     
-    train_loader, test_loader = get_loaders('train_set.txt')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    train_loader, test_loader = get_loaders('train_set.txt', device)
     
     load_model: bool = False
     model = HiveCNN()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
     criterion = nn.MSELoss()

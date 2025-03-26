@@ -34,18 +34,21 @@ class Agent:
         self.depth = depth
         
     def run(self, against: str = "random", is_white: bool = True):
-        board = BoardManager(status=["wQ"])
         game_interface = GameInterface()
         game_string = game_interface.newgame()
-        game_interface.play(random.choice(game_interface.validmoves()))
+        random_move = random.choice(self.get_moves(game_interface))
+        game_string = game_interface.play(random_move)
+        board = BoardManager(status=[random_move])
         my_turn = not is_white
         
         while not game_string.game_state_string.is_game_ended():
             if my_turn:
                 best_score, best_move = self.negamax_search(board, game_interface, self.depth)
+                board.push(best_move)
                 game_string = game_interface.play(best_move)
             else:
-                random_move = random.choice(game_interface.validmoves())
+                random_move = random.choice(self.get_moves(game_interface))
+                board.push(random_move)
                 game_string = game_interface.play(random_move)
             my_turn = not my_turn
         return game_string.game_state_string.is_white_winner()
