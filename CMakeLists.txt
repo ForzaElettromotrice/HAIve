@@ -3,16 +3,19 @@ project(HAIve C)
 
 set(CMAKE_C_STANDARD 17)
 #set(CMAKE_C_FLAGS "-O3")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 
 add_compile_options(-Wall)
-
 add_compile_definitions(Debug)
 
-add_executable(HAIve src/main.c
-        src/enums.h
+add_executable(HAIve
+        src/main.c
+        src/moves.c
         src/logger.c
-        src/logger.h
-        src/main.h
-        src/engine.c
-        src/engine.h)
+)
+
+target_include_directories(
+        HAIve PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+set_target_properties(HAIve PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
+)
