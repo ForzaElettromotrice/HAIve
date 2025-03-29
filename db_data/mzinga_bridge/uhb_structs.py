@@ -31,9 +31,9 @@ class GameTypeString:
         value = "Base"
         if self.mosquito or self.ladybug or self.pillbug:
             value += "+" + \
-                     "M" if self.mosquito else "" + \
-                                               "L" if self.ladybug else "" + \
-                                                                        "P" if self.pillbug else ""
+                     ("M" if self.mosquito else "") + \
+                                               ("L" if self.ladybug else "") + \
+                                                                        ("P" if self.pillbug else "")
         return value
 
     def __repr__(self):
@@ -216,8 +216,9 @@ class GameString:
 
     def __str__(self):
         to_ret = ""
-        to_ret += (str(self.game_type_string) + ";" + str(self.game_state_string) + ";" + str(self.turn_string) + ";")
-        to_ret += ";".join([str(move) for move in self.moves])
+        to_ret += (str(self.game_type_string) + ";" + str(self.game_state_string) + ";" + str(self.turn_string))
+        to_ret += ";" if len(self.moves) > 0 else ""
+        to_ret += (";".join([str(move) for move in self.moves]))
         return to_ret
 
     def __repr__(self):

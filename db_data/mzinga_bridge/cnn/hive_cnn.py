@@ -11,36 +11,52 @@ class HiveCNN(nn.Module):
         
         self.checkpoint_file = checkpoint_file
         
-        self.activation_func = F.tanh
+        self.activation_func = F.relu
         
-        self.conv1 = MaskedConv2d(in_channels=13, out_channels=24)
-        self.conv2 = nn.Conv2d(24, 32, kernel_size=3, padding=1, bias=True)
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1, bias=True)
-        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1, bias=True)
-        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1, bias=True)
+        def conv_block(in_channels, out_channels):
+            return nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=True),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU()
+            )
+        
+        self.layer1 = nn.Sequential(
+            MaskedConv2d(in_channels=13, out_channels=24),
+            nn.BatchNorm2d(24),
+            nn.ReLU()
+        )
+        self.conv_layers = nn.Sequential(
+            self.layer1,
+            conv_block(24, 32),
+            conv_block(32, 64),
+            conv_block(64, 128),
+            conv_block(128, 256)
+        )
+        
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         
-        self.fc1 = nn.Linear(256, 256)
-        self.dropout1 = nn.Dropout(0.2)
-        self.fc2 = nn.Linear(256, 64)
-        self.dropout2 = nn.Dropout(0.2)
-        self.fc3 = nn.Linear(64, 16)
-        self.fc4 = nn.Linear(16, 1)
+        self.fc_layers = nn.Sequential(
+            nn.Linear(128 * 512, 256),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1)
+        )
         
     def forward(self, x):
-        x = self.pool(self.activation_func(self.conv1(x)))
-        x = self.pool(self.activation_func(self.conv2(x)))
-        x = self.pool(self.activation_func(self.conv3(x)))
-        x = self.pool(self.activation_func(self.conv4(x)))
-        x = self.pool(self.activation_func(self.conv5(x)))
+        x = x.float()
+        
+        x = self.conv_layers(x)
+        x = self.pool(x)
         
         x = x.reshape(x.size(0), -1)
-        x = self.activation_func(self.fc1(x))
-        x = self.dropout1(x)
-        x = self.activation_func(self.fc2(x))
-        x = self.dropout2(x)
-        x = self.activation_func(self.fc3(x))
-        x = self.activation_func(self.fc4(x))
+        x = self.fc_layers(x)
+
+        x = torch.tanh(x)
 
         return x
     

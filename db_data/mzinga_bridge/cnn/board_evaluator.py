@@ -3,9 +3,13 @@ from data_loader import Preprocessor
 
 class MoveEvaluator():
     
-    def __init__(self, checkpoint_file: str = "model_checkpoint.pth"):
-        self.model = HiveCNN(checkpoint_file=checkpoint_file)
-        self.model.load_model()
+    def __init__(self, checkpoint_file: str = "model_checkpoint.pth", model: HiveCNN = None):
+        if model:
+            self.model = model
+        else:
+            self.model = HiveCNN(checkpoint_file=checkpoint_file)
+            self.model.load_model()
+        
         self.model.eval()
         
     """

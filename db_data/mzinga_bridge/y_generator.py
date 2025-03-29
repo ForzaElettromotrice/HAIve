@@ -1,7 +1,8 @@
 from game_interface import GameInterface
 import uhb_structs
 
-label_file: str = "labels.txt"
+label_file: str = "y_0.txt"
+moves_file: str = "x_0.txt"
 
 """
     For every game in the game_moves file, play the game and write the result to the label file.
@@ -9,7 +10,7 @@ label_file: str = "labels.txt"
 
 if __name__ == "__main__":
     
-    with open("game_moves.txt", "r") as file:
+    with open(moves_file, "r") as file:
         game_moves = file.readlines()
         
         with open(label_file, "r") as lf:
@@ -27,6 +28,12 @@ if __name__ == "__main__":
         game_state_string: uhb_structs.GameString = game_interface.play(game_move[0])
         i: int = 1
         while True:
+            try:
+                game_move[i]
+            except:
+                with open(label_file, "a") as lf:
+                    lf.write("0\n")
+                break
             if game_move[i] == "pass":
                 game_state_string = game_interface.play("pass")
                 i += 1

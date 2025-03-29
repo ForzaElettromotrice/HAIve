@@ -73,7 +73,7 @@ class Agent:
         return best_score, best_move
     
 if __name__ == '__main__':
-    agent = Agent()
+    agent = Agent(depth=1)
     wins = 0
     plays = 0
     for i in range(100):

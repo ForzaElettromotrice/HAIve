@@ -196,6 +196,7 @@ class MatrixDataset(data.Dataset):
         self.preprocessor = Preprocessor
         with open(self.input_file, 'r') as f:
             self.data: list[str] = f.readlines()
+            
         # self.data = [sample for sample in self.data if sample.split(']')[1] != '0']
         to_augment: int = int(len(self.data) * data_augmentation)
         to_vertical_shift = random.sample(self.data, int(to_augment / 6))

@@ -34,17 +34,11 @@ def get_loaders(input_file: str, device, train_size: float = 0.75) -> tuple[Data
     
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
-    for inputs, labels in train_loader:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-    for inputs, labels in test_loader:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
 
     return train_loader, test_loader
 
 
-def train(model, train_loader, criterion, optimizer, num_epochs=40):
+def train(model, train_loader, criterion, optimizer, num_epochs=10):
     model.train()
     
     for epoch in range(num_epochs):
@@ -99,7 +93,8 @@ if __name__ == "__main__":
     
     load_model: bool = False
     model = HiveCNN()
-    model.to(device)
+    model.float()
+    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
     criterion = nn.MSELoss()
 
