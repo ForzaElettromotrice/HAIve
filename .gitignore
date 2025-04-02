@@ -3,3 +3,6 @@ cmake-build-debug
 bin
 .vscode
 old
+
+lib/xxHash/CMakeFiles
+lib/xxHash/libxxhash.a

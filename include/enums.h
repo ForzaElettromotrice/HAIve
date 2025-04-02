@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <stdint.h>
+
+
 typedef enum Pieces
 {
     NULLPIECE = -1,
@@ -43,3 +46,16 @@ typedef enum Colors
     WHITE = 1,
     BLACK = -1
 } Colors_t;
+
+typedef struct Position
+{
+    int8_t x;
+    int8_t y;
+    int8_t z;
+} Position_t;
+
+typedef struct Piece
+{
+    Pieces_t id;
+    Position_t position;
+} Piece_t;
