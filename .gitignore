@@ -4,5 +4,4 @@ bin
 .vscode
 old
 
-lib/xxHash/CMakeFiles
-lib/xxHash/libxxhash.a
+lib/xxHash/lib
