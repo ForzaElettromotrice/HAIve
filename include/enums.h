@@ -38,7 +38,8 @@ typedef enum Pieces
     W_BEETLE_2,
     W_SPIDER_1,
     W_SPIDER_2,
-} Pieces_t;
+} __attribute__((__packed__)) Pieces_t;
+
 
 typedef enum Colors
 {

@@ -7,6 +7,7 @@
 #include <moves.h>
 #include <xxhash.h>
 
+//TODO: correggi gli errori dei casi limite (e metti il modulo quando sottrai l'idx)
 uint64_t hashPiece(const Pieces_t piece, const Pieces_t *neighbors)
 {
     int_fast8_t max = 0;
@@ -34,9 +35,10 @@ uint64_t hashPiece(const Pieces_t piece, const Pieces_t *neighbors)
 
     return hash;
 }
+
+//TODO: usa la matrice invece che la lista di adiacenza
 uint64_t hashAll(const Pieces_t *neighbors)
 {
-
     uint64_t toHash[28];
 
     for (int i = 0; i < 28; ++i)
