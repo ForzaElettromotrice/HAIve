@@ -5,6 +5,7 @@
 #include "utils.h"
 
 #include <moves.h>
+#include <xxhash.h>
 
 uint64_t hashPiece(const Pieces_t piece, const Pieces_t *neighbors)
 {
@@ -32,5 +33,15 @@ uint64_t hashPiece(const Pieces_t piece, const Pieces_t *neighbors)
     }
 
     return hash;
+}
+uint64_t hashAll(const Pieces_t *neighbors)
+{
+
+    uint64_t toHash[28];
+
+    for (int i = 0; i < 28; ++i)
+        toHash[i] = hashPiece(i, neighbors);
+
+    return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
 }
 
