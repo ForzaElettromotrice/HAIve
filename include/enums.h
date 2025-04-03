@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-typedef enum Pieces
+enum Pieces
 {
     NULLPIECE = -1,
     B_QUEEN,
@@ -38,7 +38,10 @@ typedef enum Pieces
     W_BEETLE_2,
     W_SPIDER_1,
     W_SPIDER_2,
-} __attribute__((__packed__)) Pieces_t;
+} __attribute__((__packed__));
+
+typedef enum Pieces Pieces_t;
+const char numPieces = 28;
 
 
 typedef enum Colors
