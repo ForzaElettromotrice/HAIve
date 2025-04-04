@@ -5,11 +5,8 @@
 #pragma once
 
 #include "enums.h"
+#include "utils.h"
 
-//TODO: aggiorna sto coso
-#define MtA(y,x,z) y * 56 * 28 + x * 28 + z
-// TODO: Giusto???
-#define board_size 28 * 56 * 5 
 
 void queenMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize);
 

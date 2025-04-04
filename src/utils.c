@@ -3,10 +3,7 @@
 //
 
 #include "utils.h"
-#include "enums.h"
 
-#include <moves.h>
-#include <xxhash.h>
 
 //TODO: correggi gli errori dei casi limite (e metti il modulo quando sottrai l'idx)
 uint64_t hashPiece(const Pieces_t piece, const Pieces_t *neighbors)
@@ -50,101 +47,132 @@ uint64_t hashAll(const Pieces_t *neighbors)
 
 
 // Dalla stringa, ritorna il valore del pezzo
-Pieces_t getPiece(const char *piece, char white) {
-
-    if (strcmp(piece, "Q") == 0) {
+Pieces_t getPiece(const char *piece, char white)
+{
+    if (strcmp(piece, "Q") == 0)
+    {
         return white ? W_QUEEN : B_QUEEN;
-    } else if (strcmp(piece, "S1") == 0) {
+    }
+    if (strcmp(piece, "S1") == 0)
+    {
         return white ? W_SPIDER_1 : B_SPIDER_1;
-    } else if (strcmp(piece, "S2") == 0) {
+    }
+    if (strcmp(piece, "S2") == 0)
+    {
         return white ? W_SPIDER_2 : B_SPIDER_2;
-    } else if (strcmp(piece, "G1") == 0) {
+    }
+    if (strcmp(piece, "G1") == 0)
+    {
         return white ? W_GRASSHOPPER_1 : B_GRASSHOPPER_1;
-    } else if (strcmp(piece, "G2") == 0) {
+    }
+    if (strcmp(piece, "G2") == 0)
+    {
         return white ? W_GRASSHOPPER_2 : B_GRASSHOPPER_2;
-    } else if (strcmp(piece, "G3") == 0) {
+    }
+    if (strcmp(piece, "G3") == 0)
+    {
         return white ? W_GRASSHOPPER_3 : B_GRASSHOPPER_3;
-    } else if (strcmp(piece, "A1") == 0) {
+    }
+    if (strcmp(piece, "A1") == 0)
+    {
         return white ? W_ANT_1 : B_ANT_1;
-    } else if (strcmp(piece, "A2") == 0) {
+    }
+    if (strcmp(piece, "A2") == 0)
+    {
         return white ? W_ANT_2 : B_ANT_2;
-    } else if (strcmp(piece, "A3") == 0) {
+    }
+    if (strcmp(piece, "A3") == 0)
+    {
         return white ? W_ANT_3 : B_ANT_3;
-    } else if (strcmp(piece, "B1") == 0) {
+    }
+    if (strcmp(piece, "B1") == 0)
+    {
         return white ? W_BEETLE_1 : B_BEETLE_1;
-    } else if (strcmp(piece, "B2") == 0) {
+    }
+    if (strcmp(piece, "B2") == 0)
+    {
         return white ? W_BEETLE_2 : B_BEETLE_2;
-    } else if (strcmp(piece, "L") == 0) {
+    }
+    if (strcmp(piece, "L") == 0)
+    {
         return white ? W_LADYBUG : B_LADYBUG;
-    } else if (strcmp(piece, "M") == 0) {
+    }
+    if (strcmp(piece, "M") == 0)
+    {
         return white ? W_MOSQUITO : B_MOSQUITO;
-    } else if (strcmp(piece, "P") == 0) {
+    }
+    if (strcmp(piece, "P") == 0)
+    {
         return white ? W_PILLBUG : B_PILLBUG;
     }
 
     return NULLPIECE; // Default case for invalid input
 }
 
-Pieces_t* convertFromMZinga(char* mzinga_string) {
-
-    char mosquito, ladybug, pillbug;    // Dice quali pezzi sono presenti nel gioco
+Pieces_t *convertFromMZinga(char *mzinga_string)
+{
+    char mosquito, ladybug, pillbug; // Dice quali pezzi sono presenti nel gioco
     mosquito = ladybug = pillbug = 0;
-    char white;                         // true se noi siamo bianchi
-    int turn;                           // Il numero del nostro turno
+    char white; // true se noi siamo bianchi
+    int turn; // Il numero del nostro turno
     const int8_t directions[6][2] =
     {
         //y   x
-         {-2, 0}, //sopra
-         {-1, 1}, //in alto a destra
-         {1, 1}, //in basso a destra
-         {2, 0}, //sotto
-         {1, -1}, //in basso a sinistra
-         {-1, -1} //in alto a sinistra
+        {-2, 0}, //sopra
+        {-1, 1}, //in alto a destra
+        {1, 1}, //in basso a destra
+        {2, 0}, //sotto
+        {1, -1}, //in basso a sinistra
+        {-1, -1} //in alto a sinistra
     };
 
     // Get GameTypeString
-    char* token = strtok(mzinga_string, ";");
-    if (token == NULL)  return NULL;
+    char *token = strtok(mzinga_string, ";");
+    if (token == NULL) return NULL;
 
-    if (strcmp(token, "Base") == 0) {}
-    else if (strcmp(token, "Base+M") == 0) {
+    if (strcmp(token, "Base") == 0)
+    {
+    } else if (strcmp(token, "Base+M") == 0)
+    {
         mosquito = 1;
-    }
-    else if (strcmp(token, "Base+L") == 0) {
+    } else if (strcmp(token, "Base+L") == 0)
+    {
         ladybug = 1;
-    }
-    else if (strcmp(token, "Base+P") == 0) {
+    } else if (strcmp(token, "Base+P") == 0)
+    {
         pillbug = 1;
-    }
-    else if (strcmp(token, "Base+ML") == 0) {
+    } else if (strcmp(token, "Base+ML") == 0)
+    {
         mosquito = ladybug = 1;
-    }
-    else if (strcmp(token, "Base+MP") == 0) {
+    } else if (strcmp(token, "Base+MP") == 0)
+    {
         mosquito = pillbug = 1;
-    }
-    else if (strcmp(token, "Base+LP") == 0) {
+    } else if (strcmp(token, "Base+LP") == 0)
+    {
         ladybug = pillbug = 1;
-    }
-    else if (strcmp(token, "Base+MLP") == 0) {
+    } else if (strcmp(token, "Base+MLP") == 0)
+    {
         mosquito = ladybug = pillbug = 1;
-    }
-    else {
+    } else
+    {
         return NULL; // Invalid case
     }
 
-    Pieces_t* pieces = (Pieces_t*)malloc(sizeof(Pieces_t) * board_size);
-    pieces = (Pieces_t*)memset(pieces, -1, sizeof(Pieces_t));
-    if (pieces == NULL)     return NULL;
+    Pieces_t *pieces = malloc(sizeof(Pieces_t) * board_size);
+    pieces = (Pieces_t *) memset(pieces, -1, sizeof(Pieces_t));
+    if (pieces == NULL) return NULL;
 
     // Get GameStateString
     token = strtok(NULL, ";");
-    if (strcmp(token, "NotStarted") == 0) {
+    if (strcmp(token, "NotStarted") == 0)
+    {
         return pieces;
     }
-    else if (strcmp(token, "InProgress") == 0) {
+    if (strcmp(token, "InProgress") == 0)
+    {
         // In Progress
-    }
-    else {
+    } else
+    {
         // Draw, White Won, Black Won
         return NULL;
     }
@@ -157,10 +185,11 @@ Pieces_t* convertFromMZinga(char* mzinga_string) {
         white = 1;
 
     token[strlen(token) - 1] = '\0';
-    turn = atoi(token + 5);
+    turn = (int) strtol(token + 5, NULL, 10);
 
-    char white_piece; Pieces_t piece;
-    Position_t* id_to_pos = calloc(sizeof(Position_t), numPieces);
+    char white_piece;
+    Pieces_t piece;
+    Position_t *id_to_pos = calloc(sizeof(Position_t), numPieces);
 
     // Il primo pezzo si gestisce fuori dal while
     token = strtok(NULL, ";");
@@ -177,10 +206,12 @@ Pieces_t* convertFromMZinga(char* mzinga_string) {
     id_to_pos[piece].z = 0;
     pieces[MtA(0, 0, 0)] = piece;
 
-    while ((token = strtok(NULL, ";")) != NULL) {
+    while ((token = strtok(NULL, ";")) != NULL)
+    {
         if (strcmp(token, "pass"))
             continue;
 
+        //FIXME: sta roba da errore solo che non so cosa vuoi fare non posso correggerlo
         token[strchr(token, ' ')] = '\0';
         if (token[0] == 'w')
             white_piece = 1;
@@ -188,47 +219,54 @@ Pieces_t* convertFromMZinga(char* mzinga_string) {
             white_piece = 0;
         token++;
         piece = getPiece(token, white_piece);
-        if (id_to_pos[piece].x != 0 || id_to_pos[piece].y != 0 || id_to_pos[piece].z != 0) {
+        if (id_to_pos[piece].x != 0 || id_to_pos[piece].y != 0 || id_to_pos[piece].z != 0)
+        {
             pieces[
                 MtA(id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z)
             ] = NULLPIECE;
         }
 
-        Pieces_t other_piece; uint8_t direction[2] = {0, 0};
-        token += strlen(token); token++;
-        if (token[0] == '-') {
+        Pieces_t other_piece;
+        uint8_t direction[2] = {0, 0};
+        token += strlen(token);
+        token++;
+        if (token[0] == '-')
+        {
             direction[0] = directions[4][0];
             direction[1] = directions[4][1];
             white_piece = token[1] == 'w' ? 1 : 0;
             token++;
-        }
-        else if (token[0] == '/') {
+        } else if (token[0] == '/')
+        {
             direction[0] = directions[3][0];
             direction[1] = directions[3][1];
             white_piece = token[1] == 'w' ? 1 : 0;
             token++;
-        }
-        else if (token[0] == '\\') {
+        } else if (token[0] == '\\')
+        {
             direction[0] = directions[5][0];
             direction[1] = directions[5][1];
             white_piece = token[1] == 'w' ? 1 : 0;
             token++;
-        }
-        else if (token[0] == 'w')
+        } else if (token[0] == 'w')
             white_piece = 1;
         else
             white_piece = 0;
         token++;
 
-        if (direction[0] == 0 && direction[1] == 0) {
+        if (direction[0] == 0 && direction[1] == 0)
+        {
             char last_char = token[strlen(token) - 1];
-            if (last_char == '-'){
+            if (last_char == '-')
+            {
                 direction[0] = directions[1][0];
                 direction[1] = directions[1][1];
-            } else if (last_char == '\\'){
+            } else if (last_char == '\\')
+            {
                 direction[0] = directions[2][0];
                 direction[1] = directions[2][1];
-            } else {
+            } else
+            {
                 direction[0] = directions[0][0];
                 direction[1] = directions[0][1];
             }
@@ -247,5 +285,4 @@ Pieces_t* convertFromMZinga(char* mzinga_string) {
     }
 
     return pieces;
-
 }
