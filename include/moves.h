@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <stdbool.h>
+#include <errno.h>
+
+
+#include "logger.h"
 #include "enums.h"
 #include "utils.h"
 

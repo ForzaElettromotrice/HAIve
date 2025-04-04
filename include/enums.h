@@ -53,9 +53,9 @@ typedef enum Colors
 
 typedef struct Position
 {
-    int8_t x;
-    int8_t y;
     int8_t z;
+    int8_t y;
+    int8_t x;
 } Position_t;
 
 typedef struct Piece
