@@ -211,8 +211,8 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
         if (strcmp(token, "pass"))
             continue;
 
-        //FIXME: sta roba da errore solo che non so cosa vuoi fare non posso correggerlo
-        token[strchr(token, ' ')] = '\0';
+        char *space_pos = strchr(token, ' ');
+        if (space_pos != NULL) *space_pos = '\0';
         if (token[0] == 'w')
             white_piece = 1;
         else
