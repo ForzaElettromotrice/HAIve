@@ -1,7 +1,7 @@
 //
 // Created by f3m on 02/04/25.
 //
-
+#define _CRT_SECURE_NO_WARNINGS
 #include "utils.h"
 
 

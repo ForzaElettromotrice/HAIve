@@ -38,7 +38,7 @@ enum Pieces
     W_BEETLE_2,
     W_SPIDER_1,
     W_SPIDER_2,
-} __attribute__((__packed__));
+} __attribute__(__packed__);
 
 typedef enum Pieces Pieces_t;
 const char numPieces = 28;
