@@ -1,3 +1,5 @@
+import os
+
 """
     Takes the x_file and the y_file and converts them into a single file
     with the following format:
@@ -52,8 +54,8 @@ class Collector:
             second_name = second_piece[2:]
             second_position = self.get_piece(second_name, second_color).get_position()
             position_change = (-2, 0, 0) if second_piece[0] == "-" else (
-                                (-1, 1, 0) if second_piece[0] == "\\" else
-                                (-1, -1, 0)
+                                (-1, -1, 0) if second_piece[0] == "\\" else
+                                (-1, 1, 0)
                             )
             
         elif second_piece[-1] in self.position_chars:
@@ -61,8 +63,8 @@ class Collector:
             second_name = second_piece[1:-1]
             second_position = self.get_piece(second_name, second_color).get_position()
             position_change = (2, 0, 0) if second_piece[-1] == "-" else (
-                                (1, -1, 0) if second_piece[-1] == "\\" else
-                                (1, 1, 0)
+                                (1, 1, 0) if second_piece[-1] == "\\" else
+                                (1, -1, 0)
                             )
             
         else:
@@ -88,6 +90,8 @@ class Converter:
         self.mzinga_file = mzinga_file
         self.label_file = label_file
         self.result_file = result_file
+        if os.path.exists(self.result_file):
+            os.remove(self.result_file)
         with open(self.mzinga_file, "r") as file:
             mzinga_lines = file.readlines()
             

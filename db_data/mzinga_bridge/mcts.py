@@ -16,21 +16,24 @@ class GameState:
         self.tensor = None
         self.hash = None
         self.moves = None
+        self.game = None
         
     def get_legal_moves(self):
         if self.moves is None:
-            game = game_interface.GameInterface()
-            game.newgame_gs(self.game_string)
-            self.moves = [move.move for move in game.validmoves()]
+            if self.game is None:
+                self.game = game_interface.GameInterface()
+            self.game.newgame_gs(self.game_string)
+            self.moves = [move.move for move in self.game.validmoves()]
         return self.moves
     
     def is_terminal(self):
         return self.game_string.game_state_string.is_game_ended()
     
     def perform_move(self, move):
-        game = game_interface.GameInterface()
-        game.newgame_gs(self.game_string)
-        return GameState(game.play(move))
+        if self.game is None:
+            self.game = game_interface.GameInterface()
+        self.game.newgame_gs(self.game_string)
+        return GameState(self.game.play(move))
     
     def get_result(self):
         """Returns the result of the game from the perspective of the current player."""
@@ -50,6 +53,9 @@ class GameState:
         if self.hash is None:
             self.hash = hash(self.tensor)
         return self.hash
+    
+    def is_white_turn(self) -> bool:
+        return self.game_string.turn_string.is_white_turn()
 
 class MCTSNode:
     def __init__(self, state, parent=None, prior=0):
@@ -113,11 +119,11 @@ class MCTS:
     def simulate(self, state: GameState, is_white: bool):
         """Simulate a game to the end from the current state."""
         if state.is_terminal():
-            return -state.get_result()
+            return state.get_result() if state.is_white_turn() else -state.get_result()
         state_tensor = state.to_tensor().to(self.device)
         with torch.no_grad():
-            value = self.model(state_tensor)
-        return -value.item() 
+            value = self.model(state_tensor).item()
+        return value * (1 if state.is_white_turn() else -1)
 
     def backpropagate(self, node: MCTSNode, reward):
         """Propagate simulation results up the tree."""

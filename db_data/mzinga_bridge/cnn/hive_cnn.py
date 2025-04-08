@@ -21,7 +21,7 @@ class HiveCNN(nn.Module):
             )
         
         self.layer1 = nn.Sequential(
-            MaskedConv2d(in_channels=13, out_channels=24),
+            MaskedConv2d(in_channels=16, out_channels=24),
             nn.BatchNorm2d(24),
             nn.ReLU()
         )

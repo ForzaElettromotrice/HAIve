@@ -55,15 +55,22 @@ def train(model, train_loader, criterion, optimizer, num_epochs=10):
             
             total_loss += loss.item()
             
-            predicted = outputs
-            
         loss_value = total_loss / len(train_loader)
         
-        if (epoch + 1) % 5 == 0:
-            test_accuracy = test(model, test_loader, in_train=True)
-            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Test Accuracy: {test_accuracy:.4f}")
-        else:
-            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}")
+        with torch.no_grad():
+            if (epoch + 1) % 5 == 0:
+                test_accuracy = test(model, test_loader, in_train=True)
+                print(f"[Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}, Test Accuracy: {test_accuracy:.4f}]")
+                print(f"  Output Stats -> mean: {outputs.mean().item():.4f}, "
+                      f"std: {outputs.std().item():.4f}, "
+                      f"min: {outputs.min().item():.4f}, "
+                      f"max: {outputs.max().item():.4f}")
+            else:
+                print(f"[Epoch [{epoch+1}/{num_epochs}], Loss: {loss_value:.4f}]")
+                print(f"  Output Stats -> mean: {outputs.mean().item():.4f}, "
+                      f"std: {outputs.std().item():.4f}, "
+                      f"min: {outputs.min().item():.4f}, "
+                      f"max: {outputs.max().item():.4f}")
 
 
 def test(model, test_loader, in_train: bool = False):
@@ -95,8 +102,8 @@ if __name__ == "__main__":
     model = HiveCNN()
     model.float()
     model = model.to("cuda" if torch.cuda.is_available() else "cpu")
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
-    criterion = nn.MSELoss()
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+    criterion = nn.SmoothL1Loss()
 
     if load_model:
         model.load_model(optimizer)

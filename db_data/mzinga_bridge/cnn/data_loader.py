@@ -15,13 +15,17 @@ class Layer(Enum):
     BEETLE1 = 2
     BEETLE2 = 3
     BEETLE3 = 4
-    SPIDER = 5
-    GRASSHOPPER = 7
-    MOSQUITO1 = 8
-    MOSQUITO2 = 9
-    MOSQUITO3 = 10
-    LADYBUG = 11
-    PILLBUG = 12
+    BEETLE4 = 5
+    BEETLE5 = 6
+    SPIDER = 7
+    GRASSHOPPER = 8
+    MOSQUITO1 = 9
+    MOSQUITO2 = 10
+    MOSQUITO3 = 11
+    MOSQUITO4 = 12
+    MOSQUITO5 = 13
+    LADYBUG = 14
+    PILLBUG = 15
 
 def get_layer(id: str, position_z: int) -> int:
         if "Q" in id:
@@ -164,7 +168,7 @@ class Preprocessor():
         matrix = matrix.strip('[]')
         rows = matrix.split(';')
         
-        matrix = torch.zeros((*size, len(Layer) + 1), dtype=torch.float16)
+        matrix = torch.zeros((*size, len(Layer)), dtype=torch.float16)
         if rows[-1] == '':
             rows = rows[:-1]
         for piece in rows:
@@ -199,10 +203,10 @@ class MatrixDataset(data.Dataset):
             
         # self.data = [sample for sample in self.data if sample.split(']')[1] != '0']
         to_augment: int = int(len(self.data) * data_augmentation)
+        """
         to_vertical_shift = random.sample(self.data, int(to_augment / 6))
         for sample in to_vertical_shift:
             self.data.append(vertical_shift(sample))
-        """
         to_horizontal_shift = random.sample(self.data, int(to_augment / 6))
         for sample in to_horizontal_shift:
             self.data.append(horizontal_shift(sample))

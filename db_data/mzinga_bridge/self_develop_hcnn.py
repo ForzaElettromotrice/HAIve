@@ -40,7 +40,7 @@ def get_loaders(input_file: str, device, train_size: float = 0.75) -> tuple[Data
     return train_loader, test_loader
 
 
-def train(model, train_loader, criterion, optimizer, num_epochs=10):
+def train(model, train_loader, criterion, optimizer, num_epochs=5):
     model.train()
     
     for epoch in range(num_epochs):
@@ -56,8 +56,6 @@ def train(model, train_loader, criterion, optimizer, num_epochs=10):
             optimizer.step()
             
             total_loss += loss.item()
-            
-            predicted = outputs
             
         loss_value = total_loss / len(train_loader)
         
@@ -94,7 +92,9 @@ def play_game(mcts: MCTS, game_interface: GameInterface, game_string, draw: bool
     while not game_string.game_state_string.is_game_ended():
         
         if (i+1) % 5 == 0:
-            print(f"Move {i}")
+            print(f"Move {i+1}")
+        if i >= 300:
+            break
         game_state: MCTSNode = mcts.search(GameState(game_string), i % 2 == 0)
         i += 1
         
@@ -126,17 +126,17 @@ if __name__ == "__main__":
     model_enemy = model_enemy.to("cuda" if torch.cuda.is_available() else "cpu")
     model_enemy.eval()
     
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
+    optimizer = optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-5)
 
     if load_model:
         model.load_model(optimizer)
         model_enemy.load_model()
         
     EPOCHS = 10
-    PLAYS_FOR_EPOCH = 5
+    PLAYS_FOR_EPOCH = 10
     
     for i in range(EPOCHS):
-        for play in range(PLAYS_FOR_EPOCH):
+        for play in range(0 if i == 0 else PLAYS_FOR_EPOCH):
             game_interface = GameInterface()
             game_string = game_interface.newgame()
             mcts = MCTS(model, device)
@@ -157,6 +157,7 @@ if __name__ == "__main__":
         converter.convert()
         train_loader, test_loader = get_loaders(f"train_{i}.txt", device)
         train(model, train_loader, criterion, optimizer)
+        print(f"Epoch {i}'s training finished")
         
         wins = 0
         for play in range(PLAYS_FOR_EPOCH):
@@ -174,6 +175,7 @@ if __name__ == "__main__":
                 turn += 1
             if game_string.game_state_string.is_white_winner():
                 wins += 1
+            print(f"Play {play} finished -- {wins*100/(play + 1)}% wins")
         print(f"Epoch {i}, wins: {wins/PLAYS_FOR_EPOCH}")
         if wins/PLAYS_FOR_EPOCH >= 0.55:
             model.save_model(optimizer)
