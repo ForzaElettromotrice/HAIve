@@ -6,7 +6,6 @@
 
 uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
 {
-
     const int_fast8_t z = pos->z;
     const int_fast8_t y = pos->y;
     const int_fast8_t x = pos->x;
@@ -119,7 +118,6 @@ uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
     }
     return hash;
 }
-
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
 {
     uint64_t toHash[28];
