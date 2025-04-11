@@ -13,7 +13,7 @@
 
 #define board_size 28 * 56 * 5
 
-#define MtA(z,y,x) z * 56 * 28 + y * 28 + x
+#define MtA(z,y,x) (z) * 56 * 28 + (y) * 28 + (x)
 
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
