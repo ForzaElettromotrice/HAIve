@@ -4,16 +4,16 @@
 #include "utils.h"
 
 
-uint64_t hashPiece(const Position_t pos, const Pieces_t *board)
+uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
 {
     int_fast8_t max = -2;
     uint_fast8_t idx = 0;
     for (uint_fast8_t i = 0; i < 6; i++)
     {
-        const int_fast8_t y = (int_fast8_t) (pos.y + directions[i][0]);
-        const int_fast8_t x = (int_fast8_t) (pos.x + directions[i][1]);
+        const int_fast8_t y = (int_fast8_t) (pos->y + directions[i][0]);
+        const int_fast8_t x = (int_fast8_t) (pos->x + directions[i][1]);
 
-        const Pieces_t neighbor = board[MtA(pos.z, y, x)];
+        const Pieces_t neighbor = board[MtA(pos->z, y, x)];
         if (neighbor == NULLPIECE)
             continue;
 
@@ -26,10 +26,10 @@ uint64_t hashPiece(const Position_t pos, const Pieces_t *board)
 
     for (uint_fast8_t i = 0; i < 6; ++i)
     {
-        const int_fast8_t y = (int_fast8_t) (pos.y + directions[(idx - 1) % 6][0]);
-        const int_fast8_t x = (int_fast8_t) (pos.x + directions[(idx - 1) % 6][1]);
+        const int_fast8_t y = (int_fast8_t) (pos->y + directions[(idx - 1) % 6][0]);
+        const int_fast8_t x = (int_fast8_t) (pos->x + directions[(idx - 1) % 6][1]);
 
-        if (board[MtA(pos.z, y, x)] != max)
+        if (board[MtA(pos->z, y, x)] != max)
             break;
 
         idx = (idx - 1) % 6;
@@ -39,10 +39,10 @@ uint64_t hashPiece(const Position_t pos, const Pieces_t *board)
     uint64_t hash = 0;
     for (uint_fast8_t i = 0; i < 6; ++i, idx = (idx + 1) % 6)
     {
-        const int_fast8_t y = (int_fast8_t) (pos.y + directions[idx][0]);
-        const int_fast8_t x = (int_fast8_t) (pos.x + directions[idx][1]);
+        const int_fast8_t y = (int_fast8_t) (pos->y + directions[idx][0]);
+        const int_fast8_t x = (int_fast8_t) (pos->x + directions[idx][1]);
 
-        hash = (hash << 8) + board[MtA(pos.z, y, x)];
+        hash = (hash << 8) + board[MtA(pos->z, y, x)];
     }
     return hash;
 }
@@ -52,7 +52,7 @@ uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
     uint64_t toHash[28];
 
     for (uint_fast8_t i = 0; i < 28; ++i)
-        toHash[i] = hashPiece(positions[i], board);
+        toHash[i] = hashPiece(&positions[i], board);
 
     return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
 }
