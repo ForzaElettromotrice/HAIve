@@ -64,4 +64,4 @@ typedef struct Piece
 {
     Pieces_t id;
     Position_t position;
-} Piece_t;
+} __attribute__((__packed__)) Piece_t;
