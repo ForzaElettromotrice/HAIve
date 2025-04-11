@@ -1,46 +1,58 @@
 //
 // Created by f3m on 02/04/25.
 //
-#define _CRT_SECURE_NO_WARNINGS
 #include "utils.h"
 
 
-//TODO: correggi gli errori dei casi limite (e metti il modulo quando sottrai l'idx)
-uint64_t hashPiece(const Pieces_t piece, const Pieces_t *neighbors)
+uint64_t hashPiece(const Position_t pos, const Pieces_t *board)
 {
-    int_fast8_t max = 0;
-    int_fast8_t idx = 0;
-    for (int_fast8_t i = 0; i < 6; ++i)
+    int_fast8_t max = -2;
+    uint_fast8_t idx = 0;
+    for (uint_fast8_t i = 0; i < 6; i++)
     {
-        const Pieces_t neighbor = neighbors[MtA(piece, i)];
-        if (neighbor <= max)
+        const int_fast8_t y = (int_fast8_t) (pos.y + directions[i][0]);
+        const int_fast8_t x = (int_fast8_t) (pos.x + directions[i][1]);
+
+        const Pieces_t neighbor = board[MtA(pos.z, y, x)];
+        if (neighbor == NULLPIECE)
             continue;
 
-        max = neighbor;
-        idx = i;
+        if (neighbor > max)
+        {
+            max = neighbor;
+            idx = i;
+        }
     }
 
-    while (neighbors[MtA(piece, idx)] == max)
-        idx--;
+    for (uint_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t y = (int_fast8_t) (pos.y + directions[(idx - 1) % 6][0]);
+        const int_fast8_t x = (int_fast8_t) (pos.x + directions[(idx - 1) % 6][1]);
+
+        if (board[MtA(pos.z, y, x)] != max)
+            break;
+
+        idx = (idx - 1) % 6;
+    }
 
 
     uint64_t hash = 0;
-    for (int i = 0; i < 6; ++i)
+    for (uint_fast8_t i = 0; i < 6; ++i, idx = (idx + 1) % 6)
     {
-        hash = hash << 8;
-        hash += neighbors[MtA(piece, i)];
-    }
+        const int_fast8_t y = (int_fast8_t) (pos.y + directions[idx][0]);
+        const int_fast8_t x = (int_fast8_t) (pos.x + directions[idx][1]);
 
+        hash = (hash << 8) + board[MtA(pos.z, y, x)];
+    }
     return hash;
 }
 
-//TODO: usa la matrice invece che la lista di adiacenza
-uint64_t hashAll(const Pieces_t *neighbors)
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
 {
     uint64_t toHash[28];
 
-    for (int i = 0; i < 28; ++i)
-        toHash[i] = hashPiece(i, neighbors);
+    for (uint_fast8_t i = 0; i < 28; ++i)
+        toHash[i] = hashPiece(positions[i], board);
 
     return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
 }
@@ -189,7 +201,7 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
 
     char white_piece;
     Pieces_t piece;
-    Position_t *id_to_pos = calloc(sizeof(Position_t), numPieces);
+    Position_t *id_to_pos[NUM_PIECES];
 
     // Il primo pezzo si gestisce fuori dal while
     token = strtok(NULL, ";");
@@ -201,9 +213,9 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
     token++;
     piece = getPiece(token, white_piece);
     // NOTA: Io lo metto in (0, 0, 0) ma non è il centro della board
-    id_to_pos[piece].x = 0;
-    id_to_pos[piece].y = 0;
-    id_to_pos[piece].z = 0;
+    id_to_pos[piece]->x = 0;
+    id_to_pos[piece]->y = 0;
+    id_to_pos[piece]->z = 0;
     pieces[MtA(0, 0, 0)] = piece;
 
     while ((token = strtok(NULL, ";")) != NULL)
@@ -219,10 +231,10 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
             white_piece = 0;
         token++;
         piece = getPiece(token, white_piece);
-        if (id_to_pos[piece].x != 0 || id_to_pos[piece].y != 0 || id_to_pos[piece].z != 0)
+        if (id_to_pos[piece]->x != 0 || id_to_pos[piece]->y != 0 || id_to_pos[piece]->z != 0)
         {
             pieces[
-                MtA(id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z)
+                MtA(id_to_pos[piece]->x, id_to_pos[piece]->y, id_to_pos[piece]->z)
             ] = NULLPIECE;
         }
 
@@ -274,15 +286,14 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
         }
         other_piece = getPiece(token, white_piece);
         char x, y, z;
-        x = id_to_pos[other_piece].x + direction[0];
-        id_to_pos[piece].x = x;
-        y = id_to_pos[other_piece].y + direction[1];
-        id_to_pos[piece].y = y;
-        z = id_to_pos[other_piece].z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
-        id_to_pos[piece].z = z;
+        x = id_to_pos[other_piece]->x + direction[0];
+        id_to_pos[piece]->x = x;
+        y = id_to_pos[other_piece]->y + direction[1];
+        id_to_pos[piece]->y = y;
+        z = id_to_pos[other_piece]->z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
+        id_to_pos[piece]->z = z;
 
         pieces[MtA(x, y, z)] = piece;
     }
-
     return pieces;
 }

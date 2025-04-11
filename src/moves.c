@@ -5,31 +5,6 @@
 #include "moves.h"
 
 
-/*
-     1
-    6 2
-     0
-    5 3
-     4
-0: (x, y)
-1: (x, y-2)
-2: (x+1, y-1)
-3: (x+1, y+1)
-4: (x, y+2)
-5: (x-1, y+1)
-6: (x-1, y-1)
-*/
-const int8_t directions[6][2] =
-{
-    //y   x
-    {-2, 0}, //sopra
-    {-1, 1}, //in alto a destra
-    {1, 1}, //in basso a destra
-    {2, 0}, //sotto
-    {1, -1}, //in basso a sinistra
-    {-1, -1} //in alto a sinistra
-};
-
 bool canSlide(const int_fast8_t z, const int_fast8_t y, const int_fast8_t x, const int_fast8_t direction, const Pieces_t *board)
 {
     int_fast8_t offY = directions[(direction - 1) % 6][0];
