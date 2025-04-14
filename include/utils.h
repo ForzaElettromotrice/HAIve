@@ -11,9 +11,9 @@
 #include "enums.h"
 
 
-#define board_size 28 * 56 * 5
+#define BOARD_SIZE 5 * 56 * 28
 
-#define MtA(z,y,x) (z) * 56 * 28 + (y) * 28 + (x)
+#define MtA(z,y,x) (z) * 56 * 28 + (y + 28) * 28 + (x + 14)
 
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);

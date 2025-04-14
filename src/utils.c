@@ -241,7 +241,7 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
         return NULL; // Invalid case
     }
 
-    Pieces_t *pieces = malloc(sizeof(Pieces_t) * board_size);
+    Pieces_t *pieces = malloc(sizeof(Pieces_t) * BOARD_SIZE);
     pieces = (Pieces_t *) memset(pieces, -1, sizeof(Pieces_t));
     if (pieces == NULL) return NULL;
 
@@ -305,7 +305,7 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
         if (id_to_pos[piece]->x != 0 || id_to_pos[piece]->y != 0 || id_to_pos[piece]->z != 0)
         {
             pieces[
-                MtA(id_to_pos[piece]->x, id_to_pos[piece]->y, id_to_pos[piece]->z)
+                MtA(id_to_pos[piece]->z, id_to_pos[piece]->y, id_to_pos[piece]->x)
             ] = NULLPIECE;
         }
 
@@ -364,7 +364,7 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
         z = id_to_pos[other_piece]->z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
         id_to_pos[piece]->z = z;
 
-        pieces[MtA(x, y, z)] = piece;
+        pieces[MtA(z, y, x)] = piece;
     }
     return pieces;
 }
