@@ -56,7 +56,7 @@ class HiveCNN(nn.Module):
         x = x.reshape(x.size(0), -1)
         x = self.fc_layers(x)
 
-        x = torch.tanh(x)
+        # x = torch.tanh(x)
 
         return x
     

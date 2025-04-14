@@ -7,6 +7,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "logger.h"
+#include <assert.h>
+#include <enums.h>
+#include <stdlib.h>
+#include <string.h>
+#include "xxhash.h"
 
 typedef struct GameType {
     bool ladybug;

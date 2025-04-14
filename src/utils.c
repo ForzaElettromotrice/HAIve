@@ -283,7 +283,6 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
 
     token++;
     piece = getPiece(token, white_piece);
-    // NOTA: Io lo metto in (0, 0, 0) ma non è il centro della board
     id_to_pos[piece]->x = 0;
     id_to_pos[piece]->y = 0;
     id_to_pos[piece]->z = 0;

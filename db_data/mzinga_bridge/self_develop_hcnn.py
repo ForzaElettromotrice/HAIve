@@ -118,19 +118,21 @@ if __name__ == "__main__":
     
     load_model: bool = True
     model = HiveCNN()
+    model.float()
     model = model.to("cuda" if torch.cuda.is_available() else "cpu")
-    criterion = nn.MSELoss()
+    criterion = nn.SmoothL1Loss()
     model.eval()
     
     model_enemy = HiveCNN()
+    model_enemy.float()
     model_enemy = model_enemy.to("cuda" if torch.cuda.is_available() else "cpu")
     model_enemy.eval()
-    
-    optimizer = optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-5)
 
     if load_model:
-        model.load_model(optimizer)
+        model.load_model()
         model_enemy.load_model()
+        
+    optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
         
     EPOCHS = 10
     PLAYS_FOR_EPOCH = 10
