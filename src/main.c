@@ -76,7 +76,7 @@ void print_info()
     printf("Mosquito;Ladybug;Pillbug\n");
 }
 
-void print_gamestring(const GameType game_type, const bool white_turn, const int turn, char **moves, const enum GameStatus game_status)
+void print_gamestring(const GameType game_type, const Colors_t white_turn, const int turn, char **moves, const enum GameStatus game_status)
 {
     // GameType
     printf("Base");
@@ -106,15 +106,18 @@ void print_gamestring(const GameType game_type, const bool white_turn, const int
     }
 
     // TurnString
-    // FIXME: usa l'enum del Color_t
-    if (white_turn)
+    switch (white_turn)
     {
-        printf("White[%d]", (turn / 2) + 1);
-    } else
-    {
-        printf("Black[%d]", turn / 2);
+        case WHITE: printf("White[%d]", (turn / 2) + 1);
+            break;
+        case BLACK: printf("Black[%d]", turn / 2);
+            break;
+        case NULLCOLOR: return;
     }
-    if (moves == NULL) return;
+    if (moves == NULL) {
+        printf("\nok\n");
+        return;
+    }
     printf(";");
 
     // Moves
@@ -126,6 +129,7 @@ void print_gamestring(const GameType game_type, const bool white_turn, const int
             printf(";");
         }
     }
+    printf("ok\n");
 }
 
 // -1: exit
@@ -133,8 +137,11 @@ void print_gamestring(const GameType game_type, const bool white_turn, const int
 // 1: newgame
 // 2: play move
 // 3: bestmove
-int manage_command(char *command)
+int manage_command(char *buffer)
 {
+    
+    char* command = strdup(buffer);
+    command = strtok(command, " ");
     if (command == NULL)
     {
         // FIXME: è impossibile sia NULL
@@ -144,36 +151,43 @@ int manage_command(char *command)
     {
         return -1;
     }
-    if (strcmp(command, "info") == 0)
+    else if (strcmp(command, "info") == 0)
     {
         print_info();
-    } else if (strcmp(command, "options") == 0)
+    } 
+    else if (strcmp(command, "options") == 0)
     {
         // FIXME: a che serve sto controllo se tanto non fa niente?
         //Doesn't print anything
-    } else if (strcmp(command, "newgame") == 0)
+    } 
+    else if (strcmp(command, "newgame") == 0)
     {
         // TODO: DO NEWGAME
         return 1;
-    } else if (strcmp(command, "play") == 0)
+    } 
+    else if (strcmp(command, "play") == 0)
     {
         // TODO: Play move
         return 2;
-    } else if (strcmp(command, "pass") == 0)
+    } 
+    else if (strcmp(command, "pass") == 0)
     {
         // TODO: Play pass
-    } else if (strcmp(command, "validmoves") == 0)
+    } 
+    else if (strcmp(command, "validmoves") == 0)
     {
         // TODO: Print valid moves
-    } else if (strcmp(command, "bestmove") == 0)
+    } 
+    else if (strcmp(command, "bestmove") == 0)
     {
         return 3;
-    } else
+    } 
+    else
     {
-        E_Print("Unknown command: %s\n", command);
+        printf("Unknown command: %s", command);
     }
 
-    D_Print("ok\n");
+    printf("ok\n");
     return 0;
 }
 
