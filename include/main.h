@@ -11,18 +11,5 @@
 #include <enums.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils.h>
 #include "xxhash.h"
-
-typedef struct GameType {
-    bool ladybug;
-    bool pillbug;
-    bool mosquito;
-} GameType;
-
-enum GameStatus {
-    WHITE_WON,
-    BLACK_WON,
-    DRAW,
-    IN_PROGRESS,
-    NOT_STARTED,
-};

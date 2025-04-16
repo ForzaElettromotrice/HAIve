@@ -5,12 +5,13 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define NUM_PIECES 28
 extern const int8_t directions[6][2];
 
 
-enum Pieces
+typedef enum Pieces
 {
     NULLPIECE = -1,
     B_QUEEN,
@@ -41,17 +42,14 @@ enum Pieces
     W_BEETLE_2,
     W_SPIDER_1,
     W_SPIDER_2,
-} __attribute__((__packed__));
-
-typedef enum Pieces Pieces_t;
-
+} __attribute__((__packed__)) Pieces_t;
 
 typedef enum Colors
 {
     NULLCOLOR = 0,
     WHITE = 1,
     BLACK = -1
-} Colors_t;
+} __attribute__((__packed__)) Colors_t;
 
 typedef struct Position
 {
@@ -65,3 +63,30 @@ typedef struct Piece
     Pieces_t id;
     Position_t position;
 } __attribute__((__packed__)) Piece_t;
+
+typedef struct GameType {
+    bool ladybug;
+    bool pillbug;
+    bool mosquito;
+} __attribute__((__packed__)) GameType_t;
+
+typedef enum GameStatus {
+    NOT_STARTED,
+    WHITE_WON,
+    BLACK_WON,
+    DRAW,
+    IN_PROGRESS
+} __attribute__((__packed__)) GameStatus_t;
+
+typedef struct Context
+{
+    Pieces_t* board;
+    char* moves;
+    size_t movesSize;
+
+    int16_t turn;               
+    Colors_t curColor;          
+    GameStatus_t gameStatus;    
+    GameType_t gameType;        
+
+} Context_t;

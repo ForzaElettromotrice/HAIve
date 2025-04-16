@@ -4,13 +4,6 @@
 
 #include "main.h"
 
-#include <assert.h>
-#include <enums.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "xxhash.h"
-
 // Assumiamo che queste condizioni siano sempre vere altrimenti si sfancula tutto
 static_assert(sizeof(Pieces_t) == 1);
 static_assert(sizeof(Piece_t) == 4);
@@ -76,22 +69,25 @@ void print_info()
     printf("Mosquito;Ladybug;Pillbug\n");
 }
 
-void print_gamestring(const GameType game_type, const Colors_t white_turn, const int turn, char **moves, const enum GameStatus game_status)
+void print_gamestring(const Context_t *context)
 {
+
+    const GameType_t gameType = context->gameType;
+    const char* moves = context->moves;
+
     // GameType
     printf("Base");
-    if (game_type.ladybug || game_type.pillbug || game_type.mosquito)
+    if (gameType.ladybug || gameType.pillbug || gameType.mosquito)
     {
-        //FIXME: ma se tanto basta che sia presente uno per attivarli tutti, perché 3 booleani? Ne basta 1
         printf("+");
-        if (game_type.mosquito) printf("M");
-        if (game_type.ladybug) printf("L");
-        if (game_type.pillbug) printf("P");
+        if (gameType.mosquito) printf("M");
+        if (gameType.ladybug) printf("L");
+        if (gameType.pillbug) printf("P");
     }
     printf(";");
 
     // GameStatus
-    switch (game_status)
+    switch (context->gameStatus)
     {
         case WHITE_WON: printf("WhiteWins;");
             break;
@@ -106,30 +102,23 @@ void print_gamestring(const GameType game_type, const Colors_t white_turn, const
     }
 
     // TurnString
-    switch (white_turn)
+    switch (context->curColor)
     {
-        case WHITE: printf("White[%d]", (turn / 2) + 1);
+        case WHITE: printf("White[%d]", context->turn / 2 + 1);
             break;
-        case BLACK: printf("Black[%d]", turn / 2);
+        case BLACK: printf("Black[%d]", context->turn / 2);
             break;
         case NULLCOLOR: return;
     }
-    if (moves == NULL) {
+    if (moves[0] == '\0') {
         printf("\nok\n");
         return;
     }
     printf(";");
 
     // Moves
-    for (int i = 0; moves[i] != NULL; i++)
-    {
-        printf("%s", moves[i]);
-        if (moves[i + 1] != NULL)
-        {
-            printf(";");
-        }
-    }
-    printf("ok\n");
+    printf("%s", moves);
+    printf("\nok\n");
 }
 
 // -1: exit
@@ -142,6 +131,7 @@ int manage_command(char *buffer)
     
     char* command = strdup(buffer);
     command = strtok(command, " ");
+
     if (command == NULL)
     {
         // FIXME: è impossibile sia NULL
@@ -191,6 +181,26 @@ int manage_command(char *buffer)
     return 0;
 }
 
+void initContext(Context_t *context) {
+
+    context->curColor = WHITE;
+    context->turn = 1;
+    context->moves = calloc(1024, sizeof(char));
+    context->movesSize = 1024;
+    context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
+    memset(context->board, 0xff, BOARD_SIZE * sizeof(Pieces_t));
+
+}
+
+void cleanContext(Context_t *context) {
+
+    free(context->moves);
+    free(context->board);
+    memset(context, 0, sizeof(Context_t));
+
+}
+
+
 int main(void)
 {
 #ifdef Debug
@@ -200,44 +210,38 @@ int main(void)
     size_t buf_size = 128;
     char *buffer = malloc(sizeof(char) * buf_size);
 
-    bool white_turn = true;
-    GameType game_type = {false, false, false};
-    enum GameStatus game_status = NOT_STARTED;
-    int turn = 1;
-    char **moves = NULL;
+    Context_t context = {};
+    initContext(&context);
 
     while (true)
     {
         const size_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
-        buffer[read] = '\0';
+        buffer[read - 1] = '\0'; 
         if (read == 1) continue; // Empty line
 
         const int result = manage_command(buffer);
         if (result == -1) break;
         if (result <= 0) continue;
         if (result == 1)
-        {
-            // simply command 'newgame'
-            // TODO: initialize empty board
-            game_type = (GameType){false, false, false};
-            white_turn = true;
-            turn = 1;
-            game_status = NOT_STARTED;
-            // FIXME: mi spieghi sta roba a che serve? La condizione è sempre falsa
-            if (moves != NULL)
-            {
-                for (int i = 0; moves[i] != NULL; i++)
-                {
-                    free(moves[i]);
-                }
-                free(moves);
+        {   // newgame
+            cleanContext(&context);
+            initContext(&context);
+            if (read == 8) {
+                print_gamestring(&context);
+                continue;
             }
-            moves = NULL;
-            print_gamestring(game_type, white_turn, turn, moves, game_status);
+            char *parameters = buffer + 8;
+
+            // TODO: Check parameters
+            print_gamestring(&context);
+
+
+
         }
     }
     free(buffer);
     return 0;
+
 }
