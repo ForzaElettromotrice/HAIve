@@ -231,7 +231,7 @@ void initContext(Context_t *context) {
     context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
     memset(context->board, 0xff, BOARD_SIZE * sizeof(Pieces_t));
     context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
-    for (size_t i = 0; i < NUM_PIECES; i++) id_to_pos[i].x = -1;
+    for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].x = -1;
 
 }
 
@@ -294,7 +294,13 @@ int main(void)
             print_gamestring(&context);
 
         }
-        else if (result == 2)
+        else if (result == 2) {
+            // play command
+            char* move = buffer + 5;
+            context.gameStatus = IN_PROGRESS;
+            playMove(&context, move);
+            print_gamestring(&context);
+        }
     }
     free(buffer);
     return 0;

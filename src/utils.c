@@ -195,6 +195,10 @@ Pieces_t getPiece(const char *piece, char white)
 void playMove(Context_t* context, char* move) {
 
     addMove(context, move);
+    parseMove(context, move);
+    context->turn += 1;
+    context->curColor *= -1;
+    // TODO: Check if win/draw and change game status!
 
 }
 
@@ -213,12 +217,12 @@ void addMove(Context_t *context, char* move) {
     strcat(context->moves, ";");
 }
 
-/*
-    0: if parsing was succesful
-    1: if an error occurred
-*/
-int convertFromMZinga(char *mzinga_string, Context_t *context)
-{
+void parseMove(Context_t* context, char* move) {
+
+    char white_piece;
+    Pieces_t piece;
+    Position_t* id_to_pos = context->idToPos;
+    Pieces_t* pieces = context->board;
     const int8_t directions[6][2] =
     {
         //y   x
@@ -229,6 +233,94 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         {1, -1}, //in basso a sinistra
         {-1, -1} //in alto a sinistra
     };
+
+    if (strcmp(move, "pass") == 0)
+        return;
+
+    char* space_pos = strchr(move, ' ');
+    if (space_pos != NULL) *space_pos = '\0';
+    if (move[0] == 'w')
+        white_piece = 1;
+    else
+        white_piece = 0;
+    move++;
+    piece = getPiece(move, white_piece);
+    if (id_to_pos[piece].x != -1)
+    {
+        pieces[
+            MtA(id_to_pos[piece].z, id_to_pos[piece].y, id_to_pos[piece].x)
+        ] = NULLPIECE;
+    }
+
+    Pieces_t other_piece;
+    uint8_t direction[2] = { 0, 0 };
+    move += strlen(move);
+    move++;
+    if (move[0] == '-')
+    {
+        direction[0] = directions[4][0];
+        direction[1] = directions[4][1];
+        white_piece = move[1] == 'w' ? 1 : 0;
+        move++;
+    }
+    else if (move[0] == '/')
+    {
+        direction[0] = directions[3][0];
+        direction[1] = directions[3][1];
+        white_piece = move[1] == 'w' ? 1 : 0;
+        move++;
+    }
+    else if (move[0] == '\\')
+    {
+        direction[0] = directions[5][0];
+        direction[1] = directions[5][1];
+        white_piece = move[1] == 'w' ? 1 : 0;
+        move++;
+    }
+    else if (move[0] == 'w')
+        white_piece = 1;
+    else
+        white_piece = 0;
+    move++;
+
+    if (direction[0] == 0 && direction[1] == 0)
+    {
+        char last_char = move[strlen(move) - 1];
+        if (last_char == '-')
+        {
+            direction[0] = directions[1][0];
+            direction[1] = directions[1][1];
+        }
+        else if (last_char == '\\')
+        {
+            direction[0] = directions[2][0];
+            direction[1] = directions[2][1];
+        }
+        else
+        {
+            direction[0] = directions[0][0];
+            direction[1] = directions[0][1];
+        }
+        move[strlen(move) - 1] = '\0';
+    }
+    other_piece = getPiece(move, white_piece);
+    char x, y, z;
+    x = id_to_pos[other_piece].x + direction[0];
+    id_to_pos[piece].x = x;
+    y = id_to_pos[other_piece].y + direction[1];
+    id_to_pos[piece].y = y;
+    z = id_to_pos[other_piece].z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
+    id_to_pos[piece].z = z;
+    // printf("DEBUG: Placed piece %d at x: %d, y: %d, z: %d\n", piece, id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z);
+    pieces[MtA(z, y, x)] = piece;
+}
+
+/*
+    0: if parsing was succesful
+    1: if an error occurred
+*/
+int convertFromMZinga(char *mzinga_string, Context_t *context)
+{
 
     // Get GameTypeString
     char *token = strtok(mzinga_string, ";");
@@ -296,7 +388,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 
     char white_piece;
     Pieces_t piece;
-    Position_t* id_to_pos = context->idToPos
+    Position_t* id_to_pos = context->idToPos;
 
     // Il primo pezzo si gestisce fuori dal while
     token = strtok(NULL, ";");
@@ -316,80 +408,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
     while ((token = strtok(NULL, ";")) != NULL)
     {
         addMove(context, token);
-        if (strcmp(token, "pass") == 0)
-            continue;
-
-        char *space_pos = strchr(token, ' ');
-        if (space_pos != NULL) *space_pos = '\0';
-        if (token[0] == 'w')
-            white_piece = 1;
-        else
-            white_piece = 0;
-        token++;
-        piece = getPiece(token, white_piece);
-        if (id_to_pos[piece].x != -1)
-        {
-            pieces[
-                MtA(id_to_pos[piece].z, id_to_pos[piece].y, id_to_pos[piece].x)
-            ] = NULLPIECE;
-        }
-
-        Pieces_t other_piece;
-        uint8_t direction[2] = {0, 0};
-        token += strlen(token);
-        token++;
-        if (token[0] == '-')
-        {
-            direction[0] = directions[4][0];
-            direction[1] = directions[4][1];
-            white_piece = token[1] == 'w' ? 1 : 0;
-            token++;
-        } else if (token[0] == '/')
-        {
-            direction[0] = directions[3][0];
-            direction[1] = directions[3][1];
-            white_piece = token[1] == 'w' ? 1 : 0;
-            token++;
-        } else if (token[0] == '\\')
-        {
-            direction[0] = directions[5][0];
-            direction[1] = directions[5][1];
-            white_piece = token[1] == 'w' ? 1 : 0;
-            token++;
-        } else if (token[0] == 'w')
-            white_piece = 1;
-        else
-            white_piece = 0;
-        token++;
-
-        if (direction[0] == 0 && direction[1] == 0)
-        {
-            char last_char = token[strlen(token) - 1];
-            if (last_char == '-')
-            {
-                direction[0] = directions[1][0];
-                direction[1] = directions[1][1];
-            } else if (last_char == '\\')
-            {
-                direction[0] = directions[2][0];
-                direction[1] = directions[2][1];
-            } else
-            {
-                direction[0] = directions[0][0];
-                direction[1] = directions[0][1];
-            }
-            token[strlen(token) - 1] = '\0';
-        }
-        other_piece = getPiece(token, white_piece);
-        char x, y, z;
-        x = id_to_pos[other_piece].x + direction[0];
-        id_to_pos[piece].x = x;
-        y = id_to_pos[other_piece].y + direction[1];
-        id_to_pos[piece].y = y;
-        z = id_to_pos[other_piece].z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
-        id_to_pos[piece].z = z;
-        // printf("DEBUG: Placed piece %d at x: %d, y: %d, z: %d\n", piece, id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z);
-        pieces[MtA(z, y, x)] = piece;
+        
     }
     // debugPrint(context);
     return 0;
