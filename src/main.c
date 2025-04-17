@@ -69,6 +69,47 @@ void print_info()
     printf("Mosquito;Ladybug;Pillbug\n");
 }
 
+/*
+    0: correctly parsed
+    1: error in parsing
+*/
+int parseGameTypeString(const char* str, Context_t *context) {
+
+    char base[] = "Base";
+    for (size_t c = 0; c < 4; c++) {
+        if (str[c] != base[c]) {
+            printf("err Parsing GameTypeString failed.\nok\n");
+            return 1;
+        }
+    }
+    if (str[4] == '\0')
+        return 0;
+    else if (str[4] != '+') {
+        printf("err Parsing GameTypeString failed.\nok\n");
+        return 1;
+    }
+    else {
+        for (size_t c = 5; str[c] != '\0' && c <= 7; c++) {
+            switch (str[c]) {
+            case 'M':
+                context->gameType.mosquito = true;
+                break;
+            case 'L':
+                context->gameType.ladybug = true;
+                break;
+            case 'P':
+                context->gameType.pillbug = true;
+                break;
+            default:
+                printf("err Parsing GameTypeString failed.\nok\n");
+                return 1;
+            }
+        }
+    }
+    return 0;
+
+}
+
 void print_gamestring(const Context_t *context)
 {
 
@@ -174,7 +215,7 @@ int manage_command(char *buffer)
     } 
     else
     {
-        printf("Unknown command: %s", command);
+        printf("Unknown command: %s\n", command);
     }
 
     printf("ok\n");
@@ -234,10 +275,20 @@ int main(void)
             }
             char *parameters = buffer + 8;
 
-            // TODO: Check parameters
+            if (strchr(parameters, ';') == NULL) {
+                // Command is like 'Base+MLP'
+                if (parseGameTypeString(parameters, &context) == 1) {
+                    cleanContext(&context);
+                    continue;
+                }
+            } else {
+                // Command is GameString
+                if (convertFromMZinga(parameters, &context) == 1) {
+                    cleanContext(&context);
+                    continue;
+                }
+            }
             print_gamestring(&context);
-
-
 
         }
     }

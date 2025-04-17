@@ -192,12 +192,27 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
-Pieces_t *convertFromMZinga(char *mzinga_string)
+void addMove(Context_t *context, char* move) {
+    size_t moveLen = strlen(move);
+    size_t currentLen = strlen(context->moves);
+
+    if (currentLen + moveLen + 1 >= context->movesSize) {
+        size_t newSize = context->movesSize * 2 + moveLen + 1;
+        char *newMoves = realloc(context->moves, newSize);
+        context->moves = newMoves;
+        context->movesSize = newSize;
+    }
+
+    strcat(context->moves, move);
+    strcat(context->moves, ";");
+}
+
+/*
+    0: if parsing was succesful
+    1: if an error occurred
+*/
+int convertFromMZinga(char *mzinga_string, Context_t *context)
 {
-    char mosquito, ladybug, pillbug; // Dice quali pezzi sono presenti nel gioco
-    mosquito = ladybug = pillbug = 0;
-    char white; // true se noi siamo bianchi
-    int turn; // Il numero del nostro turno
     const int8_t directions[6][2] =
     {
         //y   x
@@ -211,71 +226,78 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
 
     // Get GameTypeString
     char *token = strtok(mzinga_string, ";");
-    if (token == NULL) return NULL;
-
-    if (strcmp(token, "Base") == 0)
-    {
-    } else if (strcmp(token, "Base+M") == 0)
-    {
-        mosquito = 1;
-    } else if (strcmp(token, "Base+L") == 0)
-    {
-        ladybug = 1;
-    } else if (strcmp(token, "Base+P") == 0)
-    {
-        pillbug = 1;
-    } else if (strcmp(token, "Base+ML") == 0)
-    {
-        mosquito = ladybug = 1;
-    } else if (strcmp(token, "Base+MP") == 0)
-    {
-        mosquito = pillbug = 1;
-    } else if (strcmp(token, "Base+LP") == 0)
-    {
-        ladybug = pillbug = 1;
-    } else if (strcmp(token, "Base+MLP") == 0)
-    {
-        mosquito = ladybug = pillbug = 1;
-    } else
-    {
-        return NULL; // Invalid case
+    if (token == NULL) {
+        printf("err Initial parsing of GameString failed.\nok\n");
+        return 1;
     }
 
-    Pieces_t *pieces = malloc(sizeof(Pieces_t) * BOARD_SIZE);
-    pieces = (Pieces_t *) memset(pieces, -1, sizeof(Pieces_t));
-    if (pieces == NULL) return NULL;
+    if (strcmp(token, "Base+M") == 0)
+        context->gameType.mosquito = true;
+    else if (strcmp(token, "Base+L") == 0)
+        context->gameType.ladybug = 1;
+    else if (strcmp(token, "Base+P") == 0)
+        context->gameType.pillbug = 1;
+    else if (strcmp(token, "Base+ML") == 0)
+        context->gameType.mosquito = context->gameType.ladybug = 1;
+    else if (strcmp(token, "Base+MP") == 0)
+        context->gameType.mosquito = context->gameType.pillbug = 1;
+    else if (strcmp(token, "Base+LP") == 0)
+        context->gameType.ladybug = context->gameType.pillbug = 1;
+    else if (strcmp(token, "Base+MLP") == 0)
+        context->gameType.mosquito = context->gameType.ladybug = context->gameType.pillbug = 1;
+    else {
+        printf("err Parsing of GameTypeString failed.\nok\n");
+        return 1;
+    }
+
+    Pieces_t* pieces = context->board;
 
     // Get GameStateString
     token = strtok(NULL, ";");
     if (strcmp(token, "NotStarted") == 0)
-    {
-        return pieces;
-    }
-    if (strcmp(token, "InProgress") == 0)
-    {
-        // In Progress
-    } else
-    {
-        // Draw, White Won, Black Won
-        return NULL;
+        return 0;
+    else if (strcmp(token, "InProgress") == 0)
+        context->gameStatus = IN_PROGRESS;
+    else if (strcmp(token, "Draw") == 0)
+        context->gameStatus = DRAW;
+    else if (strcmp(token, "WhiteWins") == 0)
+        context->gameStatus = WHITE_WON;
+    else if (strcmp(token, "BlackWins") == 0)
+        context->gameStatus = BLACK_WON;
+    else {
+        printf("err Parsing of GameStatusString failed.\nok\n");
+        return 1;
     }
 
     // Get TurnString: Black[n] or White[n]
     token = strtok(NULL, ";");
-    if (token[0] == 'B')
-        white = 0;
-    else
-        white = 1;
+    if (strncmp(token, "Black", 5) == 0)
+        context->curColor = BLACK;
+    else if (strncmp(token, "White", 5) == 0)
+        context->curColor = WHITE;
+    else {
+        printf("err Parsing of TurnString failed.\nok\n");
+        return 1;
+    }
 
+    token += 6;
     token[strlen(token) - 1] = '\0';
-    turn = (int) strtol(token + 5, NULL, 10);
+    context->turn = (int) strtol(token, NULL, 10);
+    // The raw turn number must be edited
+    context->turn *= 2;
+    if (context->curColor == WHITE)
+        context->turn -= 1;
 
     char white_piece;
     Pieces_t piece;
-    Position_t *id_to_pos[NUM_PIECES];
+    Position_t* id_to_pos = malloc(NUM_PIECES * sizeof(Position_t));
+    for(size_t i = 0; i < NUM_PIECES; i++){
+        id_to_pos[i].x = -1;
+    }
 
     // Il primo pezzo si gestisce fuori dal while
     token = strtok(NULL, ";");
+    addMove(context, token);
     if (token[0] == 'b')
         white_piece = 0;
     else
@@ -283,14 +305,15 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
 
     token++;
     piece = getPiece(token, white_piece);
-    id_to_pos[piece]->x = 0;
-    id_to_pos[piece]->y = 0;
-    id_to_pos[piece]->z = 0;
+    id_to_pos[piece].x = 0;
+    id_to_pos[piece].y = 0;
+    id_to_pos[piece].z = 0;
     pieces[MtA(0, 0, 0)] = piece;
 
     while ((token = strtok(NULL, ";")) != NULL)
     {
-        if (strcmp(token, "pass"))
+        addMove(context, token);
+        if (strcmp(token, "pass") == 0)
             continue;
 
         char *space_pos = strchr(token, ' ');
@@ -301,10 +324,10 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
             white_piece = 0;
         token++;
         piece = getPiece(token, white_piece);
-        if (id_to_pos[piece]->x != 0 || id_to_pos[piece]->y != 0 || id_to_pos[piece]->z != 0)
+        if (id_to_pos[piece].x != -1)
         {
             pieces[
-                MtA(id_to_pos[piece]->z, id_to_pos[piece]->y, id_to_pos[piece]->x)
+                MtA(id_to_pos[piece].z, id_to_pos[piece].y, id_to_pos[piece].x)
             ] = NULLPIECE;
         }
 
@@ -356,14 +379,30 @@ Pieces_t *convertFromMZinga(char *mzinga_string)
         }
         other_piece = getPiece(token, white_piece);
         char x, y, z;
-        x = id_to_pos[other_piece]->x + direction[0];
-        id_to_pos[piece]->x = x;
-        y = id_to_pos[other_piece]->y + direction[1];
-        id_to_pos[piece]->y = y;
-        z = id_to_pos[other_piece]->z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
-        id_to_pos[piece]->z = z;
-
+        x = id_to_pos[other_piece].x + direction[0];
+        id_to_pos[piece].x = x;
+        y = id_to_pos[other_piece].y + direction[1];
+        id_to_pos[piece].y = y;
+        z = id_to_pos[other_piece].z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
+        id_to_pos[piece].z = z;
+        // printf("DEBUG: Placed piece %d at x: %d, y: %d, z: %d\n", piece, id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z);
         pieces[MtA(z, y, x)] = piece;
     }
-    return pieces;
+    // debugPrint(context);
+    return 0;
+}
+
+void debugPrint(Context_t *context) {
+    printf("--- DEBUG PRINT ---\n");
+    for (int z = 0; z < 5; ++z) {
+        for (int y = -28; y < 28; ++y) {
+            for (int x = -14; x < 14; ++x) {
+                Pieces_t piece = context->board[MtA(z, y, x)];
+                if (piece != NULLPIECE) {
+                    printf("Piece: %d at x: %d, y: %d, z: %d\n", piece, x + 14, y + 28, z);
+                }
+            }
+        }
+    }
+    printf("--- END DEBUG PRINT ---\n");
 }
