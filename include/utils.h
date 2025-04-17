@@ -20,3 +20,4 @@
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
 int convertFromMZinga(char* mzinga_string, Context_t* context);
 void debugPrint(Context_t* context);
+void playMove(Context_t* context, char* move);

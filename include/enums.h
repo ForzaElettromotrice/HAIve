@@ -78,11 +78,13 @@ typedef enum GameStatus {
     IN_PROGRESS
 } __attribute__((__packed__)) GameStatus_t;
 
+// FIXME: Ho aggiunto l'idToPos - dall'id del pezzo dice la sua posizione
 typedef struct Context
 {
     Pieces_t* board;
     char* moves;
     size_t movesSize;
+    Position_t* idToPos;
 
     int16_t turn;               
     Colors_t curColor;          

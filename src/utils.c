@@ -192,6 +192,12 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
+void playMove(Context_t* context, char* move) {
+
+    addMove(context, move);
+
+}
+
 void addMove(Context_t *context, char* move) {
     size_t moveLen = strlen(move);
     size_t currentLen = strlen(context->moves);
@@ -290,10 +296,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 
     char white_piece;
     Pieces_t piece;
-    Position_t* id_to_pos = malloc(NUM_PIECES * sizeof(Position_t));
-    for(size_t i = 0; i < NUM_PIECES; i++){
-        id_to_pos[i].x = -1;
-    }
+    Position_t* id_to_pos = context->idToPos
 
     // Il primo pezzo si gestisce fuori dal while
     token = strtok(NULL, ";");
