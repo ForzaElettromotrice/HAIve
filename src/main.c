@@ -301,6 +301,10 @@ int main(void)
             playMove(&context, move);
             print_gamestring(&context);
         }
+        else if (result == 3) {
+            // bestmove
+            // TODO: Get best move out
+        }
     }
     free(buffer);
     return 0;
