@@ -92,3 +92,18 @@ typedef struct Context
     GameType_t gameType;        
 
 } Context_t;
+
+/*
+    Il contesto sarà il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
+    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale, 
+        con movePosition tutto pari a -1, e pieceMoved = NULLPIECE.
+*/
+typedef struct Node
+{
+    Node_t* left;
+    Node_t* right;
+    Context_t* context;
+
+    Piece_t pieceMoved;
+
+} Node_t;

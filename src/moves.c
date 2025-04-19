@@ -463,4 +463,5 @@ void getMoves(Pieces_t *board, const Position_t *positions, const Colors_t color
     }
 }
 
+// FIXME: La mossa è un Position_t? Speriamo
 //[(id, mossa), (id,mossa)]

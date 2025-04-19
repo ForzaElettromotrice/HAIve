@@ -133,61 +133,33 @@ uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
 Pieces_t getPiece(const char *piece, char white)
 {
     if (strcmp(piece, "Q") == 0)
-    {
         return white ? W_QUEEN : B_QUEEN;
-    }
     if (strcmp(piece, "S1") == 0)
-    {
         return white ? W_SPIDER_1 : B_SPIDER_1;
-    }
     if (strcmp(piece, "S2") == 0)
-    {
         return white ? W_SPIDER_2 : B_SPIDER_2;
-    }
     if (strcmp(piece, "G1") == 0)
-    {
         return white ? W_GRASSHOPPER_1 : B_GRASSHOPPER_1;
-    }
     if (strcmp(piece, "G2") == 0)
-    {
         return white ? W_GRASSHOPPER_2 : B_GRASSHOPPER_2;
-    }
     if (strcmp(piece, "G3") == 0)
-    {
         return white ? W_GRASSHOPPER_3 : B_GRASSHOPPER_3;
-    }
     if (strcmp(piece, "A1") == 0)
-    {
         return white ? W_ANT_1 : B_ANT_1;
-    }
     if (strcmp(piece, "A2") == 0)
-    {
         return white ? W_ANT_2 : B_ANT_2;
-    }
     if (strcmp(piece, "A3") == 0)
-    {
         return white ? W_ANT_3 : B_ANT_3;
-    }
     if (strcmp(piece, "B1") == 0)
-    {
         return white ? W_BEETLE_1 : B_BEETLE_1;
-    }
     if (strcmp(piece, "B2") == 0)
-    {
         return white ? W_BEETLE_2 : B_BEETLE_2;
-    }
     if (strcmp(piece, "L") == 0)
-    {
         return white ? W_LADYBUG : B_LADYBUG;
-    }
     if (strcmp(piece, "M") == 0)
-    {
         return white ? W_MOSQUITO : B_MOSQUITO;
-    }
     if (strcmp(piece, "P") == 0)
-    {
         return white ? W_PILLBUG : B_PILLBUG;
-    }
 
     return NULLPIECE; // Default case for invalid input
 }
@@ -195,7 +167,8 @@ Pieces_t getPiece(const char *piece, char white)
 void playMove(Context_t* context, char* move) {
 
     addMove(context, move);
-    parseMove(context, move);
+    if(parseMove(context, move) > 0)
+        return;
     context->turn += 1;
     context->curColor *= -1;
     // TODO: Check if win/draw and change game status!
@@ -217,7 +190,11 @@ void addMove(Context_t *context, char* move) {
     strcat(context->moves, ";");
 }
 
-void parseMove(Context_t* context, char* move) {
+/*
+    0: if parsing was successful
+    1: if an error occurred
+*/
+int parseMove(Context_t* context, char* move) {
 
     char white_piece;
     Pieces_t piece;
@@ -235,7 +212,7 @@ void parseMove(Context_t* context, char* move) {
     };
 
     if (strcmp(move, "pass") == 0)
-        return;
+        return 0;
 
     char* space_pos = strchr(move, ' ');
     if (space_pos != NULL) *space_pos = '\0';
@@ -245,6 +222,8 @@ void parseMove(Context_t* context, char* move) {
         white_piece = 0;
     move++;
     piece = getPiece(move, white_piece);
+    if (piece == NULLPIECE)
+        return 1;
     if (id_to_pos[piece].x != -1)
     {
         pieces[
@@ -412,6 +391,77 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
     }
     // debugPrint(context);
     return 0;
+}
+
+void appendPiece(Piece_t piece, char* move) {
+    if (pieceMoved == B_QUEEN)
+        move = strcat(move, "Q");
+    else if (pieceMoved == B_SPIDER_1)
+        move = strcat(move, "S1");
+    else if (pieceMoved == B_SPIDER_2)
+        move = strcat(move, "S2");
+    else if (pieceMoved == B_GRASSHOPPER_1)
+        move = strcat(move, "G1");
+    else if (pieceMoved == B_GRASSHOPPER_2)
+        move = strcat(move, "G2");
+    else if (pieceMoved == B_GRASSHOPPER_3)
+        move = strcat(move, "G3");
+    else if (pieceMoved == B_ANT_1)
+        move = strcat(move, "A1");
+    else if (pieceMoved == B_ANT_2)
+        move = strcat(move, "A2");
+    else if (pieceMoved == B_ANT_3)
+        move = strcat(move, "A3");
+    else if (pieceMoved == B_BEETLE_1)
+        move = strcat(move, "B1");
+    else if (pieceMoved == B_BEETLE_2)
+        move = strcat(move, "B2");
+    else if (pieceMoved == B_LADYBUG)
+        move = strcat(move, "L");
+    else if (pieceMoved == B_MOSQUITO)
+        move = strcat(move, "M");
+    else if (pieceMoved == B_PILLBUG)
+        move = strcat(move, "P");
+}
+
+/*
+    From our system, to a MZinga-compliant one;
+        il contesto � gi� MODIFICATO dalla mossa da deconvertire.
+*/
+char* deconvertMove(Context_t* context, Piece_t pieceMoved) {
+    char* move = pieceMoved <= 13 ? "b" : "w";
+    pieceMoved = pieceMoved % 14;
+    
+    appendPiece(pieceMoved, move);
+    move = strcat(move, " ");
+
+    char index = -1;
+    char x = context->idToPos[pieceMoved].x;
+    char y = context->idToPos[pieceMoved].y;
+    char z = context->idToPos[pieceMoved].z;
+    const int8_t directions[6][2] =
+    {
+        //y   x
+        {-2, 0}, //sopra
+        {-1, 1}, //in alto a destra
+        {1, 1}, //in basso a destra
+        {2, 0}, //sotto
+        {1, -1}, //in basso a sinistra
+        {-1, -1} //in alto a sinistra
+    };
+    Pieces_t* board = context->board;
+    for (char i = 0; i < 6; i++) {
+        if (board[MtA(z, y + directions[i][0], x + directions[i][1])] != NULLPIECE) {
+            index = i; break;
+        }
+    }
+    // If not found, then the piece was put on top of another one
+    if (index == -1) {
+        appendPiece(board[MtA(z - 1, y, x)], move);
+    } else {
+        // TODO: Complete the conversion
+    }
+
 }
 
 void debugPrint(Context_t *context) {
