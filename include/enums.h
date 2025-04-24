@@ -8,6 +8,12 @@
 #include <stdbool.h>
 
 #define NUM_PIECES 28
+#define RIGHT_UP 0
+#define RIGHT 1
+#define RIGHT_DOWN 2
+#define LEFT_DOWN 3
+#define LEFT 4
+#define LEFT_UP 5
 extern const int8_t directions[6][2];
 
 
@@ -78,32 +84,30 @@ typedef enum GameStatus {
     IN_PROGRESS
 } __attribute__((__packed__)) GameStatus_t;
 
-// FIXME: Ho aggiunto l'idToPos - dall'id del pezzo dice la sua posizione
 typedef struct Context
 {
     Pieces_t* board;
     char* moves;
     size_t movesSize;
-    Position_t* idToPos;
+    Position_t *idToPos;
 
     int16_t turn;               
     Colors_t curColor;          
-    GameStatus_t gameStatus;    
-    GameType_t gameType;        
+    GameStatus_t gameStatus;
+    GameType_t gameType;
+    Pieces_t lastMovedPiece;
 
 } Context_t;
 
 /*
     Il contesto sarà il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
-    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale, 
-        con movePosition tutto pari a -1, e pieceMoved = NULLPIECE.
+    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale.
 */
 typedef struct Node
 {
-    Node_t* left;
-    Node_t* right;
-    Context_t* context;
+    Node_t *children;
+    Context_t *context;
 
-    Piece_t pieceMoved;
+    uint8_t child_number;
 
-} Node_t;
+} __attribute__((__packed__)) Node_t;
