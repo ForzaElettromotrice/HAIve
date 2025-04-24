@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define NUM_PIECES 28
 extern const int8_t directions[6][2];
@@ -64,13 +65,15 @@ typedef struct Piece
     Position_t position;
 } __attribute__((__packed__)) Piece_t;
 
-typedef struct GameType {
+typedef struct GameType
+{
     bool ladybug;
     bool pillbug;
     bool mosquito;
 } __attribute__((__packed__)) GameType_t;
 
-typedef enum GameStatus {
+typedef enum GameStatus
+{
     NOT_STARTED,
     WHITE_WON,
     BLACK_WON,
@@ -81,29 +84,27 @@ typedef enum GameStatus {
 // FIXME: Ho aggiunto l'idToPos - dall'id del pezzo dice la sua posizione
 typedef struct Context
 {
-    Pieces_t* board;
-    char* moves;
+    Pieces_t *board;
+    char *moves;
     size_t movesSize;
-    Position_t* idToPos;
+    Position_t *idToPos;
 
-    int16_t turn;               
-    Colors_t curColor;          
-    GameStatus_t gameStatus;    
-    GameType_t gameType;        
-
+    int16_t turn;
+    Colors_t curColor;
+    GameStatus_t gameStatus;
+    GameType_t gameType;
 } Context_t;
 
 /*
-    Il contesto sarà il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
-    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale, 
+    Il contesto sarï¿½ il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
+    Non serve sapere dov'era il pezzo prima: il nodo padre avrï¿½ il contesto originale, 
         con movePosition tutto pari a -1, e pieceMoved = NULLPIECE.
 */
 typedef struct Node
 {
-    Node_t* left;
-    Node_t* right;
-    Context_t* context;
+    struct Node *left;
+    struct Node *right;
+    Context_t *context;
 
     Piece_t pieceMoved;
-
 } Node_t;

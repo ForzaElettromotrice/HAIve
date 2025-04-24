@@ -164,22 +164,23 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
-void playMove(Context_t* context, char* move) {
-
+void playMove(Context_t *context, char *move)
+{
     addMove(context, move);
-    if(parseMove(context, move) > 0)
+    if (parseMove(context, move) > 0)
         return;
     context->turn += 1;
     context->curColor *= -1;
     // TODO: Check if win/draw and change game status!
-
 }
 
-void addMove(Context_t *context, char* move) {
+void addMove(Context_t *context, char *move)
+{
     size_t moveLen = strlen(move);
     size_t currentLen = strlen(context->moves);
 
-    if (currentLen + moveLen + 1 >= context->movesSize) {
+    if (currentLen + moveLen + 1 >= context->movesSize)
+    {
         size_t newSize = context->movesSize * 2 + moveLen + 1;
         char *newMoves = realloc(context->moves, newSize);
         context->moves = newMoves;
@@ -194,12 +195,12 @@ void addMove(Context_t *context, char* move) {
     0: if parsing was successful
     1: if an error occurred
 */
-int parseMove(Context_t* context, char* move) {
-
+int parseMove(Context_t *context, char *move)
+{
     char white_piece;
     Pieces_t piece;
-    Position_t* id_to_pos = context->idToPos;
-    Pieces_t* pieces = context->board;
+    Position_t *id_to_pos = context->idToPos;
+    Pieces_t *pieces = context->board;
     const int8_t directions[6][2] =
     {
         //y   x
@@ -214,7 +215,7 @@ int parseMove(Context_t* context, char* move) {
     if (strcmp(move, "pass") == 0)
         return 0;
 
-    char* space_pos = strchr(move, ' ');
+    char *space_pos = strchr(move, ' ');
     if (space_pos != NULL) *space_pos = '\0';
     if (move[0] == 'w')
         white_piece = 1;
@@ -232,7 +233,7 @@ int parseMove(Context_t* context, char* move) {
     }
 
     Pieces_t other_piece;
-    uint8_t direction[2] = { 0, 0 };
+    uint8_t direction[2] = {0, 0};
     move += strlen(move);
     move++;
     if (move[0] == '-')
@@ -241,22 +242,19 @@ int parseMove(Context_t* context, char* move) {
         direction[1] = directions[4][1];
         white_piece = move[1] == 'w' ? 1 : 0;
         move++;
-    }
-    else if (move[0] == '/')
+    } else if (move[0] == '/')
     {
         direction[0] = directions[3][0];
         direction[1] = directions[3][1];
         white_piece = move[1] == 'w' ? 1 : 0;
         move++;
-    }
-    else if (move[0] == '\\')
+    } else if (move[0] == '\\')
     {
         direction[0] = directions[5][0];
         direction[1] = directions[5][1];
         white_piece = move[1] == 'w' ? 1 : 0;
         move++;
-    }
-    else if (move[0] == 'w')
+    } else if (move[0] == 'w')
         white_piece = 1;
     else
         white_piece = 0;
@@ -269,13 +267,11 @@ int parseMove(Context_t* context, char* move) {
         {
             direction[0] = directions[1][0];
             direction[1] = directions[1][1];
-        }
-        else if (last_char == '\\')
+        } else if (last_char == '\\')
         {
             direction[0] = directions[2][0];
             direction[1] = directions[2][1];
-        }
-        else
+        } else
         {
             direction[0] = directions[0][0];
             direction[1] = directions[0][1];
@@ -292,6 +288,8 @@ int parseMove(Context_t* context, char* move) {
     id_to_pos[piece].z = z;
     // printf("DEBUG: Placed piece %d at x: %d, y: %d, z: %d\n", piece, id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z);
     pieces[MtA(z, y, x)] = piece;
+
+    return EXIT_SUCCESS;
 }
 
 /*
@@ -300,10 +298,10 @@ int parseMove(Context_t* context, char* move) {
 */
 int convertFromMZinga(char *mzinga_string, Context_t *context)
 {
-
     // Get GameTypeString
     char *token = strtok(mzinga_string, ";");
-    if (token == NULL) {
+    if (token == NULL)
+    {
         printf("err Initial parsing of GameString failed.\nok\n");
         return 1;
     }
@@ -322,12 +320,13 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         context->gameType.ladybug = context->gameType.pillbug = 1;
     else if (strcmp(token, "Base+MLP") == 0)
         context->gameType.mosquito = context->gameType.ladybug = context->gameType.pillbug = 1;
-    else {
+    else
+    {
         printf("err Parsing of GameTypeString failed.\nok\n");
         return 1;
     }
 
-    Pieces_t* pieces = context->board;
+    Pieces_t *pieces = context->board;
 
     // Get GameStateString
     token = strtok(NULL, ";");
@@ -341,7 +340,8 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         context->gameStatus = WHITE_WON;
     else if (strcmp(token, "BlackWins") == 0)
         context->gameStatus = BLACK_WON;
-    else {
+    else
+    {
         printf("err Parsing of GameStatusString failed.\nok\n");
         return 1;
     }
@@ -352,7 +352,8 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         context->curColor = BLACK;
     else if (strncmp(token, "White", 5) == 0)
         context->curColor = WHITE;
-    else {
+    else
+    {
         printf("err Parsing of TurnString failed.\nok\n");
         return 1;
     }
@@ -367,7 +368,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 
     char white_piece;
     Pieces_t piece;
-    Position_t* id_to_pos = context->idToPos;
+    Position_t *id_to_pos = context->idToPos;
 
     // Il primo pezzo si gestisce fuori dal while
     token = strtok(NULL, ";");
@@ -387,13 +388,13 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
     while ((token = strtok(NULL, ";")) != NULL)
     {
         addMove(context, token);
-        
     }
     // debugPrint(context);
     return 0;
 }
 
-void appendPiece(Piece_t piece, char* move) {
+void appendPiece(Pieces_t pieceMoved, char *move)
+{
     if (pieceMoved == B_QUEEN)
         move = strcat(move, "Q");
     else if (pieceMoved == B_SPIDER_1)
@@ -428,10 +429,11 @@ void appendPiece(Piece_t piece, char* move) {
     From our system, to a MZinga-compliant one;
         il contesto � gi� MODIFICATO dalla mossa da deconvertire.
 */
-char* deconvertMove(Context_t* context, Piece_t pieceMoved) {
-    char* move = pieceMoved <= 13 ? "b" : "w";
+char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
+{
+    char *move = pieceMoved <= 13 ? "b" : "w";
     pieceMoved = pieceMoved % 14;
-    
+
     appendPiece(pieceMoved, move);
     move = strcat(move, " ");
 
@@ -449,28 +451,37 @@ char* deconvertMove(Context_t* context, Piece_t pieceMoved) {
         {1, -1}, //in basso a sinistra
         {-1, -1} //in alto a sinistra
     };
-    Pieces_t* board = context->board;
-    for (char i = 0; i < 6; i++) {
-        if (board[MtA(z, y + directions[i][0], x + directions[i][1])] != NULLPIECE) {
-            index = i; break;
+    Pieces_t *board = context->board;
+    for (int8_t i = 0; i < 6; i++)
+    {
+        if (board[MtA(z, y + directions[i][0], x + directions[i][1])] != NULLPIECE)
+        {
+            index = i;
+            break;
         }
     }
     // If not found, then the piece was put on top of another one
-    if (index == -1) {
+    if (index == -1)
+    {
         appendPiece(board[MtA(z - 1, y, x)], move);
-    } else {
+    } else
+    {
         // TODO: Complete the conversion
     }
-
 }
 
-void debugPrint(Context_t *context) {
+void debugPrint(Context_t *context)
+{
     printf("--- DEBUG PRINT ---\n");
-    for (int z = 0; z < 5; ++z) {
-        for (int y = -28; y < 28; ++y) {
-            for (int x = -14; x < 14; ++x) {
+    for (int z = 0; z < 5; ++z)
+    {
+        for (int y = -28; y < 28; ++y)
+        {
+            for (int x = -14; x < 14; ++x)
+            {
                 Pieces_t piece = context->board[MtA(z, y, x)];
-                if (piece != NULLPIECE) {
+                if (piece != NULLPIECE)
+                {
                     printf("Piece: %d at x: %d, y: %d, z: %d\n", piece, x + 14, y + 28, z);
                 }
             }
