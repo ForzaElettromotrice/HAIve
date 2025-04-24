@@ -14,6 +14,7 @@ add_executable(HAIve
         src/moves.c
         src/logger.c
         src/utils.c
+        src/hashmap.c
         src/enums.c
 )
 

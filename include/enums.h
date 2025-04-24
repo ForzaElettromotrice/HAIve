@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define NUM_PIECES 28
 #define RIGHT_UP 0
@@ -70,13 +71,15 @@ typedef struct Piece
     Position_t position;
 } __attribute__((__packed__)) Piece_t;
 
-typedef struct GameType {
+typedef struct GameType
+{
     bool ladybug;
     bool pillbug;
     bool mosquito;
 } __attribute__((__packed__)) GameType_t;
 
-typedef enum GameStatus {
+typedef enum GameStatus
+{
     NOT_STARTED,
     WHITE_WON,
     BLACK_WON,
@@ -86,9 +89,10 @@ typedef enum GameStatus {
 
 typedef struct Context
 {
-    Pieces_t* board;
-    char* moves;
+    Pieces_t *board;
+    char *moves;
     size_t movesSize;
+    Position_t *idToPos;
     Position_t *idToPos;
 
     int16_t turn;               
@@ -100,14 +104,15 @@ typedef struct Context
 } Context_t;
 
 /*
-    Il contesto sarà il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
-    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale.
+    Il contesto sarï¿½ il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
+    Non serve sapere dov'era il pezzo prima: il nodo padre avrï¿½ il contesto originale.
 */
 typedef struct Node
 {
-    Node_t *children;
+    struct Node *left;
+    struct Node *right;
     Context_t *context;
 
     uint8_t child_number;
-
+    Piece_t pieceMoved;
 } __attribute__((__packed__)) Node_t;

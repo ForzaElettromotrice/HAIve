@@ -48,7 +48,7 @@ bool canSlide(const Position_t *pos, const int_fast8_t direction, const Pieces_t
 
     return board[MtA(z, newY, newX)] == NULLPIECE;
 }
-inline bool isCovered(const Position_t *pos, const Pieces_t *board)
+static inline bool isCovered(const Position_t *pos, const Pieces_t *board)
 {
     return board[MtA(pos->z + 1, pos->y, pos->x)] != NULLPIECE;
 }
