@@ -232,6 +232,7 @@ void initContext(Context_t *context) {
     memset(context->board, 0xff, BOARD_SIZE * sizeof(Pieces_t));
     context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
     for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].x = -1;
+    context->lastMovedPiece = NULLPIECE;
 
 }
 

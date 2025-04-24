@@ -6,10 +6,10 @@
 const int8_t directions[6][2] =
 {
     //y   x
-    {-2, 0}, //sopra
     {-1, 1}, //in alto a destra
+    {0, 2},  //destra
     {1, 1}, //in basso a destra
-    {2, 0}, //sotto
     {1, -1}, //in basso a sinistra
+    {0, -2}, //sinistra
     {-1, -1} //in alto a sinistra
 };

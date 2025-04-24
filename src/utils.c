@@ -200,16 +200,6 @@ int parseMove(Context_t* context, char* move) {
     Pieces_t piece;
     Position_t* id_to_pos = context->idToPos;
     Pieces_t* pieces = context->board;
-    const int8_t directions[6][2] =
-    {
-        //y   x
-        {-2, 0}, //sopra
-        {-1, 1}, //in alto a destra
-        {1, 1}, //in basso a destra
-        {2, 0}, //sotto
-        {1, -1}, //in basso a sinistra
-        {-1, -1} //in alto a sinistra
-    };
 
     if (strcmp(move, "pass") == 0)
         return 0;
@@ -222,6 +212,7 @@ int parseMove(Context_t* context, char* move) {
         white_piece = 0;
     move++;
     piece = getPiece(move, white_piece);
+    context->lastMovedPiece = piece;
     if (piece == NULLPIECE)
         return 1;
     if (id_to_pos[piece].x != -1)
@@ -237,22 +228,22 @@ int parseMove(Context_t* context, char* move) {
     move++;
     if (move[0] == '-')
     {
-        direction[0] = directions[4][0];
-        direction[1] = directions[4][1];
+        direction[0] = directions[LEFT][0];
+        direction[1] = directions[LEFT][1];
         white_piece = move[1] == 'w' ? 1 : 0;
         move++;
     }
     else if (move[0] == '/')
     {
-        direction[0] = directions[3][0];
-        direction[1] = directions[3][1];
+        direction[0] = directions[LEFT_DOWN][0];
+        direction[1] = directions[LEFT_DOWN][1];
         white_piece = move[1] == 'w' ? 1 : 0;
         move++;
     }
     else if (move[0] == '\\')
     {
-        direction[0] = directions[5][0];
-        direction[1] = directions[5][1];
+        direction[0] = directions[LEFT_UP][0];
+        direction[1] = directions[LEFT_UP][1];
         white_piece = move[1] == 'w' ? 1 : 0;
         move++;
     }
@@ -267,18 +258,18 @@ int parseMove(Context_t* context, char* move) {
         char last_char = move[strlen(move) - 1];
         if (last_char == '-')
         {
-            direction[0] = directions[1][0];
-            direction[1] = directions[1][1];
+            direction[0] = directions[RIGHT][0];
+            direction[1] = directions[RIGHT][1];
         }
         else if (last_char == '\\')
         {
-            direction[0] = directions[2][0];
-            direction[1] = directions[2][1];
+            direction[0] = directions[RIGHT_DOWN][0];
+            direction[1] = directions[RIGHT_DOWN][1];
         }
         else
         {
-            direction[0] = directions[0][0];
-            direction[1] = directions[0][1];
+            direction[0] = directions[RIGHT_UP][0];
+            direction[1] = directions[RIGHT_UP][1];
         }
         move[strlen(move) - 1] = '\0';
     }
@@ -439,16 +430,6 @@ char* deconvertMove(Context_t* context, Piece_t pieceMoved) {
     char x = context->idToPos[pieceMoved].x;
     char y = context->idToPos[pieceMoved].y;
     char z = context->idToPos[pieceMoved].z;
-    const int8_t directions[6][2] =
-    {
-        //y   x
-        {-2, 0}, //sopra
-        {-1, 1}, //in alto a destra
-        {1, 1}, //in basso a destra
-        {2, 0}, //sotto
-        {1, -1}, //in basso a sinistra
-        {-1, -1} //in alto a sinistra
-    };
     Pieces_t* board = context->board;
     for (char i = 0; i < 6; i++) {
         if (board[MtA(z, y + directions[i][0], x + directions[i][1])] != NULLPIECE) {

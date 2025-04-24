@@ -20,24 +20,26 @@ GameStatus_t isGameEnded(Context_t* context) {
 }
 
 // Tells how many pieces are around the given one
-char howManyAround(Context_t* context, Pieces_t piece) {
+char howManyAround(Context_t* context, Pieces_t id) {
 
 	char nearAround = 0;
-	Position_t* idToPos = context->idToPos;
-	for (size_t pieceId = 0; pieceId < NUM_PIECES && nearAround < 6; pieceId++) {
-		if (pieceId == piece)
-			continue;
-		Position_t* curPos = &idToPos[pieceId];
-		if (curPos->x == -1)
-			continue;
-		if (curPos->z == idToPos[piece].z) {
-			if (distance(curPos, &idToPos[piece]) == 2)
-				nearAround++;
-		}
+	int8_t z = context->idToPos[id]->z;
+	int8_t y = context->idToPos[id]->y;
+	int8_t x = context->idToPos[id]->x;
+	for (int_fast8_t i = 0; i < 6; ++i)
+	{
+		const int_fast8_t newY = (int_fast8_t)(directions[i][0] + y);
+		const int_fast8_t newX = (int_fast8_t)(directions[i][1] + x);
+
+		if (board[MtA(z, newY, newX)] != NULLPIECE)
+			nearAround++;
 	}
-	// assert(nearAround between 1 and 6?)
 	return nearAround;
 
+}
+
+inline bool isWin(Context_t* context) {
+	return howManyAround(context, context->curColor == WHITE ? B_QUEEN : W_QUEEN) == 6;
 }
 
 /*
