@@ -442,16 +442,6 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
     char x = context->idToPos[pieceMoved].x;
     char y = context->idToPos[pieceMoved].y;
     char z = context->idToPos[pieceMoved].z;
-    const int8_t directions[6][2] =
-    {
-        //y   x
-        {-2, 0}, //sopra
-        {-1, 1}, //in alto a destra
-        {1, 1}, //in basso a destra
-        {2, 0}, //sotto
-        {1, -1}, //in basso a sinistra
-        {-1, -1} //in alto a sinistra
-    };
     Pieces_t *board = context->board;
     for (int8_t i = 0; i < 6; i++)
     {
