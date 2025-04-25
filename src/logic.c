@@ -4,6 +4,23 @@ int distance(Position_t *pos1, Position_t *pos2) {
 	return abs(pos1->x - pos2->x) + abs(pos1->y - pos2->y);
 }
 
+void copyContext(Context_t* toCopy, Context_t* toOverwrite) {
+
+	// Direct copies
+	toOverwrite->turn = toCopy->turn;
+	toOverwrite->curColor = toCopy->curColor;
+	toOverwrite->gameStatus = toCopy->gameStatus;
+	toOverwrite->gameType = toCopy->gameStatus;
+	toOverwrite->lastMovedPiece = toCopy->lastMovedPiece;
+	toOverwrite->movesSize = toCopy->movesSize;
+	
+	// Copy of pointers
+	memcpy(toOverwrite->board, toCopy->board, sizeof(Pieces_t) * BOARD_SIZE);
+	memcpy(toOverwrite->moves, toCopy->moves, sizeof(char) * toCopy->movesSize);
+	memcpy(toOverwrite->idToPos, toCopy->idToPos, sizeof(Position_t) * NUM_PIECES);
+
+}
+
 GameStatus_t isGameEnded(Context_t* context) {
 
 	// TODO: Check draw

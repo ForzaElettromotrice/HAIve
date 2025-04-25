@@ -93,7 +93,6 @@ typedef struct Context
     char *moves;
     size_t movesSize;
     Position_t *idToPos;
-    Position_t *idToPos;
 
     int16_t turn;               
     Colors_t curColor;          
