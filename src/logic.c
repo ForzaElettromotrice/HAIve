@@ -111,3 +111,12 @@ int32_t heuristicValue(Context_t *context, bool areWeWhite) {
 
 	return value;
 }
+
+void getBestMove(Context_t* context, Piece_t* bestMove, int depth, int maxDepth) {
+	
+	if (depth >= maxDepth) {
+		// BASE CASE
+		return;
+	}
+
+}

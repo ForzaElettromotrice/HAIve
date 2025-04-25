@@ -428,7 +428,7 @@ void appendPiece(Pieces_t pieceMoved, char *move)
 
 /*
     From our system, to a MZinga-compliant one;
-        il contesto � gi� MODIFICATO dalla mossa da deconvertire.
+        il contesto è già MODIFICATO dalla mossa da deconvertire.
 */
 char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
 {
@@ -457,8 +457,33 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
         appendPiece(board[MtA(z - 1, y, x)], move);
     } else
     {
-        // TODO: Complete the conversion
+        if (index == RIGHT) {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+            move = strcat(move, "-");
+        }
+        else if (index == RIGHT_UP) {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+            move = strcat(move, "/");
+        }
+        else if (index == RIGHT_DOWN) {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+            move = strcat(move, "\\");
+        }
+        else if (index == LEFT) {
+            move = strcat(move, "-");
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+        }
+        else if (index == LEFT_UP) {
+            move = strcat(move, "\\");
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+        }
+        else if (index == LEFT_DOWN) {
+            move = strcat(move, "/");
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+        }
     }
+
+    return move;
 }
 
 void debugPrint(Context_t *context)
