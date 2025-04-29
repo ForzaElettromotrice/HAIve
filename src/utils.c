@@ -464,7 +464,7 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
     appendPiece(pieceMoved, move);
     move = strcat(move, " ");
 
-    char index = -1;
+    int8_t index = -1;
     char x = context->idToPos[pieceMoved].x;
     char y = context->idToPos[pieceMoved].y;
     char z = context->idToPos[pieceMoved].z;
@@ -483,29 +483,30 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
         appendPiece(board[MtA(z - 1, y, x)], move);
     } else
     {
-        if (index == RIGHT) {
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+        if (index == RIGHT)
+        {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
             move = strcat(move, "-");
-        }
-        else if (index == RIGHT_UP) {
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+        } else if (index == RIGHT_UP)
+        {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
             move = strcat(move, "/");
-        }
-        else if (index == RIGHT_DOWN) {
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+        } else if (index == RIGHT_DOWN)
+        {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
             move = strcat(move, "\\");
-        }
-        else if (index == LEFT) {
+        } else if (index == LEFT)
+        {
             move = strcat(move, "-");
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
-        }
-        else if (index == LEFT_UP) {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+        } else if (index == LEFT_UP)
+        {
             move = strcat(move, "\\");
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
-        }
-        else if (index == LEFT_DOWN) {
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+        } else if (index == LEFT_DOWN)
+        {
             move = strcat(move, "/");
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])]);
+            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
         }
     }
 
