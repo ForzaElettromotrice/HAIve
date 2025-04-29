@@ -75,6 +75,8 @@ void *getByKey(const char *key, const Hashmap_t *hashmap)
 
     while (true)
     {
+        if (hashmap->keys[idx] == NULL)
+            return NULL;
         if (strcmp(hashmap->keys[idx], key) == 0)
             break;
         idx = idx + 1 & 512;
@@ -89,6 +91,8 @@ void removeKey(const char *key, const Hashmap_t *hashmap)
 
     while (true)
     {
+        if (hashmap->keys[idx] == NULL)
+            return;
         if (strcmp(hashmap->keys[idx], key) == 0)
             break;
         idx = idx + 1 & 512;

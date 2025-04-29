@@ -394,7 +394,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
     return 0;
 }
 
-void appendPiece(Pieces_t pieceMoved, char *move)
+void appendPiece(const Pieces_t pieceMoved, char *move)
 {
     if (pieceMoved == B_QUEEN)
         move = strcat(move, "Q");
