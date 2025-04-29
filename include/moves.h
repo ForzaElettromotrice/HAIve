@@ -6,6 +6,7 @@
 
 #include <stdbool.h>
 #include <errno.h>
+#include <hashmap.h>
 
 
 #include "logger.h"

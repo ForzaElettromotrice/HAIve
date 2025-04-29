@@ -4,6 +4,7 @@
 
 #include "moves.h"
 
+
 //TODO: rendere la dfs iterativa
 //Suppongo che visited mi venga consegnato già con la posizione iniziale a True, first serve così faccio il calcolo dei visitati solo una volta
 bool dfs(const Position_t *start, const Pieces_t *board, bool *visited, const bool first)
@@ -362,8 +363,111 @@ void spiderMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, ui
         }
     }
 }
-void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize)
+void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize, Hashmap_t *visited)
 {
+    bool first = false;
+    if (!visited)
+    {
+        first = true;
+        initHashmap(&visited);
+    }
+
+    const int_fast8_t y = piece->position.y;
+    const int_fast8_t x = piece->position.x;
+    for (int_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+
+        if (board[MtA(0, newY, newX)] != NULLPIECE)
+            continue;
+
+        char key[5];
+        sprintf(key, "%02d%02d", newY, newX);
+        if (getByKey(key, visited) != NULL)
+            continue;
+
+        if (!canSlide(&piece->position, i, board))
+            continue;
+
+        const Piece_t move = {piece->id, {0, newY, newX}};
+        moves[(*mSize)++] = move;
+
+        antMoves(piece, board, moves, mSize, visited);
+    }
+    if (first)
+        freeHashmap(visited);
+}
+void mosquitoMoves(const Piece_t *piece, const Pieces_t *board, const bool last, Piece_t *moves, uint_fast8_t *mSize)
+{
+    const int_fast8_t z = piece->position.z;
+    const int_fast8_t y = piece->position.y;
+    const int_fast8_t x = piece->position.x;
+
+    if (z > 0)
+    {
+        beetleMoves(piece, board, moves, mSize);
+        return;
+    }
+
+    queenMoves(piece, board, moves, mSize);
+    for (int_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+
+        const Pieces_t neighbor = board[MtA(0, newY, newX)];
+        if (neighbor == NULLPIECE)
+            continue;
+        switch (neighbor)
+        {
+            case NULLPIECE:
+                break;
+            case B_QUEEN:
+            case W_QUEEN:
+                queenMoves(piece, board, moves, mSize);
+                break;
+            case B_PILLBUG:
+            case W_PILLBUG:
+                pillbugMoves(piece, board, last, moves, mSize);
+                break;
+            case B_LADYBUG:
+            case W_LADYBUG:
+                ladybugMoves(piece, board, moves, mSize);
+                break;
+            case B_MOSQUITO:
+            case W_MOSQUITO:
+                break;
+            case B_ANT_1:
+            case B_ANT_2:
+            case B_ANT_3:
+            case W_ANT_1:
+            case W_ANT_2:
+            case W_ANT_3:
+                antMoves(piece, board, moves, mSize, NULL);
+                break;
+            case B_GRASSHOPPER_1:
+            case B_GRASSHOPPER_2:
+            case B_GRASSHOPPER_3:
+            case W_GRASSHOPPER_1:
+            case W_GRASSHOPPER_2:
+            case W_GRASSHOPPER_3:
+                grasshopperMoves(piece, board, moves, mSize);
+                break;
+            case B_BEETLE_1:
+            case B_BEETLE_2:
+            case W_BEETLE_1:
+            case W_BEETLE_2:
+                beetleMoves(piece, board, moves, mSize);
+                break;
+            case B_SPIDER_1:
+            case B_SPIDER_2:
+            case W_SPIDER_1:
+            case W_SPIDER_2:
+                spiderMoves(piece, board, moves, mSize);
+                break;
+        }
+    }
 }
 
 void getMoves(Pieces_t *board, const Position_t *positions, const Colors_t color, const Pieces_t last, Piece_t **moves, uint_fast8_t *mSize)
@@ -429,7 +533,7 @@ void getMoves(Pieces_t *board, const Position_t *positions, const Colors_t color
                 break;
             case B_MOSQUITO:
             case W_MOSQUITO:
-                //mosquitoMoves(&piece, board, *moves, mSize);
+                mosquitoMoves(&piece, board, last, *moves, mSize);
                 break;
             case B_ANT_1:
             case B_ANT_2:
@@ -437,7 +541,7 @@ void getMoves(Pieces_t *board, const Position_t *positions, const Colors_t color
             case W_ANT_1:
             case W_ANT_2:
             case W_ANT_3:
-                //antMoves(&piece, board, *moves, mSize);
+                antMoves(&piece, board, *moves, mSize, NULL);
                 break;
             case B_GRASSHOPPER_1:
             case B_GRASSHOPPER_2:
