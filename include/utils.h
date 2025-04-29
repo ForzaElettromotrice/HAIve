@@ -19,7 +19,8 @@
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
 int convertFromMZinga(char* mzinga_string, Context_t* context);
-void debugPrint(Context_t* context);
-void playMove(Context_t* context, char* move);
-int parseMove(Context_t* context, char* move);
-void addMove(Context_t* context, char* move);
+void debugPrint(Context_t* context); // Prints the context - for debug purposes
+void playMove(Context_t* context, char* move); // From a char* move, plays it
+int parseMove(Context_t* context, char* move); // Parses the move, and sets it in the context
+void addMove(Context_t* context, char* move); // Append the char* move to the context->moves
+int convertFromMZinga(char* mzinga_string, Context_t* context); // Sets the context FROM A WHOLE MZINGA STRING

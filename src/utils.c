@@ -164,6 +164,32 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
+// NOTE: The context MUST BE EDITED in order to add the move
+void manageMove(Context_t* context, Piece_t* move) {
+    
+    // Delete from old position
+    Position_t oldPosition = context->idToPos[move->id];
+    char z = oldPosition.z;
+    char y = oldPosition.y;
+    char x = oldPosition.x;
+    context->board[MtA(z, y, x)] = NULLPIECE;
+    // Add to new position
+    Position_t newPosition = move->position;
+    char z = newPosition.z;
+    char y = newPosition.y;
+    char x = newPosition.x;
+    context->board[MtA(z, y, x)] = move->id;
+    context->idToPos[move->id] = newPosition;
+
+    // Manage other stuff
+    context->turn += 1;
+    context->curColor *= -1;
+    context->lastMovedPiece = move->id;
+    char* move = deconvertMove(context, move->id);
+    addMove(context, move);
+    // TODO: Check if win/draw and change game status!
+}
+
 void playMove(Context_t *context, char *move)
 {
     addMove(context, move);
