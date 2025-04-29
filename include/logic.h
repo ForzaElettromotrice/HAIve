@@ -6,4 +6,4 @@
 #include <stdio.h>
 #include <utils.h>
 
-int isGameEnded(Context_t *context);
+GameStatus_t isGameEnded(Context_t* context);

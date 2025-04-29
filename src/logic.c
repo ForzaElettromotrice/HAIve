@@ -4,24 +4,44 @@ int distance(Position_t *pos1, Position_t *pos2) {
 	return abs(pos1->x - pos2->x) + abs(pos1->y - pos2->y);
 }
 
-void copyContext(Context_t* toCopy, Context_t* toOverwrite) {
+void copyContext(Context_t* source, Context_t* dest) {
 
 	// Direct copies
-	toOverwrite->turn = toCopy->turn;
-	toOverwrite->curColor = toCopy->curColor;
-	toOverwrite->gameStatus = toCopy->gameStatus;
-	toOverwrite->gameType = toCopy->gameStatus;
-	toOverwrite->lastMovedPiece = toCopy->lastMovedPiece;
-	toOverwrite->movesSize = toCopy->movesSize;
+	dest->turn = source->turn;
+	dest->curColor = source->curColor;
+	dest->gameStatus = source->gameStatus;
+	dest->gameType = source->gameType;
+	dest->lastMovedPiece = source->lastMovedPiece;
+	dest->movesSize = source->movesSize;
 	
 	// Copy of pointers
-	memcpy(toOverwrite->board, toCopy->board, sizeof(Pieces_t) * BOARD_SIZE);
-	memcpy(toOverwrite->moves, toCopy->moves, sizeof(char) * toCopy->movesSize);
-	memcpy(toOverwrite->idToPos, toCopy->idToPos, sizeof(Position_t) * NUM_PIECES);
+	memcpy(dest->board, source->board, sizeof(Pieces_t) * BOARD_SIZE);
+	memcpy(dest->moves, source->moves, sizeof(char) * source->movesSize);
+	memcpy(dest->idToPos, source->idToPos, sizeof(Position_t) * NUM_PIECES);
 
 }
 
-GameStatus_t isGameEnded(Context_t* context) {
+// Tells how many pieces are around the given one
+char howManyAround(Context_t* context, Pieces_t id) {
+
+	char nearAround = 0;
+	int8_t z = context->idToPos[id].z;
+	int8_t y = context->idToPos[id].y;
+	int8_t x = context->idToPos[id].x;
+	for (int_fast8_t i = 0; i < 6; ++i)
+	{
+		const int_fast8_t newY = (int_fast8_t)(directions[i][0] + y);
+		const int_fast8_t newX = (int_fast8_t)(directions[i][1] + x);
+
+		if (context->board[MtA(z, newY, newX)] != NULLPIECE)
+			nearAround++;
+	}
+	return nearAround;
+
+}
+
+GameStatus_t isGameEnded(Context_t* context)
+{
 
 	// TODO: Check draw
 
@@ -36,24 +56,7 @@ GameStatus_t isGameEnded(Context_t* context) {
 
 }
 
-// Tells how many pieces are around the given one
-char howManyAround(Context_t* context, Pieces_t id) {
 
-	char nearAround = 0;
-	int8_t z = context->idToPos[id]->z;
-	int8_t y = context->idToPos[id]->y;
-	int8_t x = context->idToPos[id]->x;
-	for (int_fast8_t i = 0; i < 6; ++i)
-	{
-		const int_fast8_t newY = (int_fast8_t)(directions[i][0] + y);
-		const int_fast8_t newX = (int_fast8_t)(directions[i][1] + x);
-
-		if (board[MtA(z, newY, newX)] != NULLPIECE)
-			nearAround++;
-	}
-	return nearAround;
-
-}
 
 inline bool isWin(Context_t* context) {
 	return howManyAround(context, context->curColor == WHITE ? B_QUEEN : W_QUEEN) == 6;
