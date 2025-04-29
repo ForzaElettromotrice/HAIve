@@ -185,8 +185,8 @@ void manageMove(Context_t* context, Piece_t* move) {
     context->turn += 1;
     context->curColor *= -1;
     context->lastMovedPiece = move->id;
-    char* move = deconvertMove(context, move->id);
-    addMove(context, move);
+    char* moveString = deconvertMove(context, move->id);
+    addMove(context, moveString);
     // TODO: Check if win/draw and change game status!
 }
 
@@ -423,47 +423,33 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 void appendPiece(Pieces_t pieceMoved, char *move)
 {
     if (pieceMoved == B_QUEEN) {
-        move = realloc(move, strlen(move) + 2);
-        move = strcat(move, "Q");
+        strcat(move, "Q");
     } else if (pieceMoved == B_SPIDER_1) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "S1");
+        strcat(move, "S1");
     } else if (pieceMoved == B_SPIDER_2) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "S2");
+        strcat(move, "S2");
     } else if (pieceMoved == B_GRASSHOPPER_1) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "G1");
+        strcat(move, "G1");
     } else if (pieceMoved == B_GRASSHOPPER_2) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "G2");
+        strcat(move, "G2");
     } else if (pieceMoved == B_GRASSHOPPER_3) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "G3");
+        strcat(move, "G3");
     } else if (pieceMoved == B_ANT_1) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "A1");
+        strcat(move, "A1");
     } else if (pieceMoved == B_ANT_2) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "A2");
+        strcat(move, "A2");
     } else if (pieceMoved == B_ANT_3) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "A3");
+        strcat(move, "A3");
     } else if (pieceMoved == B_BEETLE_1) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "B1");
+        strcat(move, "B1");
     } else if (pieceMoved == B_BEETLE_2) {
-        move = realloc(move, strlen(move) + 3);
-        move = strcat(move, "B2");
+        strcat(move, "B2");
     } else if (pieceMoved == B_LADYBUG) {
-        move = realloc(move, strlen(move) + 2);
-        move = strcat(move, "L");
+        strcat(move, "L");
     } else if (pieceMoved == B_MOSQUITO) {
-        move = realloc(move, strlen(move) + 2);
-        move = strcat(move, "M");
+        strcat(move, "M");
     } else if (pieceMoved == B_PILLBUG) {
-        move = realloc(move, strlen(move) + 2);
-        move = strcat(move, "P");
+        strcat(move, "P");
     }
 }
 
@@ -473,7 +459,8 @@ void appendPiece(Pieces_t pieceMoved, char *move)
 */
 char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
 {
-    char *move = pieceMoved <= 13 ? "b" : "w";
+    char *move = calloc(sizeof(char), 50);
+    move[0] = pieceMoved <= 13 ? 'b' : 'w';
     pieceMoved = pieceMoved % 14;
 
     appendPiece(pieceMoved, move);
@@ -524,7 +511,8 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
             appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
         }
     }
-
+    
+    move = realloc(move, strlen(move) + 1);
     return move;
 }
 
