@@ -164,6 +164,32 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
+// NOTE: The context MUST BE EDITED in order to add the move
+void manageMove(Context_t* context, Piece_t* move) {
+    
+    // Delete from old position
+    Position_t oldPosition = context->idToPos[move->id];
+    uint8_t z = oldPosition.z;
+    uint8_t y = oldPosition.y;
+    uint8_t x = oldPosition.x;
+    context->board[MtA(z, y, x)] = NULLPIECE;
+    // Add to new position
+    Position_t newPosition = move->position;
+    z = newPosition.z;
+    y = newPosition.y;
+    x = newPosition.x;
+    context->board[MtA(z, y, x)] = move->id;
+    context->idToPos[move->id] = newPosition;
+
+    // Manage other stuff
+    context->turn += 1;
+    context->curColor *= -1;
+    context->lastMovedPiece = move->id;
+    char* move = deconvertMove(context, move->id);
+    addMove(context, move);
+    // TODO: Check if win/draw and change game status!
+}
+
 void playMove(Context_t *context, char *move)
 {
     addMove(context, move);
@@ -396,34 +422,49 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 
 void appendPiece(const Pieces_t pieceMoved, char *move)
 {
-    if (pieceMoved == B_QUEEN)
+    if (pieceMoved == B_QUEEN) {
+        move = realloc(move, strlen(move) + 2);
         move = strcat(move, "Q");
-    else if (pieceMoved == B_SPIDER_1)
+    } else if (pieceMoved == B_SPIDER_1) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "S1");
-    else if (pieceMoved == B_SPIDER_2)
+    } else if (pieceMoved == B_SPIDER_2) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "S2");
-    else if (pieceMoved == B_GRASSHOPPER_1)
+    } else if (pieceMoved == B_GRASSHOPPER_1) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "G1");
-    else if (pieceMoved == B_GRASSHOPPER_2)
+    } else if (pieceMoved == B_GRASSHOPPER_2) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "G2");
-    else if (pieceMoved == B_GRASSHOPPER_3)
+    } else if (pieceMoved == B_GRASSHOPPER_3) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "G3");
-    else if (pieceMoved == B_ANT_1)
+    } else if (pieceMoved == B_ANT_1) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "A1");
-    else if (pieceMoved == B_ANT_2)
+    } else if (pieceMoved == B_ANT_2) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "A2");
-    else if (pieceMoved == B_ANT_3)
+    } else if (pieceMoved == B_ANT_3) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "A3");
-    else if (pieceMoved == B_BEETLE_1)
+    } else if (pieceMoved == B_BEETLE_1) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "B1");
-    else if (pieceMoved == B_BEETLE_2)
+    } else if (pieceMoved == B_BEETLE_2) {
+        move = realloc(move, strlen(move) + 3);
         move = strcat(move, "B2");
-    else if (pieceMoved == B_LADYBUG)
+    } else if (pieceMoved == B_LADYBUG) {
+        move = realloc(move, strlen(move) + 2);
         move = strcat(move, "L");
-    else if (pieceMoved == B_MOSQUITO)
+    } else if (pieceMoved == B_MOSQUITO) {
+        move = realloc(move, strlen(move) + 2);
         move = strcat(move, "M");
-    else if (pieceMoved == B_PILLBUG)
+    } else if (pieceMoved == B_PILLBUG) {
+        move = realloc(move, strlen(move) + 2);
         move = strcat(move, "P");
+    }
 }
 
 /*
