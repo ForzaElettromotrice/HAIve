@@ -213,8 +213,9 @@ void addMove(Context_t *context, char *move)
         context->movesSize = newSize;
     }
 
+    if (currentLen > 0)
+        strcat(context->moves, ";");
     strcat(context->moves, move);
-    strcat(context->moves, ";");
 }
 
 /*
@@ -227,16 +228,6 @@ int parseMove(Context_t *context, char *move)
     Pieces_t piece;
     Position_t *id_to_pos = context->idToPos;
     Pieces_t *pieces = context->board;
-    const int8_t directions[6][2] =
-    {
-        //y   x
-        {-2, 0}, //sopra
-        {-1, 1}, //in alto a destra
-        {1, 1}, //in basso a destra
-        {2, 0}, //sotto
-        {1, -1}, //in basso a sinistra
-        {-1, -1} //in alto a sinistra
-    };
 
     if (strcmp(move, "pass") == 0)
         return 0;
@@ -521,14 +512,14 @@ void debugPrint(Context_t *context)
     printf("--- DEBUG PRINT ---\n");
     for (int z = 0; z < 5; ++z)
     {
-        for (int y = -28; y < 28; ++y)
+        for (int y = -14; y < 14; ++y)
         {
-            for (int x = -14; x < 14; ++x)
+            for (int x = -28; x < 28; ++x)
             {
                 Pieces_t piece = context->board[MtA(z, y, x)];
                 if (piece != NULLPIECE)
                 {
-                    printf("Piece: %d at x: %d, y: %d, z: %d\n", piece, x + 14, y + 28, z);
+                    printf("Piece: %d at x: %d, y: %d, z: %d\n", piece, x + 28, y + 14, z);
                 }
             }
         }
