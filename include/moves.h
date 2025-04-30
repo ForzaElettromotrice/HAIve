@@ -14,4 +14,4 @@
 #include "utils.h"
 
 
-void getMoves(Pieces_t *board, const Position_t *positions, Colors_t color, Pieces_t last, Piece_t **moves, uint_fast8_t *mSize);
+void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize);

@@ -470,8 +470,13 @@ void mosquitoMoves(const Piece_t *piece, const Pieces_t *board, const bool last,
     }
 }
 
-void getMoves(Pieces_t *board, const Position_t *positions, const Colors_t color, const Pieces_t last, Piece_t **moves, uint_fast8_t *mSize)
+void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
 {
+    Pieces_t *board = context->board;
+    const Position_t *positions = context->idToPos;
+    const Colors_t color = context->curColor;
+    const Pieces_t last = context->lastMovedPiece;
+
     //TODO: in teoria le mosse totali possibili so un numero fisso, metteri quello come grandezza dell'array
     *moves = malloc(100 * sizeof(Piece_t));
     if (!*moves)

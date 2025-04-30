@@ -4,7 +4,6 @@
 
 #include "hashmap.h"
 
-
 int initHashmap(Hashmap_t **hashmap)
 {
     *hashmap = malloc(sizeof(Hashmap_t));
@@ -47,6 +46,7 @@ void freeHashmap(Hashmap_t *hashmap)
     free(hashmap);
 }
 
+//TODO: se setto una chiave già presente la modifico!
 int setByKey(const char *key, const void *val, const size_t size, const Hashmap_t *hashmap)
 {
     int_fast16_t idx = (int_fast16_t) XXH3_64bits(key, strlen(key)) & 512;
