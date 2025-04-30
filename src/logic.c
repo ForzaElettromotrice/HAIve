@@ -77,7 +77,7 @@ evaluate = (
 )
 */
 
-int32_t heuristicValue(Context_t *context, bool areWeWhite) {
+float heuristicValue(Context_t *context, bool areWeWhite) {
 	
 	// TODO: other cases (signaled with a !)
 	
@@ -90,6 +90,7 @@ int32_t heuristicValue(Context_t *context, bool areWeWhite) {
 		return 0;
 
 	int32_t value = 0;
+	int32_t maxValue = 0;
 	char ourPieces, displaced; ourPieces = displaced = 0;
 	Position_t *idToPos = context->idToPos;
 	for (size_t pieceId = 0; pieceId < NUM_PIECES; pieceId++) {
@@ -105,21 +106,24 @@ int32_t heuristicValue(Context_t *context, bool areWeWhite) {
 
 	// opponent_queen_surround_ratio
 	value += (12 * howManyAround(context, areWeWhite ? B_QUEEN : W_QUEEN));
+	maxValue += (12 * 6);
 	// own_queen_surround_ratio
 	value -= (10 * howManyAround(context, areWeWhite ? W_QUEEN : B_QUEEN));
+	maxValue -= (10 * 6);
 	// own_piece_count
 	value += (int)(0.8 * ourPieces);
+	maxValue += (0.8 * NUM_PIECES / 2);
 	// opponent_piece_count 
 	value -= (int)(0.5 * (displaced - ourPieces));
+	maxValue -= (0.5 * NUM_PIECES / 2);
 
-	return value;
+	return value / (float)maxValue;
 }
 
-float negamax(Context_t* context, int depth, int maxDepth, Piece_t* bestMove) {
+float negamax(Context_t* context, int depth, int maxDepth, bool isWhiteTurn, Piece_t* bestMove) {
 
 	if (depth >= maxDepth) {
-		// BASE CASE: Valuta il context
-		return;
+		return heuristicValue(context, isWhiteTurn);
 	}
 
 	// Trova i figli
@@ -135,7 +139,7 @@ float negamax(Context_t* context, int depth, int maxDepth, Piece_t* bestMove) {
 		copyContext(context, &newContext);
 
 		manageMove(newContext, &moves[i]);
-		if ((tmp = negamax(newContext, depth + 1, maxDepth, bestMove)) > maxVal) {
+		if ((tmp = negamax(newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove)) > maxVal) {
 			maxVal = tmp;
 			curBestMove = &moves[i];
 		}
@@ -149,7 +153,7 @@ float negamax(Context_t* context, int depth, int maxDepth, Piece_t* bestMove) {
 		copyContext(context, &newContext);
 
 		manageMove(newContext, NULL);
-		maxVal = negamax(&newContext, depth + 1, maxDepth, bestMove);
+		maxVal = negamax(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove);
 
 		cleanContext(&newContext);
 	}
