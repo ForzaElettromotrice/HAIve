@@ -164,8 +164,19 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
+void cleanContext(Context_t* context) {
+
+    free(context->moves);
+    free(context->board);
+    free(context->idToPos);
+    memset(context, 0, sizeof(Context_t));
+
+}
+
 // NOTE: The context MUST BE EDITED in order to add the move
 void manageMove(Context_t* context, Piece_t* move) {
+
+    // FIXME: 'pass' :(
     
     // Delete from old position
     Position_t oldPosition = context->idToPos[move->id];
@@ -232,6 +243,24 @@ int parseMove(Context_t *context, char *move)
     if (strcmp(move, "pass") == 0)
         return 0;
 
+    else if (context->turn <= 1) {
+        // Primo pezzo
+        if (move[0] != 'w')
+            return EXIT_FAILURE;
+        white_piece = 1;
+        move++;
+        piece = getPiece(move, white_piece);
+        if (piece == NULLPIECE)
+            return EXIT_FAILURE;
+        id_to_pos[piece].x = 0;
+        id_to_pos[piece].y = 0;
+        id_to_pos[piece].z = 0;
+        pieces[MtA(0, 0, 0)] = piece;
+        context->lastMovedPiece = piece;
+
+        return EXIT_SUCCESS;
+    }
+
     char *space_pos = strchr(move, ' ');
     if (space_pos != NULL) *space_pos = '\0';
     if (move[0] == 'w')
@@ -240,15 +269,9 @@ int parseMove(Context_t *context, char *move)
         white_piece = 0;
     move++;
     piece = getPiece(move, white_piece);
-    context->lastMovedPiece = piece;
+    
     if (piece == NULLPIECE)
-        return 1;
-    if (id_to_pos[piece].x != -1)
-    {
-        pieces[
-            MtA(id_to_pos[piece].z, id_to_pos[piece].y, id_to_pos[piece].x)
-        ] = NULLPIECE;
-    }
+        return EXIT_FAILURE;
 
     Pieces_t other_piece;
     uint8_t direction[2] = {0, 0};
@@ -297,17 +320,40 @@ int parseMove(Context_t *context, char *move)
         move[strlen(move) - 1] = '\0';
     }
     other_piece = getPiece(move, white_piece);
-    char x, y, z;
-    x = id_to_pos[other_piece].x + direction[0];
-    id_to_pos[piece].x = x;
-    y = id_to_pos[other_piece].y + direction[1];
-    id_to_pos[piece].y = y;
+    if (other_piece == NULLPIECE)
+        return EXIT_FAILURE;
+    if (id_to_pos[piece].x != -1)
+    {
+        pieces[
+            MtA(id_to_pos[piece].z, id_to_pos[piece].y, id_to_pos[piece].x)
+        ] = NULLPIECE;
+    }
+    int8_t z, y, x;
     z = id_to_pos[other_piece].z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
+    y = id_to_pos[other_piece].y + direction[1];
+    x = id_to_pos[other_piece].x + direction[0];
     id_to_pos[piece].z = z;
+    id_to_pos[piece].y = y;
+    id_to_pos[piece].x = x;
     // printf("DEBUG: Placed piece %d at x: %d, y: %d, z: %d\n", piece, id_to_pos[piece].x, id_to_pos[piece].y, id_to_pos[piece].z);
     pieces[MtA(z, y, x)] = piece;
+    context->lastMovedPiece = piece;
 
     return EXIT_SUCCESS;
+}
+
+void initContext(Context_t* context) {
+
+    context->curColor = WHITE;
+    context->turn = 1;
+    context->moves = calloc(1024, sizeof(char));
+    context->movesSize = 1024;
+    context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
+    for (size_t i = 0; i < BOARD_SIZE; i++) context->board[i] = NULLPIECE;
+    context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
+    for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].x = -1;
+    context->lastMovedPiece = NULLPIECE;
+
 }
 
 /*

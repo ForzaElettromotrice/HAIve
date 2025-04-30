@@ -115,11 +115,52 @@ int32_t heuristicValue(Context_t *context, bool areWeWhite) {
 	return value;
 }
 
-void getBestMove(Context_t* context, Piece_t* bestMove, int depth, int maxDepth) {
-	
+float negamax(Context_t* context, int depth, int maxDepth, Piece_t* bestMove) {
+
 	if (depth >= maxDepth) {
-		// BASE CASE
+		// BASE CASE: Valuta il context
 		return;
+	}
+
+	// Trova i figli
+	Piece_t* moves;
+	int_fast8_t mSize = 0;
+	getMoves(context, &moves, &mSize);
+	float maxVal = -2, tmp;
+	Piece_t curBestMove;
+
+	for (int_fast8_t i = 0; i < mSize; i++) {
+		Context_t newContext;
+		initContext(&newContext);
+		copyContext(context, &newContext);
+
+		manageMove(newContext, &moves[i]);
+		if ((tmp = negamax(newContext, depth + 1, maxDepth, bestMove)) > maxVal) {
+			maxVal = tmp;
+			curBestMove = &moves[i];
+		}
+
+		cleanContext(newContext);
+	}
+
+	if (mSize == 0) {
+		Context_t newContext;
+		initContext(&newContext);
+		copyContext(context, &newContext);
+
+		manageMove(newContext, NULL);
+		maxVal = negamax(&newContext, depth + 1, maxDepth, bestMove);
+
+		cleanContext(&newContext);
+	}
+
+	
+	if (depth == 0) {
+		*bestMove = curBestMove;
+		return 0;
+	}
+	else {
+		return -maxVal;
 	}
 
 }

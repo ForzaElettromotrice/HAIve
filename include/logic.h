@@ -4,6 +4,7 @@
 #include <enums.h>
 #include <math.h>
 #include <stdio.h>
+#include <moves.h>
 #include <utils.h>
 
 GameStatus_t isGameEnded(Context_t* context);

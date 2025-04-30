@@ -25,3 +25,6 @@ int parseMove(Context_t* context, char* move); // Parses the move, and sets it i
 void addMove(Context_t* context, char* move); // Append the char* move to the context->moves
 int convertFromMZinga(char* mzinga_string, Context_t* context); // Sets the context FROM A WHOLE MZINGA STRING
 char* deconvertMove(Context_t* context, Pieces_t pieceMoved);
+void manageMove(Context_t* context, Piece_t* move);
+void cleanContext(Context_t* context);
+void initContext(Context_t* context);

@@ -188,8 +188,8 @@ int manage_command(char *buffer)
     } 
     else if (strcmp(command, "options") == 0)
     {
-        // FIXME: a che serve sto controllo se tanto non fa niente?
-        //Doesn't print anything
+        // FIXME: a che serve sto controllo se tanto non fa niente? COMPATIBILITA'      
+        // Doesn't print anything
     } 
     else if (strcmp(command, "newgame") == 0)
     {
@@ -220,29 +220,6 @@ int manage_command(char *buffer)
 
     printf("ok\n");
     return 0;
-}
-
-void initContext(Context_t *context) {
-
-    context->curColor = WHITE;
-    context->turn = 1;
-    context->moves = calloc(1024, sizeof(char));
-    context->movesSize = 1024;
-    context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
-    for (size_t i = 0; i < BOARD_SIZE; i++) context->board[i] = NULLPIECE;
-    context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
-    for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].x = -1;
-    context->lastMovedPiece = NULLPIECE;
-
-}
-
-void cleanContext(Context_t *context) {
-
-    free(context->moves);
-    free(context->board);
-    free(context->idToPos);
-    memset(context, 0, sizeof(Context_t));
-
 }
 
 

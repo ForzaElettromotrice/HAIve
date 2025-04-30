@@ -103,8 +103,8 @@ typedef struct Context
 } Context_t;
 
 /*
-    Il contesto sar� il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
-    Non serve sapere dov'era il pezzo prima: il nodo padre avr� il contesto originale.
+    Il contesto sarà il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
+    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale.
 */
 typedef struct Node
 {
