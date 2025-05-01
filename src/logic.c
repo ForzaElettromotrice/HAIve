@@ -40,7 +40,7 @@ char howManyAround(Context_t* context, Pieces_t id) {
 
 }
 
-GameStatus_t isGameEnded(Context_t* context)
+GameStatus_t getGameStatus(Context_t* context)
 {
 
 	// TODO: Check draw

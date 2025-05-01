@@ -176,29 +176,38 @@ void cleanContext(Context_t* context) {
 // NOTE: The context MUST BE EDITED in order to add the move
 void manageMove(Context_t* context, Piece_t* move) {
 
-    // FIXME: 'pass' :(
-    
-    // Delete from old position
-    Position_t oldPosition = context->idToPos[move->id];
-    uint8_t z = oldPosition.z;
-    uint8_t y = oldPosition.y;
-    uint8_t x = oldPosition.x;
-    context->board[MtA(z, y, x)] = NULLPIECE;
-    // Add to new position
-    Position_t newPosition = move->position;
-    z = newPosition.z;
-    y = newPosition.y;
-    x = newPosition.x;
-    context->board[MtA(z, y, x)] = move->id;
-    context->idToPos[move->id] = newPosition;
+    if (move == NULL) {
+        // pass!
+        context->turn += 1;
+        context->curColor *= -1;
+        char* moveString = "pass";
+        addMove(context, moveString);
+        context->gameStatus = getGameStatus(context);
+    }
+    else {
 
-    // Manage other stuff
-    context->turn += 1;
-    context->curColor *= -1;
-    context->lastMovedPiece = move->id;
-    char* moveString = deconvertMove(context, move->id);
-    addMove(context, moveString);
-    // TODO: Check if win/draw and change game status!
+        // Delete from old position
+        Position_t oldPosition = context->idToPos[move->id];
+        uint8_t z = oldPosition.z;
+        uint8_t y = oldPosition.y;
+        uint8_t x = oldPosition.x;
+        context->board[MtA(z, y, x)] = NULLPIECE;
+        // Add to new position
+        Position_t newPosition = move->position;
+        z = newPosition.z;
+        y = newPosition.y;
+        x = newPosition.x;
+        context->board[MtA(z, y, x)] = move->id;
+        context->idToPos[move->id] = newPosition;
+
+        // Manage other stuff
+        context->turn += 1;
+        context->curColor *= -1;
+        context->lastMovedPiece = move->id;
+        char* moveString = deconvertMove(context, move->id);
+        addMove(context, moveString);
+        context->gameStatus = getGameStatus(context);
+    }
 }
 
 void playMove(Context_t *context, char *move)
@@ -208,7 +217,7 @@ void playMove(Context_t *context, char *move)
         return;
     context->turn += 1;
     context->curColor *= -1;
-    // TODO: Check if win/draw and change game status!
+    context->gameStatus = getGameStatus(context);
 }
 
 void addMove(Context_t *context, char *move)

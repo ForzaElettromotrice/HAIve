@@ -8,6 +8,7 @@
 #include <string.h>
 #include <xxhash.h>
 #include <stdio.h>
+#include <logic.h>
 
 #include "enums.h"
 

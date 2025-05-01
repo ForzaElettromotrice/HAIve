@@ -7,4 +7,4 @@
 #include <moves.h>
 #include <utils.h>
 
-GameStatus_t isGameEnded(Context_t* context);
+GameStatus_t getGameStatus(Context_t* context);
