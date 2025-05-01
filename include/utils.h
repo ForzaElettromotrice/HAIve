@@ -29,3 +29,6 @@ char* deconvertMove(Context_t* context, Pieces_t pieceMoved);
 void manageMove(Context_t* context, Piece_t* move);
 void cleanContext(Context_t* context);
 void initContext(Context_t* context);
+void copyContext(Context_t* source, Context_t* dest);
+GameStatus_t getGameStatus(Context_t* context);
+int_fast8_t howManyAround(Context_t* context, Pieces_t id);

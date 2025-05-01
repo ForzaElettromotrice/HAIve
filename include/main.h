@@ -12,4 +12,5 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utils.h>
+#include <logic.h>
 #include "xxhash.h"

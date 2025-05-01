@@ -167,6 +167,8 @@ void print_gamestring(const Context_t *context)
 // 1: newgame
 // 2: play move
 // 3: bestmove
+// 4: pass
+// 5: validmoves
 int manage_command(char *buffer)
 {
     
@@ -193,21 +195,19 @@ int manage_command(char *buffer)
     } 
     else if (strcmp(command, "newgame") == 0)
     {
-        // TODO: DO NEWGAME
         return 1;
     } 
     else if (strcmp(command, "play") == 0)
     {
-        // TODO: Play move
         return 2;
     } 
     else if (strcmp(command, "pass") == 0)
     {
-        // TODO: Play pass
+        return 4;
     } 
     else if (strcmp(command, "validmoves") == 0)
     {
-        // TODO: Print valid moves
+        return 5;
     } 
     else if (strcmp(command, "bestmove") == 0)
     {
@@ -275,7 +275,6 @@ int main(void)
         else if (result == 2) {
             // play command
             char* move = buffer + 5;
-            context.gameStatus = IN_PROGRESS;
             playMove(&context, move);
             print_gamestring(&context);
             debugPrint(&context);
@@ -283,6 +282,24 @@ int main(void)
         else if (result == 3) {
             // bestmove
             // TODO: Get best move out
+        }
+        else if (result == 4) {
+            playMove(&context, "pass");
+            print_gamestring(&context);
+            debugPrint(&context);
+        }
+        else if (result == 5) {
+            Piece_t* moves;
+            uint_fast8_t mSize;
+            getMoves(&context, &moves, &mSize);
+            for (uint_fast8_t i = 0; i < mSize; i++) {
+                Context_t newContext = {};
+                copyContext(&context, &newContext);
+                manageMove(&newContext, &moves[i]);
+                char* move = deconvertMove(&newContext, moves[i].id);
+                printf("%s;", move);
+                free(move);
+            }
         }
     }
     free(buffer);

@@ -4,60 +4,6 @@ int distance(Position_t *pos1, Position_t *pos2) {
 	return abs(pos1->x - pos2->x) + abs(pos1->y - pos2->y);
 }
 
-void copyContext(Context_t* source, Context_t* dest) {
-
-	// Direct copies
-	dest->turn = source->turn;
-	dest->curColor = source->curColor;
-	dest->gameStatus = source->gameStatus;
-	dest->gameType = source->gameType;
-	dest->lastMovedPiece = source->lastMovedPiece;
-	dest->movesSize = source->movesSize;
-	
-	// Copy of pointers
-	memcpy(dest->board, source->board, sizeof(Pieces_t) * BOARD_SIZE);
-	memcpy(dest->moves, source->moves, sizeof(char) * source->movesSize);
-	memcpy(dest->idToPos, source->idToPos, sizeof(Position_t) * NUM_PIECES);
-
-}
-
-// Tells how many pieces are around the given one
-char howManyAround(Context_t* context, Pieces_t id) {
-
-	char nearAround = 0;
-	int8_t z = context->idToPos[id].z;
-	int8_t y = context->idToPos[id].y;
-	int8_t x = context->idToPos[id].x;
-	for (int_fast8_t i = 0; i < 6; ++i)
-	{
-		const int_fast8_t newY = (int_fast8_t)(directions[i][0] + y);
-		const int_fast8_t newX = (int_fast8_t)(directions[i][1] + x);
-
-		if (context->board[MtA(z, newY, newX)] != NULLPIECE)
-			nearAround++;
-	}
-	return nearAround;
-
-}
-
-GameStatus_t getGameStatus(Context_t* context)
-{
-
-	// TODO: Check draw
-
-	char nearQueen;
-	nearQueen = howManyAround(context, W_QUEEN);
-	if (nearQueen == 6)
-		return WHITE_WON;
-	nearQueen = howManyAround(context, B_QUEEN);
-	if (nearQueen == 6)
-		return BLACK_WON;
-	return IN_PROGRESS;
-
-}
-
-
-
 inline bool isWin(Context_t* context) {
 	return howManyAround(context, context->curColor == WHITE ? B_QUEEN : W_QUEEN) == 6;
 }
@@ -125,6 +71,12 @@ float negamax(Context_t* context, int depth, int maxDepth, bool isWhiteTurn, Pie
 	if (depth >= maxDepth) {
 		return heuristicValue(context, isWhiteTurn);
 	}
+
+	GameStatus_t gameStat = getGameStatus(context);
+	if (gameStat == WHITE_WON)
+		return 1;
+	else if (gameStat == BLACK_WON)
+		return 0;
 
 	// Trova i figli
 	Piece_t* moves;

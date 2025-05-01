@@ -173,6 +173,60 @@ void cleanContext(Context_t* context) {
 
 }
 
+void copyContext(Context_t* source, Context_t* dest) {
+
+    // Direct copies
+    dest->turn = source->turn;
+    dest->curColor = source->curColor;
+    dest->gameStatus = source->gameStatus;
+    dest->gameType = source->gameType;
+    dest->lastMovedPiece = source->lastMovedPiece;
+    dest->movesSize = source->movesSize;
+
+    // Copy of pointers
+    memcpy(dest->board, source->board, sizeof(Pieces_t) * BOARD_SIZE);
+    memcpy(dest->moves, source->moves, sizeof(char) * source->movesSize);
+    memcpy(dest->idToPos, source->idToPos, sizeof(Position_t) * NUM_PIECES);
+
+}
+
+GameStatus_t getGameStatus(Context_t* context)
+{
+
+    // TODO: Check draw
+
+    int_fast8_t nearQueen;
+    nearQueen = howManyAround(context, W_QUEEN);
+    if (nearQueen == 6)
+        return WHITE_WON;
+    nearQueen = howManyAround(context, B_QUEEN);
+    if (nearQueen == 6)
+        return BLACK_WON;
+    return IN_PROGRESS;
+
+}
+
+// Tells how many pieces are around the given one
+int_fast8_t howManyAround(Context_t* context, Pieces_t id) {
+
+    char nearAround = 0;
+    int8_t z = context->idToPos[id].z;
+    int8_t y = context->idToPos[id].y;
+    int8_t x = context->idToPos[id].x;
+    if (x == -1)
+        return 0;
+    for (int_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t newY = (int_fast8_t)(directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t)(directions[i][1] + x);
+
+        if (context->board[MtA(z, newY, newX)] != NULLPIECE)
+            nearAround++;
+    }
+    return nearAround;
+
+}
+
 // NOTE: The context MUST BE EDITED in order to add the move
 void manageMove(Context_t* context, Piece_t* move) {
 
@@ -510,6 +564,10 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
     pieceMoved = pieceMoved % 14;
 
     appendPiece(pieceMoved, move);
+    if (context->turn == 2) {
+        move = realloc(move, strlen(move) + 1);
+        return move;
+    }
     move = strcat(move, " ");
 
     int8_t index = -1;

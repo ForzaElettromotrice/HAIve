@@ -6,5 +6,3 @@
 #include <stdio.h>
 #include <moves.h>
 #include <utils.h>
-
-GameStatus_t getGameStatus(Context_t* context);
