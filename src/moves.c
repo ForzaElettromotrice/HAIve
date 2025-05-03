@@ -503,6 +503,10 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
         if (last == i)
             continue;
 
+        // se non c'è ancora
+        if (visited[i] == true)
+            continue;
+
         //se ha un pezzo sopra
         if (isCovered(&pos, board))
             continue;
@@ -516,6 +520,7 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             continue;
         }
         visited[i] = false;
+        printf("2\n");
 
 
         //genera le mosse
@@ -527,7 +532,7 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             case B_QUEEN:
             case W_QUEEN:
                 queenMoves(&piece, board, *moves, mSize);
-                break;
+                 break;
             case B_PILLBUG:
             case W_PILLBUG:
                 pillbugMoves(&piece, board, last, *moves, mSize);

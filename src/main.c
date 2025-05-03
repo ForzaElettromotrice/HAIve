@@ -287,6 +287,7 @@ int main(void)
             playMove(&context, "pass");
             print_gamestring(&context);
             debugPrint(&context);
+            debugBoardPrint(&context);
         }
         else if (result == 5) {
             Piece_t* moves;

@@ -213,7 +213,7 @@ int_fast8_t howManyAround(Context_t* context, Pieces_t id) {
     int8_t z = context->idToPos[id].z;
     int8_t y = context->idToPos[id].y;
     int8_t x = context->idToPos[id].x;
-    if (x == -1)
+    if (z == -1)
         return 0;
     for (int_fast8_t i = 0; i < 6; ++i)
     {
@@ -385,7 +385,7 @@ int parseMove(Context_t *context, char *move)
     other_piece = getPiece(move, white_piece);
     if (other_piece == NULLPIECE)
         return EXIT_FAILURE;
-    if (id_to_pos[piece].x != -1)
+    if (id_to_pos[piece].z != -1)
     {
         pieces[
             MtA(id_to_pos[piece].z, id_to_pos[piece].y, id_to_pos[piece].x)
@@ -414,7 +414,7 @@ void initContext(Context_t* context) {
     context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
     for (size_t i = 0; i < BOARD_SIZE; i++) context->board[i] = NULLPIECE;
     context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
-    for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].x = -1;
+    for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].z = -1;
     context->lastMovedPiece = NULLPIECE;
 
 }
@@ -433,20 +433,22 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         return 1;
     }
 
-    if (strcmp(token, "Base+M") == 0)
+    if (strcmp(token, "Base") == 0) {
+    }
+    else if (strcmp(token, "Base+M") == 0)
         context->gameType.mosquito = true;
     else if (strcmp(token, "Base+L") == 0)
-        context->gameType.ladybug = 1;
+        context->gameType.ladybug = true;
     else if (strcmp(token, "Base+P") == 0)
-        context->gameType.pillbug = 1;
+        context->gameType.pillbug = true;
     else if (strcmp(token, "Base+ML") == 0)
-        context->gameType.mosquito = context->gameType.ladybug = 1;
+        context->gameType.mosquito = context->gameType.ladybug = true;
     else if (strcmp(token, "Base+MP") == 0)
-        context->gameType.mosquito = context->gameType.pillbug = 1;
+        context->gameType.mosquito = context->gameType.pillbug = true;
     else if (strcmp(token, "Base+LP") == 0)
-        context->gameType.ladybug = context->gameType.pillbug = 1;
+        context->gameType.ladybug = context->gameType.pillbug = true;
     else if (strcmp(token, "Base+MLP") == 0)
-        context->gameType.mosquito = context->gameType.ladybug = context->gameType.pillbug = 1;
+        context->gameType.mosquito = context->gameType.ladybug = context->gameType.pillbug = true;
     else
     {
         printf("err Parsing of GameTypeString failed.\nok\n");
@@ -515,6 +517,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
     while ((token = strtok(NULL, ";")) != NULL)
     {
         addMove(context, token);
+        parseMove(context, token);
     }
     // debugPrint(context);
     return 0;
@@ -638,4 +641,29 @@ void debugPrint(Context_t *context)
         }
     }
     printf("--- END DEBUG PRINT ---\n");
+}
+
+void debugBoardPrint(Context_t *context){
+
+    printf("--- DEBUG BOARD PRINT ---\n");
+
+    Pieces_t *board = context->board;
+    for (int y = -14; y < 14; ++y)
+    {
+        for (int x = -28; x < 28; ++x)
+        {
+            Pieces_t piece = board[MtA(0, y, x)];
+            if (piece != NULLPIECE)
+            {
+                printf("%d ", piece);
+            } else
+            {
+                printf("-1 ");
+            }
+        }
+        printf("\n");
+    }
+
+    printf("--- END DEBUG BOARD PRINT ---\n");
+
 }

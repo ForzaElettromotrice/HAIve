@@ -32,3 +32,4 @@ void initContext(Context_t* context);
 void copyContext(Context_t* source, Context_t* dest);
 GameStatus_t getGameStatus(Context_t* context);
 int_fast8_t howManyAround(Context_t* context, Pieces_t id);
+void debugBoardPrint(Context_t *context); // Prints the board - for debug purposes
