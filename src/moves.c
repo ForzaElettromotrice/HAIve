@@ -370,7 +370,7 @@ void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_
     if (!visited)
     {
         first = true;
- initHashmap(&hashmap);
+        initHashmap(&hashmap);
         visited = &hashmap;
     }
 
@@ -487,7 +487,7 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
         const int_fast8_t x = context->idToPos[i].x;
         if (z != 0)
             continue;
- for (int_fast8_t j = 0; j < 6; ++j)
+        for (int_fast8_t j = 0; j < 6; ++j)
         {
             const int_fast8_t newY1 = (int_fast8_t) (directions[j][0] + y);
             const int_fast8_t newX1 = (int_fast8_t) (directions[j][1] + x);
@@ -499,8 +499,8 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
             sprintf(key, "%02d%02d", newY1, newX1);
             if (getByKey(key, &visited) != NULL)
                 continue;
- bool ok = true;
- for (int k = 0; k < 6; ++k)
+            bool ok = true;
+            for (int k = 0; k < 6; ++k)
             {
                 const int_fast8_t newY2 = (int_fast8_t) (directions[k][0] + newY1);
                 const int_fast8_t newX2 = (int_fast8_t) (directions[k][1] + newX1);
@@ -508,7 +508,7 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
                 const Pieces_t neighbor2 = context->board[MtA(0, newY2, newX2)];
                 if (neighbor2 == NULLPIECE)
                     continue;
- if (neighbor2 < start || neighbor2 > end)
+                if (neighbor2 < start || neighbor2 > end)
                 {
                     ok = false;
                     break;
