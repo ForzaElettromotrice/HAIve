@@ -14,4 +14,4 @@
 #include "utils.h"
 
 
-void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize);
+void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize);
