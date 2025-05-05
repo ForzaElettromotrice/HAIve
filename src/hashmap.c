@@ -4,35 +4,26 @@
 
 #include "hashmap.h"
 
-int initHashmap(Hashmap_t **hashmap)
+int initHashmap(Hashmap_t *hashmap)
 {
-    *hashmap = malloc(sizeof(Hashmap_t));
-    if (!*hashmap)
+    hashmap->keys = calloc(512, sizeof(char *));
+    if (!hashmap->keys)
     {
         E_Print("malloc: %s\n", strerror(errno));
         return EXIT_FAILURE;
     }
 
-    (*hashmap)->keys = calloc(512, sizeof(char *));
-    if (!(*hashmap)->keys)
+    hashmap->values = calloc(512, sizeof(char *));
+    if (!hashmap->values)
     {
-        free(*hashmap);
-        E_Print("malloc: %s\n", strerror(errno));
-        return EXIT_FAILURE;
-    }
-
-    (*hashmap)->values = calloc(512, sizeof(char *));
-    if (!(*hashmap)->values)
-    {
-        free(*hashmap);
-        free((*hashmap)->keys);
+        free(hashmap->keys);
         E_Print("malloc: %s\n", strerror(errno));
         return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
 }
-void freeHashmap(Hashmap_t *hashmap)
+void freeHashmap(const Hashmap_t *hashmap)
 {
     for (int i = 0; i < 512; ++i)
     {
@@ -43,10 +34,8 @@ void freeHashmap(Hashmap_t *hashmap)
     }
     free(hashmap->keys);
     free(hashmap->values);
-    free(hashmap);
 }
 
-//TODO: se setto una chiave già presente la modifico!
 int setByKey(const char *key, const void *val, const size_t size, const Hashmap_t *hashmap)
 {
     int_fast16_t idx = (int_fast16_t) XXH3_64bits(key, strlen(key)) & 512;
@@ -55,10 +44,16 @@ int setByKey(const char *key, const void *val, const size_t size, const Hashmap_
     {
         if (hashmap->keys[idx] == NULL)
             break;
+        if (strcmp(hashmap->keys[idx], key) == 0)
+            break;
         idx = idx + 1 & 512;
     }
 
-    hashmap->keys[idx] = strdup(key);
+    if (hashmap->keys[idx] == NULL)
+        hashmap->keys[idx] = strdup(key);
+    else
+        free(hashmap->values[idx]);
+
     hashmap->values[idx] = malloc(size);
     if (!hashmap->values[idx])
     {

@@ -19,8 +19,8 @@ typedef struct Hashmap
     void **values;
 } Hashmap_t;
 
-int initHashmap(Hashmap_t **hashmap);
-void freeHashmap(Hashmap_t *hashmap);
+int initHashmap(Hashmap_t *hashmap);
+void freeHashmap(const Hashmap_t *hashmap);
 
 int setByKey(const char *key, const void *val, size_t size, const Hashmap_t *hashmap);
 void *getByKey(const char *key, const Hashmap_t *hashmap);

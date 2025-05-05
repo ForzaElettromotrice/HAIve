@@ -365,11 +365,13 @@ void spiderMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, ui
 }
 void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize, Hashmap_t *visited)
 {
+    Hashmap_t hashmap;
     bool first = false;
     if (!visited)
     {
         first = true;
-        initHashmap(&visited);
+ initHashmap(&hashmap);
+        visited = &hashmap;
     }
 
     const int_fast8_t y = piece->position.y;
@@ -390,6 +392,8 @@ void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_
         if (!canSlide(&piece->position, i, board))
             continue;
 
+        bool val = true;
+        setByKey(key, &val, sizeof(bool), visited);
         const Piece_t move = {piece->id, {0, newY, newX}};
         moves[(*mSize)++] = move;
 
@@ -469,8 +473,58 @@ void mosquitoMoves(const Piece_t *piece, const Pieces_t *board, const bool last,
         }
     }
 }
+void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
+{
+    const Pieces_t start = context->curColor == WHITE ? 14 : 0;
+    const Pieces_t end = start + 14;
 
-void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
+    Hashmap_t visited;
+    initHashmap(&visited);
+    for (int_fast8_t i = start; i < end; ++i)
+    {
+        const int_fast8_t z = context->idToPos[i].z;
+        const int_fast8_t y = context->idToPos[i].y;
+        const int_fast8_t x = context->idToPos[i].x;
+        if (z != 0)
+            continue;
+ for (int_fast8_t j = 0; j < 6; ++j)
+        {
+            const int_fast8_t newY1 = (int_fast8_t) (directions[j][0] + y);
+            const int_fast8_t newX1 = (int_fast8_t) (directions[j][1] + x);
+
+            if (context->board[MtA(0, newY1, newX1)] != NULLPIECE)
+                continue;
+
+            char key[5];
+            sprintf(key, "%02d%02d", newY1, newX1);
+            if (getByKey(key, &visited) != NULL)
+                continue;
+ bool ok = true;
+ for (int k = 0; k < 6; ++k)
+            {
+                const int_fast8_t newY2 = (int_fast8_t) (directions[k][0] + newY1);
+                const int_fast8_t newX2 = (int_fast8_t) (directions[k][1] + newX1);
+
+                const Pieces_t neighbor2 = context->board[MtA(0, newY2, newX2)];
+                if (neighbor2 == NULLPIECE)
+                    continue;
+ if (neighbor2 < start || neighbor2 > end)
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (!ok)
+                continue;
+
+            const Piece_t move = {i, {0, newY1, newX1}};
+            moves[(*mSize)++] = move;
+        }
+    }
+}
+
+void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
 {
     Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
@@ -478,7 +532,7 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     const Pieces_t last = context->lastMovedPiece;
 
     //TODO: in teoria le mosse totali possibili so un numero fisso, metteri quello come grandezza dell'array
-    *moves = malloc(100 * sizeof(Piece_t));
+    *moves = malloc(200 * sizeof(Piece_t));
     if (!*moves)
     {
         E_Print("malloc: %s\n", strerror(errno));
@@ -496,6 +550,9 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             visited[i] = true;
     }
 
+    //Aggiunge le mosse che indicano l'aggiunta di un nuovo pezzo
+    addMoves(context, *moves, mSize);
+
     for (Pieces_t i = start; i < end; ++i)
     {
         Position_t pos = positions[i];
@@ -506,6 +563,7 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
         // se non c'è ancora
         if (visited[i] == true)
             continue;
+
 
         //se ha un pezzo sopra
         if (isCovered(&pos, board))
@@ -520,7 +578,6 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             continue;
         }
         visited[i] = false;
-        printf("2\n");
 
 
         //genera le mosse
@@ -532,7 +589,7 @@ void getMoves(Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             case B_QUEEN:
             case W_QUEEN:
                 queenMoves(&piece, board, *moves, mSize);
-                 break;
+                break;
             case B_PILLBUG:
             case W_PILLBUG:
                 pillbugMoves(&piece, board, last, *moves, mSize);
