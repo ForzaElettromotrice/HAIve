@@ -39,8 +39,8 @@ bool canSlide(const Position_t *pos, const int_fast8_t direction, const Pieces_t
     const int_fast8_t y = pos->y;
     const int_fast8_t x = pos->x;
 
-    int_fast8_t newY = (int_fast8_t) (y + directions[(direction - 1) % 6][0]);
-    int_fast8_t newX = (int_fast8_t) (x + directions[(direction - 1) % 6][1]);
+    int_fast8_t newY = (int_fast8_t) (y + directions[(direction + 5) % 6][0]);
+    int_fast8_t newX = (int_fast8_t) (x + directions[(direction + 5) % 6][1]);
     if (board[MtA(z, newY, newX)] == NULLPIECE)
         return true;
 
@@ -53,6 +53,24 @@ static inline bool isCovered(const Position_t *pos, const Pieces_t *board)
 {
     return board[MtA(pos->z + 1, pos->y, pos->x)] != NULLPIECE;
 }
+bool hasNeighbor(const Piece_t *piece, const Pieces_t *board)
+{
+    const Pieces_t id = piece->id;
+    const int_fast8_t y = piece->position.y;
+    const int_fast8_t x = piece->position.x;
+    for (int_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+
+        Pieces_t neighbor = board[MtA(0, newY, newX)];
+
+        if (neighbor != id && neighbor != NULLPIECE)
+            return true;
+    }
+    return false;
+}
+
 
 void queenMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize)
 {
@@ -69,7 +87,11 @@ void queenMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uin
         if (!canSlide(&piece->position, i, board))
             continue;
 
+
         const Piece_t move = {piece->id, {0, newY, newX}};
+        if (!hasNeighbor(&move, board))
+            continue;
+
         moves[(*mSize)++] = move;
     }
 }
