@@ -38,7 +38,7 @@ void freeHashmap(const Hashmap_t *hashmap)
 
 int setByKey(const char *key, const void *val, const size_t size, const Hashmap_t *hashmap)
 {
-    int_fast16_t idx = (int_fast16_t) XXH3_64bits(key, strlen(key)) & 512;
+    int_fast16_t idx = (int_fast16_t) (XXH3_64bits(key, strlen(key)) % 512);
 
     while (true)
     {
@@ -46,7 +46,7 @@ int setByKey(const char *key, const void *val, const size_t size, const Hashmap_
             break;
         if (strcmp(hashmap->keys[idx], key) == 0)
             break;
-        idx = idx + 1 & 512;
+        idx = (int_fast16_t) ((idx + 1) % 512);
     }
 
     if (hashmap->keys[idx] == NULL)
@@ -66,7 +66,7 @@ int setByKey(const char *key, const void *val, const size_t size, const Hashmap_
 }
 void *getByKey(const char *key, const Hashmap_t *hashmap)
 {
-    int_fast16_t idx = (int_fast16_t) XXH3_64bits(key, strlen(key)) & 512;
+    int_fast16_t idx = (int_fast16_t) (XXH3_64bits(key, strlen(key)) % 512);
 
     while (true)
     {
@@ -74,7 +74,7 @@ void *getByKey(const char *key, const Hashmap_t *hashmap)
             return NULL;
         if (strcmp(hashmap->keys[idx], key) == 0)
             break;
-        idx = idx + 1 & 512;
+        idx = (int_fast16_t) ((idx + 1) % 512);
     }
 
     return hashmap->values[idx];
@@ -82,7 +82,7 @@ void *getByKey(const char *key, const Hashmap_t *hashmap)
 
 void removeKey(const char *key, const Hashmap_t *hashmap)
 {
-    int_fast16_t idx = (int_fast16_t) XXH3_64bits(key, strlen(key)) & 512;
+    int_fast16_t idx = (int_fast16_t) (XXH3_64bits(key, strlen(key)) % 512);
 
     while (true)
     {
@@ -90,7 +90,7 @@ void removeKey(const char *key, const Hashmap_t *hashmap)
             return;
         if (strcmp(hashmap->keys[idx], key) == 0)
             break;
-        idx = idx + 1 & 512;
+        idx = (int_fast16_t) ((idx + 1) % 512);
     }
 
     free(hashmap->keys[idx]);

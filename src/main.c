@@ -9,46 +9,57 @@ static_assert(sizeof(Pieces_t) == 1);
 static_assert(sizeof(Piece_t) == 4);
 
 #ifdef WIN32
-size_t getline(char **lineptr, size_t *n, FILE *stream) {
+size_t getline(char **lineptr, size_t *n, FILE *stream)
+{
     char *bufptr = NULL;
     char *p = bufptr;
     size_t size;
     int c;
 
-    if (lineptr == NULL) {
+    if (lineptr == NULL)
+    {
         return -1;
     }
-    if (stream == NULL) {
+    if (stream == NULL)
+    {
         return -1;
     }
-    if (n == NULL) {
+    if (n == NULL)
+    {
         return -1;
     }
     bufptr = *lineptr;
     size = *n;
 
     c = fgetc(stream);
-    if (c == EOF) {
+    if (c == EOF)
+    {
         return -1;
     }
-    if (bufptr == NULL) {
+    if (bufptr == NULL)
+    {
         bufptr = malloc(128);
-        if (bufptr == NULL) {
+        if (bufptr == NULL)
+        {
             return -1;
         }
         size = 128;
     }
     p = bufptr;
-    while(c != EOF) {
-        if ((p - bufptr) > (size - 1)) {
+    while (c != EOF)
+    {
+        if ((p - bufptr) > (size - 1))
+        {
             size = size + 128;
             bufptr = realloc(bufptr, size);
-            if (bufptr == NULL) {
+            if (bufptr == NULL)
+            {
                 return -1;
             }
         }
         *p++ = c;
-        if (c == '\n') {
+        if (c == '\n')
+        {
             break;
         }
         c = fgetc(stream);
@@ -73,48 +84,51 @@ void print_info()
     0: correctly parsed
     1: error in parsing
 */
-int parseGameTypeString(const char* str, Context_t *context) {
-
+int parseGameTypeString(const char *str, Context_t *context)
+{
     char base[] = "Base";
-    for (size_t c = 0; c < 4; c++) {
-        if (str[c] != base[c]) {
+    for (size_t c = 0; c < 4; c++)
+    {
+        if (str[c] != base[c])
+        {
             printf("err Parsing GameTypeString failed.\nok\n");
             return 1;
         }
     }
     if (str[4] == '\0')
         return 0;
-    else if (str[4] != '+') {
+    else if (str[4] != '+')
+    {
         printf("err Parsing GameTypeString failed.\nok\n");
         return 1;
-    }
-    else {
-        for (size_t c = 5; str[c] != '\0' && c <= 7; c++) {
-            switch (str[c]) {
-            case 'M':
-                context->gameType.mosquito = true;
-                break;
-            case 'L':
-                context->gameType.ladybug = true;
-                break;
-            case 'P':
-                context->gameType.pillbug = true;
-                break;
-            default:
-                printf("err Parsing GameTypeString failed.\nok\n");
-                return 1;
+    } else
+    {
+        for (size_t c = 5; str[c] != '\0' && c <= 7; c++)
+        {
+            switch (str[c])
+            {
+                case 'M':
+                    context->gameType.mosquito = true;
+                    break;
+                case 'L':
+                    context->gameType.ladybug = true;
+                    break;
+                case 'P':
+                    context->gameType.pillbug = true;
+                    break;
+                default:
+                    printf("err Parsing GameTypeString failed.\nok\n");
+                    return 1;
             }
         }
     }
     return 0;
-
 }
 
 void print_gamestring(const Context_t *context)
 {
-
     const GameType_t gameType = context->gameType;
-    const char* moves = context->moves;
+    const char *moves = context->moves;
 
     // GameType
     printf("Base");
@@ -151,7 +165,8 @@ void print_gamestring(const Context_t *context)
             break;
         case NULLCOLOR: return;
     }
-    if (moves[0] == '\0') {
+    if (moves[0] == '\0')
+    {
         printf("\nok\n");
         return;
     }
@@ -171,8 +186,7 @@ void print_gamestring(const Context_t *context)
 // 5: validmoves
 int manage_command(char *buffer)
 {
-    
-    char* command = strdup(buffer);
+    char *command = strdup(buffer);
     command = strtok(command, " ");
 
     if (command == NULL)
@@ -183,37 +197,29 @@ int manage_command(char *buffer)
     if (strcmp(command, "exit") == 0)
     {
         return -1;
-    }
-    else if (strcmp(command, "info") == 0)
+    } else if (strcmp(command, "info") == 0)
     {
         print_info();
-    } 
-    else if (strcmp(command, "options") == 0)
+    } else if (strcmp(command, "options") == 0)
     {
-        // FIXME: a che serve sto controllo se tanto non fa niente? COMPATIBILITA'      
+        // FIXME: a che serve sto controllo se tanto non fa niente? COMPATIBILITA'
         // Doesn't print anything
-    } 
-    else if (strcmp(command, "newgame") == 0)
+    } else if (strcmp(command, "newgame") == 0)
     {
         return 1;
-    } 
-    else if (strcmp(command, "play") == 0)
+    } else if (strcmp(command, "play") == 0)
     {
         return 2;
-    } 
-    else if (strcmp(command, "pass") == 0)
+    } else if (strcmp(command, "pass") == 0)
     {
         return 4;
-    } 
-    else if (strcmp(command, "validmoves") == 0)
+    } else if (strcmp(command, "validmoves") == 0)
     {
         return 5;
-    } 
-    else if (strcmp(command, "bestmove") == 0)
+    } else if (strcmp(command, "bestmove") == 0)
     {
         return 3;
-    } 
-    else
+    } else
     {
         printf("Unknown command: %s\n", command);
     }
@@ -223,11 +229,57 @@ int manage_command(char *buffer)
 }
 
 
+void test()
+{
+    Context_t context;
+    initContext(&context);
+
+    context.board[MtA(0, 0, -2)] = W_QUEEN;
+    context.board[MtA(0, 0, 4)] = B_QUEEN;
+    context.board[MtA(0, 0, 0)] = W_BEETLE_1;
+    context.board[MtA(0, 0, 2)] = B_BEETLE_1;
+
+    context.idToPos[W_QUEEN] = (Position_t){0, 0, -2};
+    context.idToPos[B_QUEEN] = (Position_t){0, 0, 4};
+    context.idToPos[W_BEETLE_1] = (Position_t){0, 0, 0};
+    context.idToPos[B_BEETLE_1] = (Position_t){0, 0, 2};
+
+    context.curColor = WHITE;
+
+    Piece_t piece = {W_ANT_1, context.idToPos[W_ANT_1]};
+
+    uint_fast8_t mSize = 0;
+    Piece_t *moves;
+
+    bool visited[28] = {};
+    for (uint_fast8_t i = 0; i < 28; ++i)
+    {
+        if (context.idToPos[i].z == -1)
+            visited[i] = true;
+    }
+
+    getMoves(&context, &moves, &mSize);
+
+
+    for (int i = 0; i < mSize; ++i)
+    {
+        printf("ID: %d, Move: (%d,%d,%d)\n", moves[i].id, moves[i].position.z, moves[i].position.y, moves[i].position.x);
+    }
+
+
+    cleanContext(&context);
+}
+
+
 int main(void)
 {
 #ifdef Debug
     D_Print("Launched in Debug Mode!\n");
 #endif
+
+    test();
+    return 0;
+
 
     size_t buf_size = 128;
     char *buffer = malloc(sizeof(char) * buf_size);
@@ -240,64 +292,70 @@ int main(void)
         const size_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
-        buffer[read - 1] = '\0'; 
+        buffer[read - 1] = '\0';
         if (read == 1) continue; // Empty line
 
         const int result = manage_command(buffer);
         if (result == -1) break;
         else if (result <= 0) continue;
         else if (result == 1)
-        {   // newgame
+        {
+            // newgame
             cleanContext(&context);
             initContext(&context);
-            if (read == 8) {
+            if (read == 8)
+            {
                 print_gamestring(&context);
                 continue;
             }
             char *parameters = buffer + 8;
 
-            if (strchr(parameters, ';') == NULL) {
+            if (strchr(parameters, ';') == NULL)
+            {
                 // Command is like 'Base+MLP'
-                if (parseGameTypeString(parameters, &context) == 1) {
+                if (parseGameTypeString(parameters, &context) == 1)
+                {
                     cleanContext(&context);
                     continue;
                 }
-            } else {
+            } else
+            {
                 // Command is GameString
-                if (convertFromMZinga(parameters, &context) == 1) {
+                if (convertFromMZinga(parameters, &context) == 1)
+                {
                     cleanContext(&context);
                     continue;
                 }
             }
             print_gamestring(&context);
-            
-        }
-        else if (result == 2) {
+        } else if (result == 2)
+        {
             // play command
-            char* move = buffer + 5;
+            char *move = buffer + 5;
             playMove(&context, move);
             print_gamestring(&context);
             debugPrint(&context);
-        }
-        else if (result == 3) {
+        } else if (result == 3)
+        {
             // bestmove
             // TODO: Get best move out
-        }
-        else if (result == 4) {
+        } else if (result == 4)
+        {
             playMove(&context, "pass");
             print_gamestring(&context);
             debugPrint(&context);
             debugBoardPrint(&context);
-        }
-        else if (result == 5) {
-            Piece_t* moves;
+        } else if (result == 5)
+        {
+            Piece_t *moves;
             uint_fast8_t mSize;
             getMoves(&context, &moves, &mSize);
-            for (uint_fast8_t i = 0; i < mSize; i++) {
+            for (uint_fast8_t i = 0; i < mSize; i++)
+            {
                 Context_t newContext = {};
                 copyContext(&context, &newContext);
                 manageMove(&newContext, &moves[i]);
-                char* move = deconvertMove(&newContext, moves[i].id);
+                char *move = deconvertMove(&newContext, moves[i].id);
                 printf("%s;", move);
                 free(move);
             }
@@ -305,5 +363,4 @@ int main(void)
     }
     free(buffer);
     return 0;
-
 }

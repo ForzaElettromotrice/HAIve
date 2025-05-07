@@ -63,14 +63,13 @@ bool hasNeighbor(const Piece_t *piece, const Pieces_t *board)
         const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
         const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
-        Pieces_t neighbor = board[MtA(0, newY, newX)];
+        const Pieces_t neighbor = board[MtA(0, newY, newX)];
 
         if (neighbor != id && neighbor != NULLPIECE)
             return true;
     }
     return false;
 }
-
 
 void queenMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize)
 {
@@ -100,46 +99,45 @@ void beetleMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, ui
     const int_fast8_t z = piece->position.z;
     const int_fast8_t y = piece->position.y;
     const int_fast8_t x = piece->position.x;
-    for (int_fast8_t j = -1; j < 2; ++j)
+    for (int_fast8_t i = 0; i < 6; ++i)
     {
-        for (int_fast8_t i = 0; i < 6; ++i)
+        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+
+
+        //Sale nella posizione piu alta
+        if (board[MtA(z, newY, newX)] != NULLPIECE)
         {
-            const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
-            const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
-
-
-            //Sale nella posizione piu alta
-            if (board[MtA(z, newY, newX)] != NULLPIECE)
+            int_fast8_t n = z;
+            while (board[MtA(++n, newY, newX)] != NULLPIECE)
             {
-                int_fast8_t n = z;
-                while (board[MtA(++n, newY, newX)] != NULLPIECE)
-                {
-                }
-                const Position_t pos = {n, newY, newX};
-                if (!canSlide(&pos, i, board))
-                    continue;
-                const Piece_t move = {piece->id, {n, newY, newX}};
-                moves[(*mSize)++] = move;
-                continue;
             }
-
-
-            if (!canSlide(&piece->position, i, board))
+            const Position_t pos = {n, newY, newX};
+            if (!canSlide(&pos, i, board))
                 continue;
-
-            //Scende alla posizione piu bassa
-            int_fast8_t n;
-            for (n = z; n > -1; --n)
-            {
-                if (n == 0)
-                    break;
-                if (board[MtA(n-1, newY, newX)] != NULLPIECE)
-                    break;
-            }
-
             const Piece_t move = {piece->id, {n, newY, newX}};
             moves[(*mSize)++] = move;
+            continue;
         }
+
+
+        if (!canSlide(&piece->position, i, board))
+            continue;
+
+        //Scende alla posizione piu bassa
+        int_fast8_t n;
+        for (n = z; n > -1; --n)
+        {
+            if (n == 0)
+                break;
+            if (board[MtA(n-1, newY, newX)] != NULLPIECE)
+                break;
+        }
+
+        const Piece_t move = {piece->id, {n, newY, newX}};
+        if (!hasNeighbor(&move, board))
+            continue;
+        moves[(*mSize)++] = move;
     }
 }
 void grasshopperMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_fast8_t *mSize)
@@ -174,30 +172,54 @@ void grasshopperMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *move
         moves[(*mSize)++] = move;
     }
 }
-void pillbugMoves(const Piece_t *piece, const Pieces_t *board, const Pieces_t last, Piece_t *moves, uint_fast8_t *mSize)
+void pillbugMoves(const Piece_t *piece, const Pieces_t *board,bool *visited, const Position_t *positions, const Pieces_t last, Piece_t *moves, uint_fast8_t *mSize)
 {
+    const Pieces_t id = piece->id;
     const int_fast8_t y = piece->position.y;
     const int_fast8_t x = piece->position.x;
 
     int_fast8_t sizeFree = 0;
     Position_t freeLocations[6];
-    //Per muovere se stesso
-    for (int_fast8_t i = 0; i < 6; ++i)
+
+    Pieces_t startingPoint = id > 13 ? W_QUEEN : B_QUEEN;
+    visited[id] = true;
+    if (dfs(&positions[startingPoint], board, visited, true))
     {
-        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
-        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+        //Per muovere se stesso
+        for (int_fast8_t i = 0; i < 6; ++i)
+        {
+            const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+            const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
-        if (board[MtA(0, newY, newX)] != NULLPIECE)
-            continue;
+            if (board[MtA(0, newY, newX)] != NULLPIECE)
+                continue;
 
-        const Position_t free = {0, newY, newX};
-        freeLocations[sizeFree++] = free;
-        if (!canSlide(&piece->position, i, board))
-            continue;
+            const Position_t free = {0, newY, newX};
+            freeLocations[sizeFree++] = free;
+            if (!canSlide(&piece->position, i, board))
+                continue;
 
-        const Piece_t move = {piece->id, free};
-        moves[(*mSize)++] = move;
+            const Piece_t move = {piece->id, free};
+            if (!hasNeighbor(&move, board))
+                continue;
+            moves[(*mSize)++] = move;
+        }
+    } else
+    {
+        for (int_fast8_t i = 0; i < 6; ++i)
+        {
+            const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+            const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+
+            if (board[MtA(0, newY, newX)] != NULLPIECE)
+                continue;
+
+            const Position_t free = {0, newY, newX};
+            freeLocations[sizeFree++] = free;
+        }
     }
+    visited[id] = false;
+
 
     //Per muovere gli altri
     for (int_fast8_t i = 0; i < 6; ++i)
@@ -213,6 +235,13 @@ void pillbugMoves(const Piece_t *piece, const Pieces_t *board, const Pieces_t la
         for (int_fast8_t j = 0; j < sizeFree; ++j)
         {
             const Piece_t move = {neighbor, freeLocations[j]};
+            visited[neighbor] = true;
+            if (!dfs(&positions[neighbor], board, visited, true))
+            {
+                visited[neighbor] = false;
+                continue;
+            }
+            visited[neighbor] = false;
             moves[(*mSize)++] = move;
         }
     }
@@ -246,12 +275,14 @@ void ladybugMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, u
             const int_fast8_t newY2 = (int_fast8_t) (directions[j][0] + newY1);
             const int_fast8_t newX2 = (int_fast8_t) (directions[j][1] + newX1);
 
-            if (newX2 == newX1 && newY2 == newY1)
+            if (newX2 == x && newY2 == y)
                 continue;
 
             int_fast8_t n2;
             if (board[MtA(n1, newY2, newX2)] == NULLPIECE)
             {
+                if (board[MtA(0, newY2, newX2)] == NULLPIECE)
+                    continue;
                 //Crawl
                 const Position_t pos2 = {n1, newY2, newX2};
                 if (!canSlide(&pos2, j, board))
@@ -275,7 +306,7 @@ void ladybugMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, u
                 const int_fast8_t newY3 = (int_fast8_t) (directions[k][0] + newY2);
                 const int_fast8_t newX3 = (int_fast8_t) (directions[k][1] + newX2);
 
-                if (newX3 == newX2 && newY3 == newY2)
+                if (newX3 == newX2 && newY3 == newY2 && newX3 == x && newY3 == y)
                     continue;
 
                 if (board[MtA(n2, newY3, newX3)] != NULLPIECE)
@@ -300,6 +331,7 @@ void ladybugMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, u
                 bool cnt = false;
                 const Piece_t move = {piece->id, {n3, newY3, newX3}};
                 //Controllo se già l'ho inserita
+                //TODO: Usa le hashmap
                 for (uint_fast8_t h = mStart; h < *mSize; ++h)
                 {
                     const Piece_t *move2 = &moves[h];
@@ -334,13 +366,17 @@ void spiderMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, ui
         if (!canSlide(&piece->position, i, board))
             continue;
 
+        Piece_t piece1 = {piece->id, {0, newY1, newX1}};
+        if (!hasNeighbor(&piece1, board))
+            continue;
+
         //Secondo passo
         for (int_fast8_t j = 0; j < 6; ++j)
         {
             const int_fast8_t newY2 = (int_fast8_t) (directions[j][0] + newY1);
             const int_fast8_t newX2 = (int_fast8_t) (directions[j][1] + newX1);
 
-            if (newY2 == newY1 && newX2 == newX1)
+            if (newY2 == y && newX2 == x)
                 continue;
 
             if (board[MtA(0, newY2, newX2)] != NULLPIECE)
@@ -350,13 +386,16 @@ void spiderMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, ui
             if (!canSlide(&pos2, j, board))
                 continue;
 
+            Piece_t piece2 = {piece->id, {0, newY2, newX2}};
+            if (!hasNeighbor(&piece2, board))
+                continue;
             //Terzo passo
             for (int_fast8_t k = 0; k < 6; ++k)
             {
                 const int_fast8_t newY3 = (int_fast8_t) (directions[k][0] + newY2);
                 const int_fast8_t newX3 = (int_fast8_t) (directions[k][1] + newX2);
 
-                if (newY3 == newY2 && newX3 == newX2)
+                if ((newY3 == y && newX3 == x) || (newY3 == newY1 && newX3 == newX1))
                     continue;
 
                 if (board[MtA(0, newY3, newX3)] != NULLPIECE)
@@ -368,7 +407,12 @@ void spiderMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, ui
 
                 bool cnt = false;
                 const Piece_t move = {piece->id, {0, newY3, newX3}};
+
+                if (!hasNeighbor(&move, board))
+                    continue;
+
                 //Controllo se già l'ho inserita
+                //TODO: usa le hashmap
                 for (uint_fast8_t h = mStart; h < *mSize; ++h)
                 {
                     const Piece_t *move2 = &moves[h];
@@ -406,8 +450,8 @@ void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_
         if (board[MtA(0, newY, newX)] != NULLPIECE)
             continue;
 
-        char key[5];
-        sprintf(key, "%02d%02d", newY, newX);
+        char key[7];
+        sprintf(key, "%03d%03d", newY, newX);
         if (getByKey(key, visited) != NULL)
             continue;
 
@@ -417,14 +461,16 @@ void antMoves(const Piece_t *piece, const Pieces_t *board, Piece_t *moves, uint_
         bool val = true;
         setByKey(key, &val, sizeof(bool), visited);
         const Piece_t move = {piece->id, {0, newY, newX}};
+        if (!hasNeighbor(&move, board))
+            continue;
         moves[(*mSize)++] = move;
 
-        antMoves(piece, board, moves, mSize, visited);
+        antMoves(&move, board, moves, mSize, visited);
     }
     if (first)
         freeHashmap(visited);
 }
-void mosquitoMoves(const Piece_t *piece, const Pieces_t *board, const bool last, Piece_t *moves, uint_fast8_t *mSize)
+void mosquitoMoves(const Piece_t *piece, const Pieces_t *board,bool *visited, const Position_t *positions, const bool last, Piece_t *moves, uint_fast8_t *mSize)
 {
     const int_fast8_t z = piece->position.z;
     const int_fast8_t y = piece->position.y;
@@ -455,7 +501,7 @@ void mosquitoMoves(const Piece_t *piece, const Pieces_t *board, const bool last,
                 break;
             case B_PILLBUG:
             case W_PILLBUG:
-                pillbugMoves(piece, board, last, moves, mSize);
+                pillbugMoves(piece, board, visited, positions, last, moves, mSize);
                 break;
             case B_LADYBUG:
             case W_LADYBUG:
@@ -500,14 +546,48 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
 
-    Hashmap_t visited;
-    initHashmap(&visited);
+    uint8_t addSize = 0;
+    uint8_t checkSize = 0;
+    int8_t toAdd[28];
+    int8_t toCheck[28];
     for (int_fast8_t i = start; i < end; ++i)
     {
-        const int_fast8_t z = context->idToPos[i].z;
-        const int_fast8_t y = context->idToPos[i].y;
-        const int_fast8_t x = context->idToPos[i].x;
-        if (z != 0)
+        if (context->idToPos[i].z == -1)
+        {
+            toAdd[addSize++] = i;
+            switch (i)
+            {
+                case B_ANT_1:
+                case W_ANT_1:
+                case W_GRASSHOPPER_1:
+                case B_GRASSHOPPER_1:
+                    i += 2;
+                    break;
+                case B_ANT_2:
+                case W_ANT_2:
+                case W_GRASSHOPPER_2:
+                case B_GRASSHOPPER_2:
+                case W_BEETLE_1:
+                case B_BEETLE_1:
+                case W_SPIDER_1:
+                case B_SPIDER_1:
+                    i++;
+                    break;
+                default:
+                    break;
+            }
+        } else
+            toCheck[checkSize++] = i;
+    }
+
+    Hashmap_t visited;
+    initHashmap(&visited);
+    for (uint8_t i = 0; i < checkSize; ++i)
+    {
+        const int_fast8_t z = context->idToPos[toCheck[i]].z;
+        const int_fast8_t y = context->idToPos[toCheck[i]].y;
+        const int_fast8_t x = context->idToPos[toCheck[i]].x;
+        if (z > 0)
             continue;
         for (int_fast8_t j = 0; j < 6; ++j)
         {
@@ -517,8 +597,8 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
             if (context->board[MtA(0, newY1, newX1)] != NULLPIECE)
                 continue;
 
-            char key[5];
-            sprintf(key, "%02d%02d", newY1, newX1);
+            char key[7];
+            sprintf(key, "%03d%03d", newY1, newX1);
             if (getByKey(key, &visited) != NULL)
                 continue;
             bool ok = true;
@@ -537,11 +617,15 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
                 }
             }
 
+            setByKey(key, &ok, sizeof(bool), &visited);
             if (!ok)
                 continue;
 
-            const Piece_t move = {i, {0, newY1, newX1}};
-            moves[(*mSize)++] = move;
+            for (uint8_t k = 0; k < addSize; ++k)
+            {
+                const Piece_t move = {toAdd[k], {0, newY1, newX1}};
+                moves[(*mSize)++] = move;
+            }
         }
     }
 }
@@ -592,12 +676,16 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             continue;
 
         // se muovendosi spaccherebbe la board
+
+        const Pieces_t startingPoint = i == W_QUEEN ? B_QUEEN : W_QUEEN;
         visited[i] = true;
-        if (!dfs(&positions[i], board, visited, true))
+        if (!dfs(&positions[startingPoint], board, visited, true))
         {
-            visited[i] = false;
-            board[MtA(pos.z, pos.y, pos.x)] = i;
-            continue;
+            if (i != W_PILLBUG && i != B_PILLBUG)
+            {
+                visited[i] = false;
+                continue;
+            }
         }
         visited[i] = false;
 
@@ -614,7 +702,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
                 break;
             case B_PILLBUG:
             case W_PILLBUG:
-                pillbugMoves(&piece, board, last, *moves, mSize);
+                pillbugMoves(&piece, board, visited, positions, last, *moves, mSize);
                 break;
             case B_LADYBUG:
             case W_LADYBUG:
@@ -622,7 +710,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
                 break;
             case B_MOSQUITO:
             case W_MOSQUITO:
-                mosquitoMoves(&piece, board, last, *moves, mSize);
+                mosquitoMoves(&piece, board, visited, positions, last, *moves, mSize);
                 break;
             case B_ANT_1:
             case B_ANT_2:
