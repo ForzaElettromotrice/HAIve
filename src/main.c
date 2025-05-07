@@ -277,9 +277,6 @@ int main(void)
     D_Print("Launched in Debug Mode!\n");
 #endif
 
-    test();
-    return 0;
-
 
     size_t buf_size = 128;
     char *buffer = malloc(sizeof(char) * buf_size);
@@ -289,6 +286,7 @@ int main(void)
 
     while (true)
     {
+        printf("> ");
         const size_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
@@ -297,8 +295,8 @@ int main(void)
 
         const int result = manage_command(buffer);
         if (result == -1) break;
-        else if (result <= 0) continue;
-        else if (result == 1)
+        if (result <= 0) continue;
+        if (result == 1)
         {
             // newgame
             cleanContext(&context);
@@ -345,13 +343,14 @@ int main(void)
             print_gamestring(&context);
             debugPrint(&context);
             debugBoardPrint(&context);
-        } else if (result == 5)
+        } else
         {
             Piece_t *moves;
             uint_fast8_t mSize;
             getMoves(&context, &moves, &mSize);
             for (uint_fast8_t i = 0; i < mSize; i++)
             {
+                printf("%d, (%d,%d,%d);\n", moves[i].id, moves[i].position.z, moves[i].position.y, moves[i].position.x);
                 Context_t newContext = {};
                 copyContext(&context, &newContext);
                 manageMove(&newContext, &moves[i]);
