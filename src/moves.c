@@ -638,7 +638,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     const Pieces_t last = context->lastMovedPiece;
 
     //TODO: in teoria le mosse totali possibili so un numero fisso, metteri quello come grandezza dell'array
-    *moves = malloc(200 * sizeof(Piece_t));
+    *moves = malloc(300 * sizeof(Piece_t));
     if (!*moves)
     {
         E_Print("malloc: %s\n", strerror(errno));
@@ -679,7 +679,8 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
 
         const Pieces_t startingPoint = i == W_QUEEN ? B_QUEEN : W_QUEEN;
         visited[i] = true;
-        if (!dfs(&positions[startingPoint], board, visited, true))
+        Position_t startPosition = positions[startingPoint];
+        if (!dfs(&startPosition, board, visited, true))
         {
             if (i != W_PILLBUG && i != B_PILLBUG)
             {

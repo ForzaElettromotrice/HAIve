@@ -356,11 +356,12 @@ int main(void)
         } else
         {
             Piece_t *moves;
-            uint_fast8_t mSize;
+            uint_fast8_t mSize = 0;
             getMoves(&context, &moves, &mSize);
             for (uint_fast8_t i = 0; i < mSize; i++) {
                 char* move = deconvertMove(&context, &moves[i]);
-                printf("%s;", move);
+                printf("%s", move);
+                if (i != mSize - 1) printf(";");
                 free(move);
             }
             printf("\n");
