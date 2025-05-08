@@ -186,6 +186,7 @@ void print_gamestring(const Context_t *context)
 // 5: validmoves
 int manage_command(char *buffer)
 {
+
     char *command = strdup(buffer);
     command = strtok(command, " ");
 
@@ -277,7 +278,7 @@ int main(void)
     D_Print("Launched in Debug Mode!\n");
 #endif
 
-
+    setvbuf(stdout, NULL, _IONBF, 0);
     size_t buf_size = 128;
     char *buffer = malloc(sizeof(char) * buf_size);
 
@@ -287,12 +288,15 @@ int main(void)
     while (true)
     {
         printf("> ");
-        const size_t read = getline(&buffer, &buf_size, stdin);
+        size_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
+        while (buffer[0] == ' ') {
+            buffer++;
+            read--;
+        }
         buffer[read - 1] = '\0';
         if (read == 1) continue; // Empty line
-
         const int result = manage_command(buffer);
         if (result == -1) break;
         if (result <= 0) continue;
@@ -301,6 +305,7 @@ int main(void)
             // newgame
             cleanContext(&context);
             initContext(&context);
+            context.gameStatus = NOT_STARTED;
             if (read == 8)
             {
                 print_gamestring(&context);
@@ -326,9 +331,14 @@ int main(void)
                 }
             }
             print_gamestring(&context);
-        } else if (result == 2)
+        } 
+        else if (result == 2)
         {
             // play command
+            if (context.gameStatus == NOT_INITIALIZED) {
+                printf("err Game not yet started \n");
+                continue;
+            }
             char *move = buffer + 5;
             playMove(&context, move);
             print_gamestring(&context);
@@ -348,16 +358,12 @@ int main(void)
             Piece_t *moves;
             uint_fast8_t mSize;
             getMoves(&context, &moves, &mSize);
-            for (uint_fast8_t i = 0; i < mSize; i++)
-            {
-                printf("%d, (%d,%d,%d);\n", moves[i].id, moves[i].position.z, moves[i].position.y, moves[i].position.x);
-                Context_t newContext = {};
-                copyContext(&context, &newContext);
-                manageMove(&newContext, &moves[i]);
-                char *move = deconvertMove(&newContext, moves[i].id);
+            for (uint_fast8_t i = 0; i < mSize; i++) {
+                char* move = deconvertMove(&context, &moves[i]);
                 printf("%s;", move);
                 free(move);
             }
+            printf("\n");
         }
     }
     free(buffer);

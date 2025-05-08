@@ -240,6 +240,9 @@ void manageMove(Context_t* context, Piece_t* move) {
     }
     else {
 
+        // Generate the MoveString
+        char* moveString = deconvertMove(context, move);
+        addMove(context, moveString);
         // Delete from old position
         Position_t oldPosition = context->idToPos[move->id];
         uint8_t z = oldPosition.z;
@@ -258,8 +261,6 @@ void manageMove(Context_t* context, Piece_t* move) {
         context->turn += 1;
         context->curColor *= -1;
         context->lastMovedPiece = move->id;
-        char* moveString = deconvertMove(context, move->id);
-        addMove(context, moveString);
         context->gameStatus = getGameStatus(context);
     }
 }
@@ -416,6 +417,7 @@ void initContext(Context_t* context) {
     context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
     for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].z = -1;
     context->lastMovedPiece = NULLPIECE;
+    context->gameStatus = NOT_INITIALIZED;
 
 }
 
@@ -558,29 +560,32 @@ void appendPiece(const Pieces_t pieceMoved, char *move)
 
 /*
     From our system, to a MZinga-compliant one;
-        il contesto è già MODIFICATO dalla mossa da deconvertire.
+        il contesto NON è modificato dalla mossa da deconvertire.
+        pieceMoved: {idPezzo, nuovaPosizione}
 */
-char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
+char *deconvertMove(Context_t *context, Piece_t* pieceMoved)
 {
     char *move = calloc(sizeof(char), 50);
-    move[0] = pieceMoved <= 13 ? 'b' : 'w';
-    pieceMoved = pieceMoved % 14;
+    Pieces_t pieceId = pieceMoved->id;
+    move[0] = pieceId <= 13 ? 'b' : 'w';
+    move[1] = '\0';
 
-    appendPiece(pieceMoved, move);
-    if (context->turn == 2) {
+    appendPiece(pieceId % 14, move);
+    if (context->turn == 1) {
         move = realloc(move, strlen(move) + 1);
         return move;
     }
     move = strcat(move, " ");
 
     int8_t index = -1;
-    char x = context->idToPos[pieceMoved].x;
-    char y = context->idToPos[pieceMoved].y;
-    char z = context->idToPos[pieceMoved].z;
+    int8_t z = pieceMoved->position.z;
+    int8_t y = pieceMoved->position.y;
+    int8_t x = pieceMoved->position.x;
     Pieces_t *board = context->board;
     for (int8_t i = 0; i < 6; i++)
     {
-        if (board[MtA(z, y + directions[i][0], x + directions[i][1])] != NULLPIECE)
+        Pieces_t neighbourPiece = board[MtA(z, y + directions[i][0], x + directions[i][1])];
+        if (neighbourPiece != NULLPIECE && neighbourPiece != pieceId)
         {
             index = i;
             break;
@@ -592,30 +597,37 @@ char *deconvertMove(Context_t *context, Pieces_t pieceMoved)
         appendPiece(board[MtA(z - 1, y, x)], move);
     } else
     {
+        Pieces_t toAppend = board[MtA(z, y + directions[index][0], x + directions[index][1])];
         if (index == RIGHT)
         {
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+            move = strcat(move, toAppend <= 13 ? "b" : "w");
+            appendPiece(toAppend % 14, move);
             move = strcat(move, "-");
         } else if (index == RIGHT_UP)
         {
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+            move = strcat(move, toAppend <= 13 ? "b" : "w");
+            appendPiece(toAppend % 14, move);
             move = strcat(move, "/");
         } else if (index == RIGHT_DOWN)
         {
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+            move = strcat(move, toAppend <= 13 ? "b" : "w");
+            appendPiece(toAppend % 14, move);
             move = strcat(move, "\\");
         } else if (index == LEFT)
         {
             move = strcat(move, "-");
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+            move = strcat(move, toAppend <= 13 ? "b" : "w");
+            appendPiece(toAppend % 14, move);
         } else if (index == LEFT_UP)
         {
             move = strcat(move, "\\");
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+            move = strcat(move, toAppend <= 13 ? "b" : "w");
+            appendPiece(toAppend % 14, move);
         } else if (index == LEFT_DOWN)
         {
             move = strcat(move, "/");
-            appendPiece(board[MtA(z, y + directions[index][0], x + directions[index][1])], move);
+            move = strcat(move, toAppend <= 13 ? "b" : "w");
+            appendPiece(toAppend % 14, move);
         }
     }
     

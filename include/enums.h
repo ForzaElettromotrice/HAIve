@@ -80,6 +80,7 @@ typedef struct GameType
 
 typedef enum GameStatus
 {
+    NOT_INITIALIZED = -1,
     NOT_STARTED,
     WHITE_WON,
     BLACK_WON,
