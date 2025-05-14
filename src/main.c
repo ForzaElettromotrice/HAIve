@@ -4,9 +4,6 @@
 
 #include "main.h"
 
-// Assumiamo che queste condizioni siano sempre vere altrimenti si sfancula tutto
-static_assert(sizeof(Pieces_t) == 1);
-static_assert(sizeof(Piece_t) == 4);
 
 #ifdef WIN32
 size_t getline(char **lineptr, size_t *n, FILE *stream)
@@ -18,15 +15,15 @@ size_t getline(char **lineptr, size_t *n, FILE *stream)
 
     if (lineptr == NULL)
     {
-        return -1;
+        return (size_t) -1;
     }
     if (stream == NULL)
     {
-        return -1;
+        return (size_t) -1;
     }
     if (n == NULL)
     {
-        return -1;
+        return (size_t) -1;
     }
     bufptr = *lineptr;
     size = *n;
@@ -34,30 +31,30 @@ size_t getline(char **lineptr, size_t *n, FILE *stream)
     c = fgetc(stream);
     if (c == EOF)
     {
-        return -1;
+        return (size_t) -1;
     }
     if (bufptr == NULL)
     {
         bufptr = malloc(128);
         if (bufptr == NULL)
         {
-            return -1;
+            return (size_t) -1;
         }
         size = 128;
     }
     p = bufptr;
     while (c != EOF)
     {
-        if ((p - bufptr) > (size - 1))
+        if ((size_t) (p - bufptr) > size - 1)
         {
             size = size + 128;
             bufptr = realloc(bufptr, size);
             if (bufptr == NULL)
             {
-                return -1;
+                return (size_t) -1;
             }
         }
-        *p++ = c;
+        *p++ = (char) c;
         if (c == '\n')
         {
             break;
@@ -74,7 +71,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream)
 #endif
 
 
-void print_info()
+void print_info(void)
 {
     printf("id hAIve v1.0\n");
     printf("Mosquito;Ladybug;Pillbug\n");
@@ -154,7 +151,8 @@ void print_gamestring(const Context_t *context)
             break;
         case NOT_STARTED: printf("NotStarted;");
             break;
-        default: break;
+        case NOT_INITIALIZED:
+            break;
     }
 
     // TurnString

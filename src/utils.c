@@ -164,17 +164,16 @@ Pieces_t getPiece(const char *piece, char white)
     return NULLPIECE; // Default case for invalid input
 }
 
-void cleanContext(Context_t* context) {
-
+void cleanContext(Context_t *context)
+{
     free(context->moves);
     free(context->board);
     free(context->idToPos);
     memset(context, 0, sizeof(Context_t));
-
 }
 
-void copyContext(Context_t* source, Context_t* dest) {
-
+void copyContext(Context_t *source, Context_t *dest)
+{
     // Direct copies
     dest->turn = source->turn;
     dest->curColor = source->curColor;
@@ -187,12 +186,10 @@ void copyContext(Context_t* source, Context_t* dest) {
     memcpy(dest->board, source->board, sizeof(Pieces_t) * BOARD_SIZE);
     memcpy(dest->moves, source->moves, sizeof(char) * source->movesSize);
     memcpy(dest->idToPos, source->idToPos, sizeof(Position_t) * NUM_PIECES);
-
 }
 
-GameStatus_t getGameStatus(Context_t* context)
+GameStatus_t getGameStatus(Context_t *context)
 {
-
     // TODO: Check draw
 
     int_fast8_t nearQueen;
@@ -203,12 +200,11 @@ GameStatus_t getGameStatus(Context_t* context)
     if (nearQueen == 6)
         return BLACK_WON;
     return IN_PROGRESS;
-
 }
 
 // Tells how many pieces are around the given one
-int_fast8_t howManyAround(Context_t* context, Pieces_t id) {
-
+int_fast8_t howManyAround(Context_t *context, Pieces_t id)
+{
     char nearAround = 0;
     int8_t z = context->idToPos[id].z;
     int8_t y = context->idToPos[id].y;
@@ -217,31 +213,30 @@ int_fast8_t howManyAround(Context_t* context, Pieces_t id) {
         return 0;
     for (int_fast8_t i = 0; i < 6; ++i)
     {
-        const int_fast8_t newY = (int_fast8_t)(directions[i][0] + y);
-        const int_fast8_t newX = (int_fast8_t)(directions[i][1] + x);
+        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
         if (context->board[MtA(z, newY, newX)] != NULLPIECE)
             nearAround++;
     }
     return nearAround;
-
 }
 
 // NOTE: The context MUST BE EDITED in order to add the move
-void manageMove(Context_t* context, Piece_t* move) {
-
-    if (move == NULL) {
+void manageMove(Context_t *context, Piece_t *move)
+{
+    if (move == NULL)
+    {
         // pass!
         context->turn += 1;
         context->curColor *= -1;
-        char* moveString = "pass";
+        char *moveString = "pass";
         addMove(context, moveString);
         context->gameStatus = getGameStatus(context);
-    }
-    else {
-
+    } else
+    {
         // Generate the MoveString
-        char* moveString = deconvertMove(context, move);
+        char *moveString = deconvertMove(context, move);
         addMove(context, moveString);
         // Delete from old position
         Position_t oldPosition = context->idToPos[move->id];
@@ -307,7 +302,8 @@ int parseMove(Context_t *context, char *move)
     if (strcmp(move, "pass") == 0)
         return 0;
 
-    if (context->turn <= 1) {
+    if (context->turn <= 1)
+    {
         // Primo pezzo
         if (move[0] != 'w')
             return EXIT_FAILURE;
@@ -333,7 +329,7 @@ int parseMove(Context_t *context, char *move)
         white_piece = 0;
     move++;
     piece = getPiece(move, white_piece);
-    
+
     if (piece == NULLPIECE)
         return EXIT_FAILURE;
 
@@ -405,8 +401,8 @@ int parseMove(Context_t *context, char *move)
     return EXIT_SUCCESS;
 }
 
-void initContext(Context_t* context) {
-
+void initContext(Context_t *context)
+{
     context->curColor = WHITE;
     context->turn = 1;
     context->moves = calloc(1024, sizeof(char));
@@ -417,7 +413,6 @@ void initContext(Context_t* context) {
     for (size_t i = 0; i < NUM_PIECES; i++) context->idToPos[i].z = -1;
     context->lastMovedPiece = NULLPIECE;
     context->gameStatus = NOT_INITIALIZED;
-
 }
 
 /*
@@ -434,9 +429,9 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         return 1;
     }
 
-    if (strcmp(token, "Base") == 0) {
-    }
-    else if (strcmp(token, "Base+M") == 0)
+    if (strcmp(token, "Base") == 0)
+    {
+    } else if (strcmp(token, "Base+M") == 0)
         context->gameType.mosquito = true;
     else if (strcmp(token, "Base+L") == 0)
         context->gameType.ladybug = true;
@@ -490,7 +485,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 
     token += 6;
     token[strlen(token) - 1] = '\0';
-    context->turn = (int) strtol(token, NULL, 10);
+    context->turn = (int16_t) strtol(token, NULL, 10);
     // The raw turn number must be edited
     context->turn *= 2;
     if (context->curColor == WHITE)
@@ -525,33 +520,47 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
 
 void appendPiece(const Pieces_t pieceMoved, char *move)
 {
-    if (pieceMoved == B_QUEEN) {
+    if (pieceMoved == B_QUEEN)
+    {
         strcat(move, "Q");
-    } else if (pieceMoved == B_SPIDER_1) {
+    } else if (pieceMoved == B_SPIDER_1)
+    {
         strcat(move, "S1");
-    } else if (pieceMoved == B_SPIDER_2) {
+    } else if (pieceMoved == B_SPIDER_2)
+    {
         strcat(move, "S2");
-    } else if (pieceMoved == B_GRASSHOPPER_1) {
+    } else if (pieceMoved == B_GRASSHOPPER_1)
+    {
         strcat(move, "G1");
-    } else if (pieceMoved == B_GRASSHOPPER_2) {
+    } else if (pieceMoved == B_GRASSHOPPER_2)
+    {
         strcat(move, "G2");
-    } else if (pieceMoved == B_GRASSHOPPER_3) {
+    } else if (pieceMoved == B_GRASSHOPPER_3)
+    {
         strcat(move, "G3");
-    } else if (pieceMoved == B_ANT_1) {
+    } else if (pieceMoved == B_ANT_1)
+    {
         strcat(move, "A1");
-    } else if (pieceMoved == B_ANT_2) {
+    } else if (pieceMoved == B_ANT_2)
+    {
         strcat(move, "A2");
-    } else if (pieceMoved == B_ANT_3) {
+    } else if (pieceMoved == B_ANT_3)
+    {
         strcat(move, "A3");
-    } else if (pieceMoved == B_BEETLE_1) {
+    } else if (pieceMoved == B_BEETLE_1)
+    {
         strcat(move, "B1");
-    } else if (pieceMoved == B_BEETLE_2) {
+    } else if (pieceMoved == B_BEETLE_2)
+    {
         strcat(move, "B2");
-    } else if (pieceMoved == B_LADYBUG) {
+    } else if (pieceMoved == B_LADYBUG)
+    {
         strcat(move, "L");
-    } else if (pieceMoved == B_MOSQUITO) {
+    } else if (pieceMoved == B_MOSQUITO)
+    {
         strcat(move, "M");
-    } else if (pieceMoved == B_PILLBUG) {
+    } else if (pieceMoved == B_PILLBUG)
+    {
         strcat(move, "P");
     }
 }
@@ -561,7 +570,7 @@ void appendPiece(const Pieces_t pieceMoved, char *move)
         il contesto NON è modificato dalla mossa da deconvertire.
         pieceMoved: {idPezzo, nuovaPosizione}
 */
-char *deconvertMove(const Context_t *context, const Piece_t* pieceMoved)
+char *deconvertMove(const Context_t *context, const Piece_t *pieceMoved)
 {
     char *move = calloc(sizeof(char), 50);
     Pieces_t pieceId = pieceMoved->id;
@@ -569,7 +578,8 @@ char *deconvertMove(const Context_t *context, const Piece_t* pieceMoved)
     move[1] = '\0';
 
     appendPiece(pieceId % 14, move);
-    if (context->turn == 1) {
+    if (context->turn == 1)
+    {
         move = realloc(move, strlen(move) + 1);
         return move;
     }
@@ -629,7 +639,7 @@ char *deconvertMove(const Context_t *context, const Piece_t* pieceMoved)
             appendPiece(toAppend % 14, move);
         }
     }
-    
+
     move = realloc(move, strlen(move) + 1);
     return move;
 }
@@ -654,8 +664,8 @@ void debugPrint(Context_t *context)
     printf("--- END DEBUG PRINT ---\n");
 }
 
-void debugBoardPrint(Context_t *context){
-
+void debugBoardPrint(Context_t *context)
+{
     printf("--- DEBUG BOARD PRINT ---\n");
 
     Pieces_t *board = context->board;
@@ -676,5 +686,4 @@ void debugBoardPrint(Context_t *context){
     }
 
     printf("--- END DEBUG BOARD PRINT ---\n");
-
 }

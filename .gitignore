@@ -1,5 +1,6 @@
 .idea
 cmake-build-debug
+cmake-build-debug-visual-studio
 bin
 .vscode
 old
@@ -9,3 +10,4 @@ lib/xxHash/lib
 /.vs
 /src/.vs
 /out
+lib/libtorch
