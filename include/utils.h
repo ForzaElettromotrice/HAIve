@@ -14,9 +14,12 @@
 
 
 #define BOARD_SIZE 5 * 28 * 56
+#define BOARD_X 56
+#define BOARD_Y 28
 
 #define MtA(z,y,x) (z) * 56 * 28 + (y + 14) * 56 + (x + 28)
-
+#define xOf(x) (x + 28)
+#define yOf(y) (y + 14)
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
 int convertFromMZinga(char *mzinga_string, Context_t *context);
