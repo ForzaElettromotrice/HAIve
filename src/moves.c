@@ -610,7 +610,7 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
                 const Pieces_t neighbor2 = context->board[MtA(0, newY2, newX2)];
                 if (neighbor2 == NULLPIECE)
                     continue;
-                if (neighbor2 < start || neighbor2 > end)
+                if (neighbor2 < start || neighbor2 >= end)
                 {
                     ok = false;
                     break;
@@ -670,6 +670,13 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
         if (visited[i] == true)
             continue;
 
+        // se non è nel contesto
+        if ((i % 14) == B_LADYBUG && !context->gameType.ladybug)
+            continue;
+        if ((i % 14) == B_PILLBUG && !context->gameType.pillbug)
+            continue;
+        if ((i % 14) == B_MOSQUITO && !context->gameType.mosquito)
+            continue;
 
         //se ha un pezzo sopra
         if (isCovered(&pos, board))

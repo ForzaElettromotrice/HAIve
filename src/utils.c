@@ -267,9 +267,9 @@ void manageMove(Context_t* context, Piece_t* move) {
 
 void playMove(Context_t *context, char *move)
 {
-    addMove(context, move);
     if (parseMove(context, move) > 0)
         return;
+    addMove(context, move);
     context->turn += 1;
     context->curColor *= -1;
     context->gameStatus = getGameStatus(context);
@@ -307,7 +307,7 @@ int parseMove(Context_t *context, char *move)
     if (strcmp(move, "pass") == 0)
         return 0;
 
-    else if (context->turn <= 1) {
+    if (context->turn <= 1) {
         // Primo pezzo
         if (move[0] != 'w')
             return EXIT_FAILURE;
@@ -337,7 +337,6 @@ int parseMove(Context_t *context, char *move)
     if (piece == NULLPIECE)
         return EXIT_FAILURE;
 
-    Pieces_t other_piece;
     uint8_t direction[2] = {0, 0};
     move += strlen(move);
     move++;
@@ -367,7 +366,7 @@ int parseMove(Context_t *context, char *move)
 
     if (direction[0] == 0 && direction[1] == 0)
     {
-        char last_char = move[strlen(move) - 1];
+        const char last_char = move[strlen(move) - 1];
         if (last_char == '-')
         {
             direction[0] = directions[1][0];
@@ -383,7 +382,7 @@ int parseMove(Context_t *context, char *move)
         }
         move[strlen(move) - 1] = '\0';
     }
-    other_piece = getPiece(move, white_piece);
+    Pieces_t other_piece = getPiece(move, white_piece);
     if (other_piece == NULLPIECE)
         return EXIT_FAILURE;
     if (id_to_pos[piece].z != -1)
@@ -394,8 +393,8 @@ int parseMove(Context_t *context, char *move)
     }
     int8_t z, y, x;
     z = id_to_pos[other_piece].z + (direction[0] == 0 && direction[1] == 0) ? 1 : 0;
-    y = id_to_pos[other_piece].y + direction[1];
-    x = id_to_pos[other_piece].x + direction[0];
+    y = id_to_pos[other_piece].y + direction[0];
+    x = id_to_pos[other_piece].x + direction[1];
     id_to_pos[piece].z = z;
     id_to_pos[piece].y = y;
     id_to_pos[piece].x = x;
@@ -498,7 +497,6 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         context->turn -= 1;
 
     char white_piece;
-    Pieces_t piece;
     Position_t *id_to_pos = context->idToPos;
 
     // Il primo pezzo si gestisce fuori dal while
@@ -510,7 +508,7 @@ int convertFromMZinga(char *mzinga_string, Context_t *context)
         white_piece = 1;
 
     token++;
-    piece = getPiece(token, white_piece);
+    const Pieces_t piece = getPiece(token, white_piece);
     id_to_pos[piece].x = 0;
     id_to_pos[piece].y = 0;
     id_to_pos[piece].z = 0;
@@ -563,7 +561,7 @@ void appendPiece(const Pieces_t pieceMoved, char *move)
         il contesto NON è modificato dalla mossa da deconvertire.
         pieceMoved: {idPezzo, nuovaPosizione}
 */
-char *deconvertMove(Context_t *context, Piece_t* pieceMoved)
+char *deconvertMove(const Context_t *context, const Piece_t* pieceMoved)
 {
     char *move = calloc(sizeof(char), 50);
     Pieces_t pieceId = pieceMoved->id;
@@ -578,13 +576,13 @@ char *deconvertMove(Context_t *context, Piece_t* pieceMoved)
     move = strcat(move, " ");
 
     int8_t index = -1;
-    int8_t z = pieceMoved->position.z;
-    int8_t y = pieceMoved->position.y;
-    int8_t x = pieceMoved->position.x;
+    const int8_t z = pieceMoved->position.z;
+    const int8_t y = pieceMoved->position.y;
+    const int8_t x = pieceMoved->position.x;
     Pieces_t *board = context->board;
     for (int8_t i = 0; i < 6; i++)
     {
-        Pieces_t neighbourPiece = board[MtA(z, y + directions[i][0], x + directions[i][1])];
+        const Pieces_t neighbourPiece = board[MtA(z, y + directions[i][0], x + directions[i][1])];
         if (neighbourPiece != NULLPIECE && neighbourPiece != pieceId)
         {
             index = i;
@@ -597,7 +595,8 @@ char *deconvertMove(Context_t *context, Piece_t* pieceMoved)
         appendPiece(board[MtA(z - 1, y, x)], move);
     } else
     {
-        Pieces_t toAppend = board[MtA(z, y + directions[index][0], x + directions[index][1])];
+        const Pieces_t toAppend = board[MtA(z, y + directions[index][0], x + directions[index][1])];
+        index = (index + 3) % 6;
         if (index == RIGHT)
         {
             move = strcat(move, toAppend <= 13 ? "b" : "w");
