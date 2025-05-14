@@ -543,6 +543,9 @@ void mosquitoMoves(const Piece_t *piece, const Pieces_t *board,bool *visited, co
 }
 void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
 {
+    bool forceQueen = false;
+    if ((context->turn == 7 && context->idToPos[W_QUEEN].z == -1) || (context->turn == 8 && context->idToPos[B_QUEEN].z == -1))
+        forceQueen = true;
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
 
@@ -602,29 +605,38 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
             if (getByKey(key, &visited) != NULL)
                 continue;
             bool ok = true;
-            for (int k = 0; k < 6; ++k)
+            if (context->turn != 2)
             {
-                const int_fast8_t newY2 = (int_fast8_t) (directions[k][0] + newY1);
-                const int_fast8_t newX2 = (int_fast8_t) (directions[k][1] + newX1);
-
-                const Pieces_t neighbor2 = context->board[MtA(0, newY2, newX2)];
-                if (neighbor2 == NULLPIECE)
-                    continue;
-                if (neighbor2 < start || neighbor2 >= end)
+                for (int k = 0; k < 6; ++k)
                 {
-                    ok = false;
-                    break;
+                    const int_fast8_t newY2 = (int_fast8_t) (directions[k][0] + newY1);
+                    const int_fast8_t newX2 = (int_fast8_t) (directions[k][1] + newX1);
+
+                    const Pieces_t neighbor2 = context->board[MtA(0, newY2, newX2)];
+                    if (neighbor2 == NULLPIECE)
+                        continue;
+                    if (neighbor2 < start || neighbor2 >= end)
+                    {
+                        ok = false;
+                        break;
+                    }
                 }
             }
-
             setByKey(key, &ok, sizeof(bool), &visited);
             if (!ok)
                 continue;
 
-            for (uint8_t k = 0; k < addSize; ++k)
+            if (forceQueen)
             {
-                const Piece_t move = {toAdd[k], {0, newY1, newX1}};
+                const Piece_t move = {toAdd[context->curColor == WHITE ? W_QUEEN : B_QUEEN], {0, newY1, newX1}};
                 moves[(*mSize)++] = move;
+            } else
+            {
+                for (uint8_t k = 0; k < addSize; ++k)
+                {
+                    const Piece_t move = {toAdd[k], {0, newY1, newX1}};
+                    moves[(*mSize)++] = move;
+                }
             }
         }
     }
@@ -649,6 +661,38 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     const Pieces_t start = color == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
 
+
+    if (context->turn == 1)
+    {
+        for (int i = start; i < end; ++i)
+        {
+            *moves[*mSize++] = (Piece_t){i, {0, 0, 0}};
+            switch (i)
+            {
+                case B_ANT_1:
+                case W_ANT_1:
+                case W_GRASSHOPPER_1:
+                case B_GRASSHOPPER_1:
+                    i += 2;
+                    break;
+                case B_ANT_2:
+                case W_ANT_2:
+                case W_GRASSHOPPER_2:
+                case B_GRASSHOPPER_2:
+                case W_BEETLE_1:
+                case B_BEETLE_1:
+                case W_SPIDER_1:
+                case B_SPIDER_1:
+                    i++;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return;
+    }
+
+
     bool visited[28] = {};
     for (uint_fast8_t i = 0; i < 28; ++i)
     {
@@ -658,6 +702,9 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
 
     //Aggiunge le mosse che indicano l'aggiunta di un nuovo pezzo
     addMoves(context, *moves, mSize);
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z == -1)
+        return;
 
     for (Pieces_t i = start; i < end; ++i)
     {

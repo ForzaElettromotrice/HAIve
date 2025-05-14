@@ -154,6 +154,7 @@ void print_gamestring(const Context_t *context)
             break;
         case NOT_STARTED: printf("NotStarted;");
             break;
+        default: break;
     }
 
     // TurnString
@@ -186,7 +187,6 @@ void print_gamestring(const Context_t *context)
 // 5: validmoves
 int manage_command(char *buffer)
 {
-
     char *command = strdup(buffer);
     command = strtok(command, " ");
 
@@ -230,46 +230,46 @@ int manage_command(char *buffer)
 }
 
 
-void test()
-{
-    Context_t context;
-    initContext(&context);
-
-    context.board[MtA(0, 0, -2)] = W_QUEEN;
-    context.board[MtA(0, 0, 4)] = B_QUEEN;
-    context.board[MtA(0, 0, 0)] = W_BEETLE_1;
-    context.board[MtA(0, 0, 2)] = B_BEETLE_1;
-
-    context.idToPos[W_QUEEN] = (Position_t){0, 0, -2};
-    context.idToPos[B_QUEEN] = (Position_t){0, 0, 4};
-    context.idToPos[W_BEETLE_1] = (Position_t){0, 0, 0};
-    context.idToPos[B_BEETLE_1] = (Position_t){0, 0, 2};
-
-    context.curColor = WHITE;
-
-    Piece_t piece = {W_ANT_1, context.idToPos[W_ANT_1]};
-
-    uint_fast8_t mSize = 0;
-    Piece_t *moves;
-
-    bool visited[28] = {};
-    for (uint_fast8_t i = 0; i < 28; ++i)
-    {
-        if (context.idToPos[i].z == -1)
-            visited[i] = true;
-    }
-
-    getMoves(&context, &moves, &mSize);
-
-
-    for (int i = 0; i < mSize; ++i)
-    {
-        printf("ID: %d, Move: (%d,%d,%d)\n", moves[i].id, moves[i].position.z, moves[i].position.y, moves[i].position.x);
-    }
-
-
-    cleanContext(&context);
-}
+// void test()
+// {
+//     Context_t context;
+//     initContext(&context);
+//
+//     context.board[MtA(0, 0, -2)] = W_QUEEN;
+//     context.board[MtA(0, 0, 4)] = B_QUEEN;
+//     context.board[MtA(0, 0, 0)] = W_BEETLE_1;
+//     context.board[MtA(0, 0, 2)] = B_BEETLE_1;
+//
+//     context.idToPos[W_QUEEN] = (Position_t){0, 0, -2};
+//     context.idToPos[B_QUEEN] = (Position_t){0, 0, 4};
+//     context.idToPos[W_BEETLE_1] = (Position_t){0, 0, 0};
+//     context.idToPos[B_BEETLE_1] = (Position_t){0, 0, 2};
+//
+//     context.curColor = WHITE;
+//
+//     Piece_t piece = {W_ANT_1, context.idToPos[W_ANT_1]};
+//
+//     uint_fast8_t mSize = 0;
+//     Piece_t *moves;
+//
+//     bool visited[28] = {};
+//     for (uint_fast8_t i = 0; i < 28; ++i)
+//     {
+//         if (context.idToPos[i].z == -1)
+//             visited[i] = true;
+//     }
+//
+//     getMoves(&context, &moves, &mSize);
+//
+//
+//     for (int i = 0; i < mSize; ++i)
+//     {
+//         printf("ID: %d, Move: (%d,%d,%d)\n", moves[i].id, moves[i].position.z, moves[i].position.y, moves[i].position.x);
+//     }
+//
+//
+//     cleanContext(&context);
+// }
 
 
 int main(void)
@@ -291,13 +291,16 @@ int main(void)
         size_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
-        while (buffer[0] == ' ') {
+        while (buffer[0] == ' ')
+        {
             buffer++;
             read--;
         }
         buffer[read - 1] = '\0';
         if (read == 1) continue; // Empty line
         const int result = manage_command(buffer);
+
+        //TODO: cambiare questi result con uno switch
         if (result == -1) break;
         if (result <= 0) continue;
         if (result == 1)
@@ -331,11 +334,11 @@ int main(void)
                 }
             }
             print_gamestring(&context);
-        } 
-        else if (result == 2)
+        } else if (result == 2)
         {
             // play command
-            if (context.gameStatus == NOT_INITIALIZED) {
+            if (context.gameStatus == NOT_INITIALIZED)
+            {
                 printf("err Game not yet started \n");
                 continue;
             }
@@ -358,8 +361,9 @@ int main(void)
             Piece_t *moves;
             uint_fast8_t mSize = 0;
             getMoves(&context, &moves, &mSize);
-            for (uint_fast8_t i = 0; i < mSize; i++) {
-                char* move = deconvertMove(&context, &moves[i]);
+            for (uint_fast8_t i = 0; i < mSize; i++)
+            {
+                char *move = deconvertMove(&context, &moves[i]);
                 printf("%s", move);
                 if (i != mSize - 1) printf(";");
                 free(move);
