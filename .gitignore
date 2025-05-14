@@ -8,3 +8,4 @@ lib/xxHash/lib
 /build
 /.vs
 /src/.vs
+/out
