@@ -37,10 +37,10 @@ float heuristicValue(Context_t *context, bool areWeWhite) {
 
 	int32_t value = 0;
 	int32_t maxValue = 0;
-	char ourPieces, displaced; ourPieces = displaced = 0;
-	Position_t *idToPos = context->idToPos;
+	char displaced; char ourPieces = displaced = 0;
+	const Position_t *idToPos = context->idToPos;
 	for (size_t pieceId = 0; pieceId < NUM_PIECES; pieceId++) {
-		if (idToPos[pieceId].x == -1)
+		if (idToPos[pieceId].z == -1)
 			continue;
 		displaced++;
 		if (!areWeWhite && pieceId <= 13)
@@ -61,42 +61,41 @@ float heuristicValue(Context_t *context, bool areWeWhite) {
 	maxValue += (0.8 * NUM_PIECES / 2);
 	// opponent_piece_count 
 	value -= (int)(0.5 * (displaced - ourPieces));
-	maxValue -= (0.5 * NUM_PIECES / 2);
 
 	return value / (float)maxValue;
 }
 
-float negamax(Context_t* context, int depth, int maxDepth, bool isWhiteTurn, Piece_t* bestMove) {
+float negamax(Context_t* context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t* bestMove) {
 
 	if (depth >= maxDepth) {
 		return heuristicValue(context, isWhiteTurn);
 	}
 
-	GameStatus_t gameStat = getGameStatus(context);
+	const GameStatus_t gameStat = getGameStatus(context);
 	if (gameStat == WHITE_WON)
-		return 1;
-	else if (gameStat == BLACK_WON)
-		return 0;
+		return isWhiteTurn ? 1 : -1;
+	if (gameStat == BLACK_WON)
+		return isWhiteTurn ? -1 : 1;
 
 	// Trova i figli
 	Piece_t* moves;
-	int_fast8_t mSize = 0;
+	uint_fast8_t mSize = 0;
 	getMoves(context, &moves, &mSize);
 	float maxVal = -2, tmp;
 	Piece_t curBestMove;
 
-	for (int_fast8_t i = 0; i < mSize; i++) {
+	for (uint_fast8_t i = 0; i < mSize; i++) {
 		Context_t newContext;
 		initContext(&newContext);
 		copyContext(context, &newContext);
 
-		manageMove(newContext, &moves[i]);
-		if ((tmp = negamax(newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove)) > maxVal) {
+		manageMove(&newContext, &moves[i]);
+		if ((tmp = negamax(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove)) > maxVal) {
 			maxVal = tmp;
-			curBestMove = &moves[i];
+			curBestMove = moves[i];
 		}
 
-		cleanContext(newContext);
+		cleanContext(&newContext);
 	}
 
 	if (mSize == 0) {
@@ -104,7 +103,7 @@ float negamax(Context_t* context, int depth, int maxDepth, bool isWhiteTurn, Pie
 		initContext(&newContext);
 		copyContext(context, &newContext);
 
-		manageMove(newContext, NULL);
+		manageMove(&newContext, NULL);
 		maxVal = negamax(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove);
 
 		cleanContext(&newContext);

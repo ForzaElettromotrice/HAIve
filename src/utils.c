@@ -240,10 +240,11 @@ void manageMove(Context_t *context, Piece_t *move)
         addMove(context, moveString);
         // Delete from old position
         Position_t oldPosition = context->idToPos[move->id];
-        uint8_t z = oldPosition.z;
-        uint8_t y = oldPosition.y;
-        uint8_t x = oldPosition.x;
-        context->board[MtA(z, y, x)] = NULLPIECE;
+        int8_t z = oldPosition.z;
+        int8_t y = oldPosition.y;
+        int8_t x = oldPosition.x;
+        if (z != -1)
+            context->board[MtA(z, y, x)] = NULLPIECE;
         // Add to new position
         Position_t newPosition = move->position;
         z = newPosition.z;

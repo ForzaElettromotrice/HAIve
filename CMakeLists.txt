@@ -24,6 +24,7 @@ add_executable(HAIve
         src/utils.c
         src/hashmap.c
         src/enums.c
+        src/logic.c
 )
 
 target_include_directories(

@@ -644,10 +644,11 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
 
 void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
 {
-    Pieces_t *board = context->board;
+    const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
+    *mSize = 0;
 
     //TODO: in teoria le mosse totali possibili so un numero fisso, metteri quello come grandezza dell'array
     *moves = malloc(300 * sizeof(Piece_t));
@@ -693,7 +694,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     }
 
 
-    bool visited[28] = {};
+    bool visited[28] = { 0 };
     for (uint_fast8_t i = 0; i < 28; ++i)
     {
         if (positions[i].z == -1)

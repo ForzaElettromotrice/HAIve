@@ -280,7 +280,7 @@ int main(void)
     size_t buf_size = 128;
     char *buffer = malloc(sizeof(char) * buf_size);
 
-    Context_t context = {};
+    Context_t context = { 0 };
     initContext(&context);
 
     while (true)
@@ -347,7 +347,12 @@ int main(void)
         } else if (result == 3)
         {
             // bestmove
-            // TODO: Get best move out
+            Piece_t bestMove;
+            // TODO: Set depth
+            negamax(&context, 0, 1, context.curColor, &bestMove);
+            char* move = deconvertMove(&context, &bestMove);
+            printf("%s\n", move);
+            free(move);
         } else if (result == 4)
         {
             playMove(&context, "pass");
