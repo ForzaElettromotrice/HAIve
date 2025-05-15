@@ -6,5 +6,7 @@
 #define PREPROCESSOR_H
 
 #include "enums.h"
+#include "string"
+#include "fstream"
 
 #endif //PREPROCESSOR_H
