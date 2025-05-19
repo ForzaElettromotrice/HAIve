@@ -7,13 +7,15 @@
 
 #include "utils.h"
 
-enum class Result : int8_t {
+enum class Result : int8_t
+{
     BLACK_WON = -1,
     DRAW = 0,
     WHITE_WON = 1
 };
 
-enum class Layer : uint8_t {
+enum class Layer : uint8_t
+{
     QUEEN = 0,
     ANT = 1,
     BEETLE_1 = 2,
@@ -34,8 +36,10 @@ enum class Layer : uint8_t {
 
 constexpr uint8_t sizeLayer = 16;
 
-uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z) {
-    switch (pieceId) {
+uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z)
+{
+    switch (pieceId)
+    {
         case W_QUEEN:
         case B_QUEEN:
             return static_cast<uint8_t>(Layer::QUEEN);
@@ -78,76 +82,89 @@ uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z) {
     throw std::runtime_error("Unknown piece\n");
 }
 
-class Processor {
-
-    std::string& fileName_;
-    std::vector<std::vector<Position_t>> positionSequence_ = std::vector<std::vector<Position_t>>();
+class Processor
+{
+    std::string &fileName_;
+    std::vector<std::vector<Position_t> > positionSequence_ = std::vector<std::vector<Position_t> >();
     GameStatus_t gameStatus_;
     torch::Tensor currentTensor_ = torch::Tensor();
 
-    static void saveToFile(std::ofstream& os, const Position_t* positions, const Result& result) {
-        for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
+    static void saveToFile(std::ofstream &os, const Position_t *positions, const Result &result)
+    {
+        for (uint_fast8_t i = 0; i < NUM_PIECES; i++)
+        {
             const int_fast8_t z = positions[i].z;
             if (z == -1)
                 continue;
             const int_fast8_t y = positions[i].y;
             const int_fast8_t x = positions[i].x;
             os << i << ":(" << z << ',' << y << ',' << x << ");";
-        } os << std::endl;
+        }
+        os << std::endl;
         os << static_cast<uint8_t>(result) << std::endl;
     }
 
-    static void loadFromFile(std::ifstream& is, Result& result) {
+    static void loadFromFile(std::ifstream &is, Result &result)
+    {
         auto positions = std::vector<Position_t>(NUM_PIECES);
         for (uint_fast8_t j = 0; j < NUM_PIECES; j++)
             positions[j].z = -1;
         int_fast8_t x, y, z, pieceId;
-        while (is.peek() != std::endl){
+        while (is.peek() != '\n')
+        {
             is >> pieceId;
             if (is.get() != ':' && is.get() != '(')
                 throw std::runtime_error("Could not parse piece id\n");
-            is >> z; if (is.get() != ',') throw std::runtime_error("Could not parse z\n");
-            is >> y; if (is.get() != ',') throw std::runtime_error("Could not parse y\n");
-            is >> x; if (is.get() != ')' && is.get() != ';') throw std::runtime_error("Could not parse x\n");
-            Position_t p; p.z = z; p.y = y; p.x = x;
+            is >> z;
+            if (is.get() != ',') throw std::runtime_error("Could not parse z\n");
+            is >> y;
+            if (is.get() != ',') throw std::runtime_error("Could not parse y\n");
+            is >> x;
+            if (is.get() != ')' && is.get() != ';') throw std::runtime_error("Could not parse x\n");
+            Position_t p;
+            p.z = z;
+            p.y = y;
+            p.x = x;
             positions[pieceId] = p;
         }
-        is >> pieceId; result = static_cast<Result>(pieceId);
-        if (is.get() != std::endl) throw std::runtime_error("Could not parse pieceId\n");
+        is >> pieceId;
+        result = static_cast<Result>(pieceId);
+        if (is.get() != '\n') throw std::runtime_error("Could not parse pieceId\n");
     }
 
 
-    static void multipleSaveToFile(const std::string& fileName, const std::vector<std::vector<Position_t>>& allPositions, const std::vector<Result>& results) {
-
+    static void multipleSaveToFile(const std::string &fileName, const std::vector<std::vector<Position_t> > &allPositions, const std::vector<Result> &results)
+    {
         std::ofstream os(fileName);
         if (!os)
             throw std::runtime_error("Could not open file " + fileName);
-        for (uint_fast32_t boardStatus = 0; boardStatus < allPositions.size(); boardStatus++) {
+        for (uint_fast32_t boardStatus = 0; boardStatus < allPositions.size(); boardStatus++)
+        {
             saveToFile(os, allPositions[boardStatus].data(), results[boardStatus]);
         }
-
     }
 
-    static void multipleSaveToFile(const std::string& fileName, const std::vector<std::vector<Position_t>>& allPositions, const Result& result) {
-
+    static void multipleSaveToFile(const std::string &fileName, const std::vector<std::vector<Position_t> > &allPositions, const Result &result)
+    {
         std::ofstream os(fileName);
         if (!os)
             throw std::runtime_error("Could not open file " + fileName);
-        for (const auto & allPosition : allPositions) {
+        for (const auto &allPosition: allPositions)
+        {
             saveToFile(os, allPosition.data(), result);
         }
-
     }
 
     /*
     *  Tensor può essere passato anche inizializzato, verrà fillato.
     */
-    static void boardToTensor(const Position_t *positions, torch::Tensor& tensor) {
-
+    static void boardToTensor(const Position_t *positions, torch::Tensor &tensor)
+    {
         const auto options = torch::TensorOptions().dtype(torch::kInt8);
         tensor = torch::zeros({sizeLayer, BOARD_Y, BOARD_X}, options);
 
-        for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
+        for (uint_fast8_t i = 0; i < NUM_PIECES; i++)
+        {
             const int_fast8_t z = positions[i].z;
             if (z == -1)
                 continue;
@@ -159,12 +176,13 @@ class Processor {
     }
 
 public:
-
-    explicit Processor(std::string& fileName) : fileName_(fileName) {
+    explicit Processor(std::string &fileName) : fileName_(fileName)
+    {
         gameStatus_ = NOT_STARTED;
     }
 
-    void newGame() {
+    void newGame()
+    {
         gameStatus_ = NOT_STARTED;
         positionSequence_.clear();
     }
@@ -172,30 +190,33 @@ public:
     /*
      *  Pass the context with the new move.
      */
-    void playMove(const Context_t* context) {
+    void playMove(const Context_t *context)
+    {
         gameStatus_ = IN_PROGRESS;
-        Position_t* positions = context->idToPos;
+        Position_t *positions = context->idToPos;
         positionSequence_.emplace_back(positions, positions + NUM_PIECES);
     }
 
     /*
      *  End the game. The context must have the last move done.
      */
-    void endGame(const Context_t* context, const Result& result){
-        if (gameStatus_ != IN_PROGRESS) {
+    void endGame(const Context_t *context, const Result &result)
+    {
+        if (gameStatus_ != IN_PROGRESS)
+        {
             throw std::runtime_error("Game should be in progress\n");
         }
         gameStatus_ = NOT_STARTED;
-        Position_t* positions = context->idToPos;
+        Position_t *positions = context->idToPos;
         positionSequence_.emplace_back(positions, positions + NUM_PIECES);
         multipleSaveToFile(fileName_, positionSequence_, result);
     }
 
-    torch::Tensor& getTensor() {
+    torch::Tensor &getTensor()
+    {
         boardToTensor(positionSequence_.back().data(), currentTensor_);
         return currentTensor_;
     }
-
 };
 
 // TODO: Read from file

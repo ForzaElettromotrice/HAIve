@@ -5,14 +5,16 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_C_FLAGS "-O3")
 
-set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libtorch)
+#set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libtorch)
 
-add_compile_options(-Wall /wd5045)
-add_compile_definitions(Debug _CRT_SECURE_NO_WARNINGS)
+#add_compile_options(-Wall /wd5045)
+#add_compile_definitions(Debug _CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(Debug)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/xxHash/cmake_unofficial ${CMAKE_CURRENT_SOURCE_DIR}/lib/xxHash/lib EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
 
 
+set(CMAKE_PREFIX_PATH /opt/libtorch-cuda)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
@@ -37,14 +39,14 @@ set_target_properties(HAIve PROPERTIES
 )
 
 target_link_libraries(
-        HAIve PRIVATE xxHash::xxhash ${TORCH_LIBRARIES}
+        HAIve PRIVATE CUtils ${TORCH_LIBRARIES}
 )
 
-if (MSVC)
-    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-    add_custom_command(TARGET HAIve
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${TORCH_DLLS}
-            $<TARGET_FILE_DIR:HAIve>)
-endif (MSVC)
+#if (MSVC)
+#    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+#    add_custom_command(TARGET HAIve
+#            POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            ${TORCH_DLLS}
+#            $<TARGET_FILE_DIR:HAIve>)
+#endif (MSVC)

@@ -5,9 +5,9 @@ bin
 .vscode
 old
 
-lib/xxHash/lib
 /build
 /.vs
 /src/.vs
 /out
 lib/libtorch
+lib/CUtils/lib/CUtils
