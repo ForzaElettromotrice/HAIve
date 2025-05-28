@@ -18,7 +18,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 
 add_executable(HAIve
-        src/main.c
+        src/main.cpp
         src/moves.c
         src/logger.c
         src/utils.c
@@ -26,6 +26,8 @@ add_executable(HAIve
         src/enums.c
         src/logic.c
         src/preprocessor.cpp
+        src/hivecnn.cpp
+        src/trainings.cpp
 )
 
 target_include_directories(

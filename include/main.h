@@ -4,6 +4,7 @@
 
 #pragma once
 
+extern "C" {
 #include <stdio.h>
 #include <stdbool.h>
 #include "logger.h"
@@ -14,3 +15,5 @@
 #include <utils.h>
 #include <logic.h>
 #include "xxhash.h"
+    }
+#include "trainings.h"

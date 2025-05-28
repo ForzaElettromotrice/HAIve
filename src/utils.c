@@ -416,6 +416,16 @@ void initContext(Context_t *context)
     context->gameStatus = NOT_INITIALIZED;
 }
 
+// The context must be initialized
+void contextNewGameMLP(Context_t *context) {
+
+    context->gameStatus = NOT_STARTED;
+    context->gameType.ladybug = true;
+    context->gameType.pillbug = true;
+    context->gameType.mosquito = true;
+
+}
+
 /*
     0: if parsing was succesful
     1: if an error occurred
@@ -657,7 +667,7 @@ void debugPrint(Context_t *context)
                 Pieces_t piece = context->board[MtA(z, y, x)];
                 if (piece != NULLPIECE)
                 {
-                    printf("Piece: %d at x: %d, y: %d, z: %d\n", piece, x + 28, y + 14, z);
+                    printf("Piece: %d at x: %d, y: %d, z: %d\n", piece, x, y, z);
                 }
             }
         }

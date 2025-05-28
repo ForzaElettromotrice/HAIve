@@ -20,6 +20,8 @@
 #define MtA(z,y,x) (z) * 56 * 28 + (y + 14) * 56 + (x + 28)
 #define xOf(x) (x + 28)
 #define yOf(y) (y + 14)
+#define isBlack(x) (x < 14)
+#define isWhite(x) (x >= 14)
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
 int convertFromMZinga(char *mzinga_string, Context_t *context);
@@ -36,3 +38,4 @@ void copyContext(Context_t *source, Context_t *dest);
 GameStatus_t getGameStatus(Context_t *context);
 int_fast8_t howManyAround(Context_t *context, Pieces_t id);
 void debugBoardPrint(Context_t *context); // Prints the board - for debug purposes
+void contextNewGameMLP(Context_t *context);

@@ -4,7 +4,6 @@
 
 #include "main.h"
 
-
 #ifdef WIN32
 size_t getline(char **lineptr, size_t *n, FILE *stream)
 {
@@ -35,7 +34,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream)
     }
     if (bufptr == NULL)
     {
-        bufptr = malloc(128);
+        bufptr = (char*)malloc(128);
         if (bufptr == NULL)
         {
             return (size_t) -1;
@@ -48,7 +47,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream)
         if ((size_t) (p - bufptr) > size - 1)
         {
             size = size + 128;
-            bufptr = realloc(bufptr, size);
+            bufptr = (char*)realloc(bufptr, size);
             if (bufptr == NULL)
             {
                 return (size_t) -1;
@@ -272,13 +271,19 @@ int manage_command(char *buffer)
 
 int main(void)
 {
+
+    using namespace std;
+
 #ifdef Debug
     D_Print("Launched in Debug Mode!\n");
 #endif
 
+    train();
+    return 0;
+
     setvbuf(stdout, NULL, _IONBF, 0);
     size_t buf_size = 128;
-    char *buffer = malloc(sizeof(char) * buf_size);
+    char *buffer = (char *)malloc(sizeof(char) * buf_size);
 
     Context_t context = { 0 };
     initContext(&context);
@@ -355,7 +360,7 @@ int main(void)
             free(move);
         } else if (result == 4)
         {
-            playMove(&context, "pass");
+            playMove(&context, "pass"s.data());
             print_gamestring(&context);
             debugPrint(&context);
             debugBoardPrint(&context);

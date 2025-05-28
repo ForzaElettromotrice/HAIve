@@ -553,7 +553,7 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
     uint8_t checkSize = 0;
     int8_t toAdd[28];
     int8_t toCheck[28];
-    for (int_fast8_t i = start; i < end; ++i)
+    for (uint_fast8_t i = start; i < end; ++i)
     {
         if (context->idToPos[i].z == -1)
         {
@@ -581,6 +581,15 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
             }
         } else
             toCheck[checkSize++] = i;
+    }
+
+    if (context->turn == 2) {
+        for (uint_fast8_t i = W_QUEEN; i < W_QUEEN + 14; ++i) {
+            if (context->idToPos[i].z != -1) {
+                toCheck[checkSize++] = i;
+                break;
+            }
+        }
     }
 
     Hashmap_t visited;
@@ -629,13 +638,13 @@ void addMoves(const Context_t *context, Piece_t *moves, uint_fast8_t *mSize)
             if (forceQueen)
             {
                 const Piece_t move = {toAdd[context->curColor == WHITE ? W_QUEEN : B_QUEEN], {0, newY1, newX1}};
-                moves[(*mSize)++] = move;
+                moves[*mSize] = move; *mSize += 1;
             } else
             {
                 for (uint8_t k = 0; k < addSize; ++k)
                 {
                     const Piece_t move = {toAdd[k], {0, newY1, newX1}};
-                    moves[(*mSize)++] = move;
+                    moves[*mSize] = move; *mSize += 1;
                 }
             }
         }
@@ -651,7 +660,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     *mSize = 0;
 
     //TODO: in teoria le mosse totali possibili so un numero fisso, metteri quello come grandezza dell'array
-    *moves = malloc(300 * sizeof(Piece_t));
+    moves[0] = malloc(300 * sizeof(Piece_t));
     if (!*moves)
     {
         E_Print("malloc: %s\n", strerror(errno));
@@ -662,12 +671,12 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     const Pieces_t start = color == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
 
-
     if (context->turn == 1)
     {
         for (int i = start; i < end; ++i)
         {
-            *moves[*mSize++] = (Piece_t){i, {0, 0, 0}};
+            moves[0][*mSize] = (Piece_t){i, {0, 0, 0}};
+            *mSize += 1;
             switch (i)
             {
                 case B_ANT_1:
@@ -702,8 +711,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
     }
 
     //Aggiunge le mosse che indicano l'aggiunta di un nuovo pezzo
-    addMoves(context, *moves, mSize);
-
+    addMoves(context, moves[0], mSize);
     if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z == -1)
         return;
 
@@ -731,7 +739,6 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             continue;
 
         // se muovendosi spaccherebbe la board
-
         const Pieces_t startingPoint = i == W_QUEEN ? B_QUEEN : W_QUEEN;
         visited[i] = true;
         Position_t startPosition = positions[startingPoint];
@@ -754,19 +761,19 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
                 break;
             case B_QUEEN:
             case W_QUEEN:
-                queenMoves(&piece, board, *moves, mSize);
+                queenMoves(&piece, board, moves[0], mSize);
                 break;
             case B_PILLBUG:
             case W_PILLBUG:
-                pillbugMoves(&piece, board, visited, positions, last, *moves, mSize);
+                pillbugMoves(&piece, board, visited, positions, last, moves[0], mSize);
                 break;
             case B_LADYBUG:
             case W_LADYBUG:
-                ladybugMoves(&piece, board, *moves, mSize);
+                ladybugMoves(&piece, board, moves[0], mSize);
                 break;
             case B_MOSQUITO:
             case W_MOSQUITO:
-                mosquitoMoves(&piece, board, visited, positions, last, *moves, mSize);
+                mosquitoMoves(&piece, board, visited, positions, last, moves[0], mSize);
                 break;
             case B_ANT_1:
             case B_ANT_2:
@@ -774,7 +781,7 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             case W_ANT_1:
             case W_ANT_2:
             case W_ANT_3:
-                antMoves(&piece, board, *moves, mSize, NULL);
+                antMoves(&piece, board, moves[0], mSize, NULL);
                 break;
             case B_GRASSHOPPER_1:
             case B_GRASSHOPPER_2:
@@ -782,19 +789,19 @@ void getMoves(const Context_t *context, Piece_t **moves, uint_fast8_t *mSize)
             case W_GRASSHOPPER_1:
             case W_GRASSHOPPER_2:
             case W_GRASSHOPPER_3:
-                grasshopperMoves(&piece, board, *moves, mSize);
+                grasshopperMoves(&piece, board, moves[0], mSize);
                 break;
             case B_BEETLE_1:
             case B_BEETLE_2:
             case W_BEETLE_1:
             case W_BEETLE_2:
-                beetleMoves(&piece, board, *moves, mSize);
+                beetleMoves(&piece, board, moves[0], mSize);
                 break;
             case B_SPIDER_1:
             case B_SPIDER_2:
             case W_SPIDER_1:
             case W_SPIDER_2:
-                spiderMoves(&piece, board, *moves, mSize);
+                spiderMoves(&piece, board, moves[0], mSize);
                 break;
         }
     }
