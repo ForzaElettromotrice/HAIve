@@ -4,6 +4,7 @@ cmake-build-debug-visual-studio
 bin
 .vscode
 old
+old2
 
 /build
 /.vs

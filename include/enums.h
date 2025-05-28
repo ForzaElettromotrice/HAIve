@@ -17,6 +17,15 @@
 #define LEFT_UP 5
 extern const int8_t directions[6][2];
 
+typedef enum Command
+{
+    INFO,
+    NEWGAME,
+    PLAY,
+    BESTMOVE,
+    INVALID
+} Command_t;
+
 typedef enum Pieces
 {
     NULLPIECE = -1,
@@ -48,15 +57,14 @@ typedef enum Pieces
     W_BEETLE_2,
     W_SPIDER_1,
     W_SPIDER_2,
-} Pieces_t;
-
+} __attribute__((__packed__)) Pieces_t;
 
 typedef enum Colors
 {
     NULLCOLOR = 0,
     WHITE = 1,
     BLACK = -1
-} Colors_t;
+} __attribute__((__packed__)) Colors_t;
 
 typedef struct Position
 {
@@ -69,32 +77,30 @@ typedef struct Piece
 {
     Pieces_t id;
     Position_t position;
-} Piece_t;
+} __attribute__((__packed__)) Piece_t;
 
-#pragma pack(1)
 typedef struct GameType
 {
     bool ladybug;
     bool pillbug;
     bool mosquito;
-} GameType_t;
+} __attribute__((__packed__)) GameType_t;
 
 typedef enum GameStatus
 {
-    NOT_INITIALIZED = -1,
     NOT_STARTED,
     WHITE_WON,
     BLACK_WON,
     DRAW,
     IN_PROGRESS
-} GameStatus_t;
+} __attribute__((__packed__)) GameStatus_t;
 
 typedef struct Context
 {
     Pieces_t *board;
     char *moves;
-    size_t movesSize;
     Position_t *idToPos;
+    size_t movesSize;
 
     int16_t turn;
     Colors_t curColor;
@@ -115,4 +121,4 @@ typedef struct Node
 
     uint8_t child_number;
     Piece_t pieceMoved;
-} Node_t;
+} __attribute__((__packed__)) Node_t;
