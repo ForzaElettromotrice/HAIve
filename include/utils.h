@@ -6,8 +6,13 @@
 
 #include <enums.h>
 
-#define BOARD_SIZE 7 * 28 * 56
-#define MtA(z,y,x) (z) * 56 * 28 + (y + 14) * 56 + (x + 28)
+#define BOARD_SIZE (7 * 28 * 56)
+#define BOARD_Y 28
+#define BOARD_X 56
+
+#define MtA(z,y,x) ((z) * 56 * 28 + ((y) + 14) * 56 + ((x) + 28))
+#define yOf(y) (y + 14)
+#define xOf(x) (x + 28)
 
 
 void initContext(Context_t *context);
