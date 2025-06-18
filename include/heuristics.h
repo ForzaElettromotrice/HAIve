@@ -7,7 +7,7 @@
 
 extern "C" {
 #include "enums.h"
-#include "moves.h"
+#include "../old2/moves.h"
 }
 
 #include "preprocessor.h"

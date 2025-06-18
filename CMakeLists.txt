@@ -11,7 +11,7 @@ add_compile_definitions(Debug)
 
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
-set(Torch_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libtorch/share/cmake/Torch")
+
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")

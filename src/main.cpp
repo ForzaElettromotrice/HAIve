@@ -16,14 +16,10 @@ int main()
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
 
-    testAgainstRandom();
-    return 0;
-
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
 
     size_t buf_size = 128;
-    char *buffer = (char*)malloc(sizeof(char) * buf_size);
-
+    auto buffer = static_cast<char *>(malloc(sizeof(char) * buf_size));
 
     Context_t context = {};
     initContext(&context);
@@ -43,7 +39,7 @@ int main()
         buffer[read - 1] = '\0';
 
         const Command_t command = parseCommand(buffer);
-        char* move;
+        char *move;
 
         switch (command)
         {
@@ -53,11 +49,11 @@ int main()
             case NEWGAME:
                 resetContext(&context);
                 printGameString(&context);
-            //TODO:(PARALLELISMO) fare si che il processo che gestisce l'albero si resetti
+                //TODO:(PARALLELISMO) fare si che il processo che gestisce l'albero si resetti
                 break;
             case PLAY:
                 strtok(buffer, " ");
-                move = strtok(NULL, " ");
+                move = strtok(nullptr, " ");
                 doMove(&context, move);
                 break;
             case BESTMOVE:
