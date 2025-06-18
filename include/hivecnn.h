@@ -23,33 +23,31 @@ struct HiveCNNImpl : torch::nn::Module
     {
         // Build conv layers
         auto conv = torch::nn::Sequential(
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(16, 24, /*kernel_size=*/3).padding(1).bias(true)),
-            torch::nn::BatchNorm2d(24),
-            torch::nn::Functional(torch::relu),
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(16, 24, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2)),
 
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(24, 32, /*kernel_size=*/3).padding(1).bias(true)),
-            torch::nn::BatchNorm2d(32),
-            torch::nn::Functional(torch::relu),
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(24, 32, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2)),
 
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 48, /*kernel_size=*/3).padding(1).bias(true)),
-            torch::nn::BatchNorm2d(48),
-            torch::nn::Functional(torch::relu)
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 48, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2))
         );
         conv_layers = register_module("conv_layers", conv);
 
         // Fully connected layers
         fc_layers = register_module("fc_layers", torch::nn::Sequential(
 
-                                        torch::nn::Linear(512 * 48, 2048),
+                                        torch::nn::Linear(288, 128),
+                                        torch::nn::Dropout(0.2),
                                         torch::nn::Functional(torch::relu),
 
-                                        torch::nn::Linear(2048, 512),
+                                        torch::nn::Linear(128, 32),
+                                        torch::nn::Dropout(0.2),
                                         torch::nn::Functional(torch::relu),
 
-                                        torch::nn::Linear(512, 64),
-                                        torch::nn::Functional(torch::relu),
-
-                                        torch::nn::Linear(64, 1)
+                                        torch::nn::Linear(32, 8),
+                                        torch::nn::Dropout(0.05),
+                                        torch::nn::Functional(torch::relu)
                                     ));
 
         register_module("pool", pool);
@@ -64,7 +62,8 @@ struct HiveCNNImpl : torch::nn::Module
 
 TORCH_MODULE(HiveCNN);
 
-torch::profiler::impl::Result resultOf(const Context *context);
-float negamax_net(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveCNN &net);
+Result resultOf(const Context *context);
+float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveCNN &net);
+void testAgainstRandom();
 
 #endif //HIVECNN_H

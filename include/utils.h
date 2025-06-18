@@ -14,12 +14,15 @@
 #define yOf(y) (y + 14)
 #define xOf(x) (x + 28)
 
+#define pass (Piece_t){NULLPIECE, {0, 0, 0}}
+#define isBlack(x) (x < 14)
+#define isWhite(x) (x >= 14)
+
 
 void initContext(Context_t *context);
 void resetContext(Context_t *context);
 void copyContext(const Context_t *src, Context_t *dst);
 void cleanContext(const Context_t *context);
-
 
 Command_t parseCommand(const char *command);
 
@@ -30,3 +33,9 @@ void bestMove(const Context_t *context);
 
 void printInfo();
 void printGameString(const Context_t *context);
+
+GameStatus_t getGameStatus(const Context_t *context);
+int_fast8_t howManyAround(const Context_t *context, Pieces_t id, bool friendly);
+void addOurMove(Context_t *context, Piece_t move);
+
+bool isContextEnded(const Context_t* context);
