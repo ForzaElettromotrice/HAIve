@@ -10,6 +10,7 @@
 
 void initContext(Context_t *context)
 {
+    *context = (Context_t){0};
     context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
     context->moves = calloc(1024, sizeof(char));
     context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
@@ -104,11 +105,11 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
         return (Piece_t){-1, {-1, -1, -1}};
 
     const char *firstStr = strtok(move, " ");
-    const char *secondStr = strtok(nullptr, " ");
+    const char *secondStr = strtok(NULL, " ");
 
     const Pieces_t first = parsePiece(firstStr);
 
-    if (secondStr == nullptr)
+    if (secondStr == NULL)
         return (Piece_t){first, {0, 0, 0}};
 
 
@@ -193,7 +194,30 @@ GameStatus_t checkGameStatus(const Context_t *context)
 
     return IN_PROGRESS;
 }
+int_fast8_t howManyAround(const Context_t *context, const Pieces_t id, bool friendly)
+{
+    char nearAround = 0;
+    const int8_t z = context->idToPos[id].z;
+    if (z == -1)
+        return 0;
+    const int8_t y = context->idToPos[id].y;
+    const int8_t x = context->idToPos[id].x;
+    for (int_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
+        const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
+        Pieces_t neighbor = context->board[MtA(z, newY, newX)];
 
+        if (neighbor == NULLPIECE)
+            continue;
+
+        if ((neighbor % 14 == id % 14) && friendly)
+            nearAround++;
+        else if ((neighbor % 14 != id % 14) && !friendly)
+            nearAround++;
+    }
+    return nearAround;
+}
 
 void addMazingaMove(Context_t *context, const char *move)
 {
@@ -408,4 +432,13 @@ void bestMove(const Context_t *context)
     //TODO: prendi il figlio con valore maggiore dall'albero
     const Piece_t child = {0, {0, 0, 0}};
     printMove(context, child);
+}
+
+GameStatus_t getGameStatus(const Context_t *context) {
+    return context->gameStatus;
+}
+
+bool isContextEnded(const Context_t* context) {
+    const GameStatus_t gameStatus = context->gameStatus;
+    return gameStatus == WHITE_WON || gameStatus == BLACK_WON || gameStatus == DRAW;
 }

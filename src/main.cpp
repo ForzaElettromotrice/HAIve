@@ -2,10 +2,13 @@
 // Created by f3m on 28/05/25.
 //
 
-
+extern "C" {
 #include <string.h>
 #include <utils.h>
 #include <logger.h>
+}
+
+#include <trainings.h>
 
 int main()
 {
@@ -13,10 +16,13 @@ int main()
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
 
+    testAgainstRandom();
+    return 0;
+
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
 
     size_t buf_size = 128;
-    char *buffer = malloc(sizeof(char) * buf_size);
+    char *buffer = (char*)malloc(sizeof(char) * buf_size);
 
 
     Context_t context = {};
@@ -27,7 +33,8 @@ int main()
 #ifdef Debug
         printf("> ");
 #endif
-        const size_t read = getline(&buffer, &buf_size, stdin);
+
+        const int32_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
         if (read == 1) //Empty line
@@ -36,6 +43,7 @@ int main()
         buffer[read - 1] = '\0';
 
         const Command_t command = parseCommand(buffer);
+        char* move;
 
         switch (command)
         {
@@ -49,7 +57,7 @@ int main()
                 break;
             case PLAY:
                 strtok(buffer, " ");
-                char *move = strtok(nullptr, " ");
+                move = strtok(NULL, " ");
                 doMove(&context, move);
                 break;
             case BESTMOVE:

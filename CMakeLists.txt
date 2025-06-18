@@ -11,20 +11,26 @@ add_compile_definitions(Debug)
 
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
-
+set(Torch_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libtorch/share/cmake/Torch")
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 
 add_executable(HAIve
-        src/main.c
+        src/main.cpp
         src/utils.c
         src/enums.c
+        src/moves.c
+        src/trainings.cpp
+        src/hivecnn.cpp
+        src/preprocessor.cpp
+        src/heuristics.cpp
 )
 
 target_include_directories(
-        HAIve PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+        HAIve PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 set_target_properties(HAIve PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
