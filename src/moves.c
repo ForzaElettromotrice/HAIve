@@ -9,7 +9,7 @@
 #include <utils.h>
 #include <hashmap.h>
 #include <pthread.h>
-
+#include <moves.h>
 
 typedef struct ThreadArgs
 {
@@ -245,7 +245,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
     }
 
 
-    pthread_t threads[15];
+    pthread_t threads[MOVES_ARRAYS];
 
     //add
     ThreadArgs_t addTh = {context, moves[14]};
@@ -257,7 +257,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
     }
 
     //join
-    for (int i = 0; i < 15; ++i)
+    for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
         //TODO: per il futuro, se vogliamo iniziare a creare i nodi dei thread che finiscono prima, tocca studia un altro metodo
         pthread_join(threads[i], NULL);

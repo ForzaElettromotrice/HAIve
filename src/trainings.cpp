@@ -9,15 +9,26 @@
 void getRandomState(Context_t* toFill, const uint8_t minMoves, const uint8_t maxMoves) {
 
     const uint8_t movesToPlay = (rand() % (maxMoves - minMoves)) + minMoves;
-    Piece_t* moves; uint_fast16_t mSize;
+    Piece_t** moves;
     for (uint8_t i = 0; i < movesToPlay && !isContextEnded(toFill); i++) {
-        getMoves(toFill, &moves, &mSize);
-        if (mSize == 0) { // DEBUG purposes
-            printf("ERROR!!!");
-            getMoves(toFill, &moves, &mSize);
+        getMoves(toFill, &moves[0]);
+
+        // DEBUG
+        uint16_t mSize = 0;
+        for (uint_fast8_t j = 0; j < MOVES_ARRAYS; j++) {
+            mSize += getMovesSize(toFill, moves[j]);
         }
-        mSize = rand() % mSize;
-        addOurMove(toFill, moves[mSize]);
+        if (mSize == 0) {
+            printf("ERROR!!!");
+            return;
+        }
+
+        uint8_t chosenPiece;
+        do {
+            chosenPiece = rand() % MOVES_ARRAYS;
+        } while (moves[chosenPiece][0].id == NULLPIECE);
+        uint16_t chosenMove = rand() % getMovesSize(toFill, moves[chosenPiece]);
+        addOurMove(toFill, moves[chosenPiece][chosenMove]);
     }
 
 }

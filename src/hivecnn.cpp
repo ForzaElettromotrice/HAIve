@@ -70,27 +70,32 @@ float negamax_net(const Context_t* context, const int depth, const int maxDepth,
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t* moves;
-    uint_fast16_t mSize = 0;
-    getMoves(context, &moves, &mSize);
+    Piece_t** moves;
+    getMoves(context, &moves[0]);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
-    for (uint_fast8_t i = 0; i < mSize; i++) {
-        Context_t newContext;
-        initContext(&newContext);
-        copyContext(context, &newContext);
+    const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
+    const uint_fast8_t end = start + 14; bool moved = false;
 
-        addOurMove(&newContext, moves[i]);
-        if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal) {
-            maxVal = tmp;
-            curBestMove = moves[i];
+    for (uint_fast8_t piece = context->curColor == WHITE ? W_QUEEN : B_QUEEN; piece < end; piece++) {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+            Context_t newContext;
+            initContext(&newContext);
+            copyContext(context, &newContext);
+
+            moved = true;
+            addOurMove(&newContext, moves[piece][i]);
+            if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal) {
+                maxVal = tmp;
+                curBestMove = moves[piece][i];
+            }
+
+            cleanContext(&newContext);
         }
-
-        cleanContext(&newContext);
     }
 
-    if (mSize == 0) {
+    if (!moved) {
         Context_t newContext;
         initContext(&newContext);
         copyContext(context, &newContext);
@@ -122,27 +127,32 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t* moves;
-    uint_fast16_t mSize = 0;
-    getMoves(context, &moves, &mSize);
+    Piece_t** moves;
+    getMoves(context, &moves[0]);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
-    for (uint_fast8_t i = 0; i < mSize; i++) {
-        Context_t newContext;
-        initContext(&newContext);
-        copyContext(context, &newContext);
+    const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
+    const uint_fast8_t end = start + 14; bool moved = false;
 
-        addOurMove(&newContext, moves[i]);
-        if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal) {
-            maxVal = tmp;
-            curBestMove = moves[i];
+    for (uint_fast8_t piece = context->curColor == WHITE ? W_QUEEN : B_QUEEN; piece < end; piece++) {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+            Context_t newContext;
+            initContext(&newContext);
+            copyContext(context, &newContext);
+
+            moved = true;
+            addOurMove(&newContext, moves[piece][i]);
+            if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal) {
+                maxVal = tmp;
+                curBestMove = moves[piece][i];
+            }
+
+            cleanContext(&newContext);
         }
-
-        cleanContext(&newContext);
     }
 
-    if (mSize == 0) {
+    if (!moved) {
         Context_t newContext;
         initContext(&newContext);
         copyContext(context, &newContext);
@@ -174,7 +184,7 @@ Result resultOf(const Context* context) {
 
 bool battleAgainstRandom(bool areWeWhite) {
 
-    Context_t context; Piece_t bestMove; Piece_t* moves; size_t mSize;
+    Context_t context; Piece_t bestMove; Piece_t** moves;
     initContext(&context); resetContext(&context);
     srand(time(NULL));
 
@@ -186,13 +196,13 @@ bool battleAgainstRandom(bool areWeWhite) {
             addOurMove(&context, bestMove);
 
         } else {
-            getMoves(&context, &moves, &mSize);
-            if (mSize == 0)
-                addOurMove(&context, pass);
-            else {
-                mSize = rand() % mSize;
-                addOurMove(&context, moves[mSize]);
-            }
+            getMoves(&context, &moves[0]);
+            uint_fast8_t chosenPiece; uint16_t chosenMove;
+            do {
+                chosenPiece = rand() % MOVES_ARRAYS;
+            } while (moves[chosenPiece][0].id == NULLPIECE);
+            chosenMove = rand() % getMovesSize(&context, moves[chosenPiece]);
+            addOurMove(&context, moves[chosenPiece][chosenMove]);
         }
 
     }
