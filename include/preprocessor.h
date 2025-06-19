@@ -8,7 +8,7 @@
 extern "C" {
     #include "enums.h"
     #include "utils.h"
-    #include "../old2/moves.h"
+    #include "moves.h"
 }
 #include "string"
 #include <limits>
