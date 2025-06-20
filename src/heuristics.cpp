@@ -24,7 +24,7 @@ double mzingaHeuristic(const Context_t *context) {
     double result = 0;
     bool whiteTurn = context->curColor == WHITE;
     Piece_t **moves;
-    getMoves(context, &moves[0]);
+    getMoves(context, &moves);
 
     for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++) {
         const Position_t piecePos = context->idToPos[i];
@@ -93,7 +93,7 @@ void setHeuristicParams(Context_t *context, torch::Tensor &x) {
     x.zero_();
 
     Piece_t **moves;
-    getMoves(context, &moves[0]);
+    getMoves(context, &moves);
 
     for (uint_fast8_t i = B_QUEEN; i < NUM_PIECES; i++) {
         x[i] = howManyAround(context, static_cast<Pieces_t>(i), true);

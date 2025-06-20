@@ -19,9 +19,10 @@ typedef struct ThreadArgs
 
 void allocateMoves(Piece_t **moves)
 {
+
     //TODO: fare una versione che alloca il giusto per ogni pezzo e vedere quale va piu veloce
     //Allocazione delle mosse
-    for (int i = 0; i < 14; ++i)
+    for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
         //FIXME: 70 è provvisorio, un valore più preciso potrebbe fare più comodo
         moves[i] = malloc(70 * sizeof(Position_t));
@@ -850,15 +851,16 @@ void* mosquitoMoves(void *arguments)
     return NULL;
 }
 
-void getMoves(const Context_t *context, Piece_t **moves)
+void getMoves(const Context_t *context, Piece_t ***moves_ptr)
 {
     const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
+    Piece_t **moves = moves_ptr[0];
+    moves = malloc(sizeof(Piece_t *) * MOVES_ARRAYS);
     allocateMoves(moves);
-
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
