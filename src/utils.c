@@ -226,7 +226,7 @@ void addMazingaMove(Context_t *context, const char *move)
 
     if (currentLen + moveLen + 1 >= context->movesSize)
     {
-        const size_t newSize = context->movesSize * 2;
+        const size_t newSize = context->movesSize * 2 + moveLen + 1;
         char *newMoves = realloc(context->moves, newSize);
         context->moves = newMoves;
         context->movesSize = newSize;

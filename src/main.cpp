@@ -52,9 +52,9 @@ int main()
                 //TODO:(PARALLELISMO) fare si che il processo che gestisce l'albero si resetti
                 break;
             case PLAY:
-                strtok(buffer, " ");
-                move = strtok(nullptr, " ");
+                move = buffer + 5;
                 doMove(&context, move);
+                printGameString(&context);
                 break;
             case BESTMOVE:
                 bestMove(&context);
