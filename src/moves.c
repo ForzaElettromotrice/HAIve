@@ -63,9 +63,9 @@ bool hasNeighbor(const Piece_t *piece, const Pieces_t *board)
     }
     return false;
 }
-bool dfs(const Position_t *start, const Context_t context, bool *visited, const bool first)
+bool dfs(const Position_t *start, const Context_t *context, bool *visited, const bool first)
 {
-    const Piece_t *board = context->board;
+    const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
 
     const int_fast8_t y = start->y;
@@ -82,7 +82,7 @@ bool dfs(const Position_t *start, const Context_t context, bool *visited, const 
 
         visited[neighbor] = true;
         const Position_t newPos = {0, newY, newX};
-        dfs(&newPos, board, visited, false);
+        dfs(&newPos, context, visited, false);
     }
 
     if (first)
@@ -94,8 +94,9 @@ bool dfs(const Position_t *start, const Context_t context, bool *visited, const 
     return true;
 }
 
-void addMoves(const ThreadArgs_t *args)
+void *addMoves(void *arguments)
 {
+    const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[14];
 
@@ -105,9 +106,9 @@ void addMoves(const ThreadArgs_t *args)
 
     uint8_t addSize = 0;
     uint8_t checkSize = 0;
-    int8_t toAdd[14];
-    int8_t toCheck[14];
-    for (int_fast8_t i = start; i < end; ++i)
+    uint8_t toAdd[14];
+    uint8_t toCheck[14];
+    for (uint_fast8_t i = start; i < end; ++i)
     {
         if (context->idToPos[i].z == -1)
         {
@@ -142,8 +143,8 @@ void addMoves(const ThreadArgs_t *args)
     initHashmap(&visited, 512);
     for (uint_fast8_t i = 0; i < checkSize; ++i)
     {
-        const int_fast8_t y = context->idToPos[i].y;
-        const int_fast8_t x = context->idToPos[i].x;
+        const int_fast8_t y = context->idToPos[toCheck[i]].y;
+        const int_fast8_t x = context->idToPos[toCheck[i]].x;
 
 
         for (uint_fast8_t j = 0; j < 6; ++j)
@@ -193,7 +194,9 @@ void addMoves(const ThreadArgs_t *args)
             }
         }
     }
+    return NULL;
 }
+
 void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
 {
     const int_fast8_t y = position->y;
@@ -206,7 +209,7 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
         if (board[MtA(0, newY, newX)] != NULLPIECE)
             continue;
 
-        if (!canSlide(&position, i, board))
+        if (!canSlide(position, i, board))
             continue;
 
 
@@ -218,8 +221,9 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
         moves[(*idx)++] = move;
     }
 }
-void queen1Moves(const ThreadArgs_t *args)
+void* queen1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = (ThreadArgs_t*) arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_QUEEN];
 
@@ -229,6 +233,7 @@ void queen1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     queenMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
 
 void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
@@ -277,8 +282,9 @@ void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
         moves[(*idx)++] = move;
     }
 }
-void beetle1Moves(const ThreadArgs_t *args)
+void* beetle1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_BEETLE_1];
     Pieces_t *board = context->board;
@@ -287,9 +293,11 @@ void beetle1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     beetleMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
-void beetle2Moves(const ThreadArgs_t *args)
+void* beetle2Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_BEETLE_2];
     Pieces_t *board = context->board;
@@ -298,6 +306,7 @@ void beetle2Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     beetleMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
 
 void grasshopperMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
@@ -332,8 +341,9 @@ void grasshopperMoves(const Pieces_t id, const Position_t *position, const Piece
         moves[(*idx)++] = move;
     }
 }
-void grasshopper1Moves(const ThreadArgs_t *args)
+void *grasshopper1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_GRASSHOPPER_1];
     Pieces_t *board = context->board;
@@ -342,9 +352,11 @@ void grasshopper1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     grasshopperMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
-void grasshopper2Moves(const ThreadArgs_t *args)
+void *grasshopper2Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_GRASSHOPPER_2];
     Pieces_t *board = context->board;
@@ -353,9 +365,11 @@ void grasshopper2Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     grasshopperMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
-void grasshopper3Moves(const ThreadArgs_t *args)
+void *grasshopper3Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_GRASSHOPPER_3];
     Pieces_t *board = context->board;
@@ -364,11 +378,12 @@ void grasshopper3Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     grasshopperMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
 
 void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t *context, Piece_t *moves, uint_fast8_t *idx)
 {
-    const Pieces_t last = context->lastPieceMoved;
+    const Pieces_t last = context->lastMovedPiece;
     Position_t *positions = context->idToPos;
     const Pieces_t *board = context->board;
 
@@ -394,7 +409,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
 
             const Position_t free = {0, newY, newX};
             freeLocations[sizeFree++] = free;
-            if (!canSlide(&position, i, board))
+            if (!canSlide(position, i, board))
                 continue;
 
             const Piece_t move = {id, free};
@@ -444,8 +459,9 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
         }
     }
 }
-void pillbug1Moves(const ThreadArgs_t *args)
+void *pillbug1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_PILLBUG];
     Pieces_t id = context->curColor == WHITE ? W_PILLBUG : B_PILLBUG;
@@ -454,6 +470,7 @@ void pillbug1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     pillbugMoves(id, &position, context, moves, &idx);
+    return NULL;
 }
 
 void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
@@ -547,13 +564,14 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
                 int ignoreMe = 1;
                 setByKey(key, &ignoreMe, sizeof(int), &hashmap);
 
-                moves[(*idx)++] = {id, {0, newY3, newX3}};
+                moves[(*idx)++] = (Piece_t) {id, {0, newY3, newX3}};
             }
         }
     }
 }
-void ladybug1Moves(const ThreadArgs_t *args)
+void *ladybug1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_LADYBUG];
     Pieces_t *board = context->board;
@@ -563,6 +581,7 @@ void ladybug1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     ladybugMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
 
 void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
@@ -641,8 +660,9 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
         }
     }
 }
-void spider1Moves(const ThreadArgs_t *args)
+void *spider1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_SPIDER_1];
     Pieces_t *board = context->board;
@@ -651,9 +671,11 @@ void spider1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     spiderMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
-void spider2Moves(const ThreadArgs_t *args)
+void *spider2Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_SPIDER_2];
     Pieces_t *board = context->board;
@@ -661,7 +683,8 @@ void spider2Moves(const ThreadArgs_t *args)
     Position_t position = context->idToPos[id];
 
     uint_fast8_t idx = 0;
-    spiderMoves(id, &position, board, moves, 0);
+    spiderMoves(id, &position, board, moves, &idx);
+    return NULL;
 }
 
 void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx, Hashmap_t *visited)
@@ -701,13 +724,14 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
             continue;
         moves[(*idx)++] = move;
 
-        antMoves(&move, board, moves, idx, visited);
+        antMoves(id, &move.position, board, moves, idx, visited);
     }
     if (first)
         freeHashmap(visited);
 }
-void ant1Moves(const ThreadArgs_t *args)
+void* ant1Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_ANT_1];
     Pieces_t *board = context->board;
@@ -716,9 +740,11 @@ void ant1Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     antMoves(id, &position, board, moves, &idx, NULL);
+    return NULL;
 }
-void ant2Moves(const ThreadArgs_t *args)
+void* ant2Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_ANT_2];
     Pieces_t *board = context->board;
@@ -727,9 +753,11 @@ void ant2Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     antMoves(id, &position, board, moves, &idx, NULL);
+    return NULL;
 }
-void ant3Moves(const ThreadArgs_t *args)
+void* ant3Moves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_ANT_3];
     Pieces_t *board = context->board;
@@ -738,10 +766,12 @@ void ant3Moves(const ThreadArgs_t *args)
 
     uint_fast8_t idx = 0;
     antMoves(id, &position, board, moves, &idx, NULL);
+    return NULL;
 }
 
-void mosquitoMoves(const ThreadArgs_t *args)
+void* mosquitoMoves(void *arguments)
 {
+    const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_MOSQUITO];
     Pieces_t *board = context->board;
@@ -756,8 +786,8 @@ void mosquitoMoves(const ThreadArgs_t *args)
 
     if (z > 0)
     {
-        beetleMoves(id, board, moves);
-        return;
+        beetleMoves(id, &position, board, moves, &idx);
+        return NULL;
     }
 
     for (int_fast8_t i = 0; i < 6; ++i)
@@ -817,6 +847,7 @@ void mosquitoMoves(const ThreadArgs_t *args)
                 break;
         }
     }
+    return NULL;
 }
 
 void getMoves(const Context_t *context, Piece_t **moves)
@@ -966,7 +997,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
     ThreadArgs_t args = {context, moves};
     pthread_create(&threads[14], NULL, addMoves, &args);
 
-    void (*funcs[])(ThreadArgs_t *) = {queen1Moves, pillbug1Moves, ladybug1Moves, mosquitoMoves, ant1Moves, ant2Moves, ant3Moves, grasshopper1Moves, grasshopper2Moves, grasshopper3Moves, beetle1Moves, beetle2Moves, spider1Moves, spider2Moves};
+    void* (*funcs[])(void *) = {queen1Moves, pillbug1Moves, ladybug1Moves, mosquitoMoves, ant1Moves, ant2Moves, ant3Moves, grasshopper1Moves, grasshopper2Moves, grasshopper3Moves, beetle1Moves, beetle2Moves, spider1Moves, spider2Moves};
     //se la regina non c'è i pezzi non possono muoversi
     if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
     {
@@ -976,7 +1007,8 @@ void getMoves(const Context_t *context, Piece_t **moves)
                 continue;
             bool visited[28];
             visited[color == WHITE ? i + 14 : i] = true;
-            if (i != B_PILLBUG && !dfs(color == WHITE ? W_QUEEN : B_QUEEN, context, visited, true))
+            Pieces_t startingPoint = color == WHITE ? W_QUEEN : B_QUEEN;
+            if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
                 continue;
             pthread_create(&threads[i], NULL, funcs[i], &args);
         }

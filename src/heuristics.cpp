@@ -4,6 +4,15 @@
 
 #include "heuristics.h"
 
+uint_fast8_t getMovesSize(const Piece_t *moves) {
+
+    uint8_t size = 0;
+    while (moves[size].id != NULLPIECE)
+        size++;
+    return size;
+
+}
+
 double mzingaHeuristic(const Context_t *context) {
     if (context->gameStatus == WHITE_WON)
         return static_cast<double>(Result::RESULT_WHITE_WON);
@@ -19,7 +28,7 @@ double mzingaHeuristic(const Context_t *context) {
 
     for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++) {
         const Position_t piecePos = context->idToPos[i];
-        const uint16_t mSize = getMovesSize(context, moves[i]);
+        const uint16_t mSize = getMovesSize(moves[i]);
         if (piecePos.z == -1)
             continue;
         HeuristicMetrics pieceMetric = getMetrics(static_cast<Pieces_t>(i));
@@ -52,8 +61,8 @@ double mzingaHeuristic(const Context_t *context) {
         if (context->idToPos[enemyQueen].z == -1)
             result += (pieceMetric.quietMoveWeight() * mSize);
 
-        for (size_t j = 0; j < mSize; j++) {
-            const Position_t newPos = moves[i][mSize].position;
+        for (size_t j = 0; moves[i][j].id != NULLPIECE; j++) {
+            const Position_t newPos = moves[i][j].position;
             const Position_t enemyQueenPos = context->idToPos[enemyQueen];
             if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2) {
                 result += pieceMetric.quietMoveWeight();
@@ -92,15 +101,14 @@ void setHeuristicParams(Context_t *context, torch::Tensor &x) {
 
         const Pieces_t enemyQueen = isBlack(i) ? W_QUEEN : B_QUEEN;
         uint16_t noisyMoves = 0, quietMoves = 0;
-        uint16_t mSize = getMovesSize(context, moves[i]);
         if (context->idToPos[enemyQueen].z == -1) {
-            for (uint_fast16_t j = 0; j < mSize; j++) {
+            for (uint_fast16_t j = 0; moves[i][j].id != NULLPIECE; j++) {
                 quietMoves++;
             }
         } else {
-            for (size_t j = 0; j < mSize; j++) {
+            for (size_t j = 0; moves[i][j].id != NULLPIECE; j++) {
                 const Position_t piecePos = context->idToPos[i];
-                const Position_t newPos = moves[i][mSize].position;
+                const Position_t newPos = moves[i][j].position;
                 const Position_t enemyQueenPos = context->idToPos[enemyQueen];
 
                 if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2) {

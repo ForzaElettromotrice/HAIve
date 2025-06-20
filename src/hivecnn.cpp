@@ -201,7 +201,7 @@ bool battleAgainstRandom(bool areWeWhite) {
             do {
                 chosenPiece = rand() % MOVES_ARRAYS;
             } while (moves[chosenPiece][0].id == NULLPIECE);
-            chosenMove = rand() % getMovesSize(&context, moves[chosenPiece]);
+            chosenMove = rand() % getMovesSize(moves[chosenPiece]);
             addOurMove(&context, moves[chosenPiece][chosenMove]);
         }
 

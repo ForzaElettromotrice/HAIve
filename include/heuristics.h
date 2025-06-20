@@ -193,5 +193,6 @@ inline HeuristicMetrics getMetrics(const Pieces_t piece) {
 }
 
 double mzingaHeuristic(const Context_t* context);
+uint_fast8_t getMovesSize(const Piece_t *moves);
 
 #endif //HEURISTICS_H
