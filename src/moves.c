@@ -117,7 +117,13 @@ void addMoves(const ThreadArgs_t *args)
 
             for (uint8_t k = 0; k < addSize; ++k)
             {
-                moves[idx++] = (Piece_t){toAdd[k], {0, newY1, newX1}};
+                moves[idx++] = (Piece_t)
+                {
+                    toAdd[k],
+                    {
+                        0, newY1, newX1
+                    }
+                };
             }
         }
     }
@@ -138,7 +144,13 @@ void getMoves(const Context_t *context, Piece_t **moves)
         uint_fast8_t idx = 0;
         for (int i = W_PILLBUG; i < NUM_PIECES; ++i)
         {
-            moves[14][idx++] = (Piece_t){i, {0, 0, 0}};
+            moves[14][idx++] = (Piece_t)
+            {
+                i,
+                {
+                    0, 0, 0
+                }
+            };
             switch (i)
             {
                 case W_ANT_1:
@@ -164,7 +176,13 @@ void getMoves(const Context_t *context, Piece_t **moves)
         {
             for (uint_fast8_t j = 0; j < 6; ++j)
             {
-                moves[14][idx++] = (Piece_t){i, {0, directions[j][0], directions[j][1]}};
+                moves[14][idx++] = (Piece_t)
+                {
+                    i,
+                    {
+                        0, directions[j][0], directions[j][1]
+                    }
+                };
             }
             switch (i)
             {
@@ -238,7 +256,13 @@ void getMoves(const Context_t *context, Piece_t **moves)
                 if (!ok)
                     continue;
 
-                moves[14][idx++] = (Piece_t){W_QUEEN, {0, newY1, newX1}};
+                moves[14][idx++] = (Piece_t)
+                {
+                    W_QUEEN,
+                    {
+                        0, newY1, newX1
+                    }
+                };
             }
         }
         return;
@@ -264,11 +288,3 @@ void getMoves(const Context_t *context, Piece_t **moves)
     }
 }
 
-uint16_t getMovesSize(const Context_t *context, const Piece_t *moves) {
-
-    uint16_t mSize = 0;
-    while (moves[mSize].id != NULLPIECE)
-        mSize++;
-    return mSize;
-
-}
