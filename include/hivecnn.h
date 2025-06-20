@@ -8,7 +8,6 @@
 #include <torch/torch.h>
 #include <preprocessor.h>
 #include <iostream>
-#include <format>
 #include <filesystem>
 
 struct HiveCNNImpl : torch::nn::Module
