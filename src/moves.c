@@ -24,12 +24,21 @@ void allocateMoves(Piece_t **moves)
     //Allocazione delle mosse
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
-        //FIXME: 70 è provvisorio, un valore più preciso potrebbe fare più comodo
-        moves[i] = malloc(70 * sizeof(Position_t));
-        memset(moves[i], 0xff, 70 * sizeof(Position_t));
+        //FIXME: 30 è provvisorio, un valore più preciso potrebbe fare più comodo
+        moves[i] = malloc(30 * sizeof(Position_t));
+        memset(moves[i], 0xff, 30 * sizeof(Position_t));
     }
 }
 
+void freeMoves(Piece_t ***moves) {
+
+    for (int i = 0; i < MOVES_ARRAYS; ++i)
+    {
+        free(moves[0][i]);
+    }
+    free(moves[0]);
+
+}
 
 bool canSlide(const Position_t *pos, const int_fast8_t direction, const Pieces_t *board)
 {
@@ -84,6 +93,8 @@ bool dfs(const Position_t *start, const Context_t *context, bool *visited, const
         visited[neighbor] = true;
         const Position_t newPos = {0, newY, newX};
         dfs(&newPos, context, visited, false);
+        if (first)
+            break;
     }
 
     if (first)
@@ -858,8 +869,8 @@ void getMoves(const Context_t *context, Piece_t ***moves_ptr)
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
-    Piece_t **moves = moves_ptr[0];
-    moves = malloc(sizeof(Piece_t *) * MOVES_ARRAYS);
+    Piece_t **moves = malloc(sizeof(Piece_t *) * MOVES_ARRAYS);
+    moves_ptr[0] = moves;
     allocateMoves(moves);
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
@@ -982,7 +993,7 @@ void getMoves(const Context_t *context, Piece_t ***moves_ptr)
 
                 moves[14][idx++] = (Piece_t)
                 {
-                    W_QUEEN,
+                    color == WHITE ? W_QUEEN : B_QUEEN,
                     {
                         0, newY1, newX1
                     }
@@ -994,10 +1005,12 @@ void getMoves(const Context_t *context, Piece_t ***moves_ptr)
 
 
     pthread_t threads[MOVES_ARRAYS];
+    bool created[MOVES_ARRAYS] = {false};
 
     //add
     ThreadArgs_t args = {context, moves};
     pthread_create(&threads[14], NULL, addMoves, &args);
+    created[14] = true;
 
     void* (*funcs[])(void *) = {queen1Moves, pillbug1Moves, ladybug1Moves, mosquitoMoves, ant1Moves, ant2Moves, ant3Moves, grasshopper1Moves, grasshopper2Moves, grasshopper3Moves, beetle1Moves, beetle2Moves, spider1Moves, spider2Moves};
     //se la regina non c'è i pezzi non possono muoversi
@@ -1013,14 +1026,18 @@ void getMoves(const Context_t *context, Piece_t ***moves_ptr)
             if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
                 continue;
             pthread_create(&threads[i], NULL, funcs[i], &args);
+            created[i] = true;
         }
+
     }
 
     //join
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
+        if (created[i])
         //TODO: per il futuro, se vogliamo iniziare a creare i nodi dei thread che finiscono prima, tocca studia un altro metodo
-        pthread_join(threads[i], NULL);
+            pthread_join(threads[i], NULL);
     }
+
 }
 

@@ -26,7 +26,7 @@ double mzingaHeuristic(const Context_t *context) {
     Piece_t **moves;
     getMoves(context, &moves);
 
-    for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++) {
+    for (uint8_t i = B_QUEEN; i < W_QUEEN; i++) {
         const Position_t piecePos = context->idToPos[i];
         const uint16_t mSize = getMovesSize(moves[i]);
         if (piecePos.z == -1)

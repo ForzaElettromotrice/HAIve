@@ -135,10 +135,10 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
     const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
     const uint_fast8_t end = start + 14; bool moved = false;
 
-    for (uint_fast8_t piece = context->curColor == WHITE ? W_QUEEN : B_QUEEN; piece < end; piece++) {
-        for (uint16_t i = 0; moves[piece % 14][i].id != NULLPIECE; i++){
-            Context_t newContext;
-            initContext(&newContext);
+    Context_t newContext;
+    initContext(&newContext);
+    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
             copyContext(context, &newContext);
 
             moved = true;
@@ -148,21 +148,18 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
                 curBestMove = moves[piece][i];
             }
 
-            cleanContext(&newContext);
         }
     }
 
     if (!moved) {
-        Context_t newContext;
-        initContext(&newContext);
         copyContext(context, &newContext);
 
         addOurMove(&newContext, pass);
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
-
-        cleanContext(&newContext);
     }
 
+    cleanContext(&newContext);
+    freeMoves(&moves);
 
     if (depth == 0) {
         *bestMove = curBestMove;
@@ -185,7 +182,7 @@ Result resultOf(const Context* context) {
 bool battleAgainstRandom(bool areWeWhite) {
 
     Context_t context; Piece_t bestMove; Piece_t** moves;
-    initContext(&context); resetContext(&context);
+    initContext(&context);
     srand(time(NULL));
 
     while (!isContextEnded(&context)) {
@@ -198,18 +195,26 @@ bool battleAgainstRandom(bool areWeWhite) {
         } else {
             getMoves(&context, &moves);
             uint_fast8_t chosenPiece; uint16_t chosenMove;
-            do {
-                chosenPiece = rand() % MOVES_ARRAYS;
-            } while (moves[chosenPiece][0].id == NULLPIECE);
+            if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1) {
+                chosenPiece = 14;
+            } else {
+                do {
+                    chosenPiece = rand() % MOVES_ARRAYS;
+                } while (moves[chosenPiece][0].id == NULLPIECE);
+            }
             chosenMove = rand() % getMovesSize(moves[chosenPiece]);
             addOurMove(&context, moves[chosenPiece][chosenMove]);
+            freeMoves(&moves);
         }
 
     }
 
-    if (areWeWhite && context.gameStatus == WHITE_WON)
+    const GameStatus_t gameStat = getGameStatus(&context);
+    cleanContext(&context);
+
+    if (areWeWhite && gameStat == WHITE_WON)
         return true;
-    if (!areWeWhite && context.gameStatus == BLACK_WON)
+    if (!areWeWhite && gameStat == BLACK_WON)
         return true;
     return false;
 

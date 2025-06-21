@@ -33,13 +33,13 @@ void copyContext(const Context_t *src, Context_t *dst)
 {
     memcpy(dst, src, sizeof(Context_t));
 
-    dst->moves = malloc(dst->movesSize);
+    dst->moves = malloc(dst->movesSize * sizeof(char));
     dst->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
-    dst->idToPos = malloc(NUM_PIECES * sizeof(Piece_t));
+    dst->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
 
-    memcpy(dst->moves, src->moves, dst->movesSize);
+    memcpy(dst->moves, src->moves, dst->movesSize * sizeof(char));
     memcpy(dst->board, src->board, BOARD_SIZE * sizeof(Pieces_t));
-    memcpy(dst->idToPos, src->idToPos, NUM_PIECES * sizeof(Piece_t));
+    memcpy(dst->idToPos, src->idToPos, NUM_PIECES * sizeof(Position_t));
 }
 void cleanContext(const Context_t *context)
 {
