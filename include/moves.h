@@ -6,4 +6,5 @@
 
 #define MOVES_ARRAYS 15
 
-void getMoves(const Context_t *context, Piece_t **moves);
+void getMoves(const Context_t *context, Piece_t ***moves_ptr);
+void freeMoves(Piece_t ***moves);
