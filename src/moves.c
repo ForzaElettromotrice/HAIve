@@ -93,8 +93,6 @@ bool dfs(const Position_t *start, const Context_t *context, bool *visited, const
         visited[neighbor] = true;
         const Position_t newPos = {0, newY, newX};
         dfs(&newPos, context, visited, false);
-        if (first)
-            break;
     }
 
     if (first)
