@@ -75,7 +75,7 @@ double mzingaHeuristic(const Context_t *context) {
         }
     }
 
-    result /= 10500000;
+    result /= 1100000;
     // if (result > 1 || result < -1) printf("GOT EXCEEDING RESULT\n");
     return result;
 }

@@ -136,7 +136,6 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
     const uint_fast8_t end = start + 14; bool moved = false;
 
     Context_t newContext;
-    initContext(&newContext);
     for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
         for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
             copyContext(context, &newContext);
@@ -147,7 +146,7 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
                 maxVal = tmp;
                 curBestMove = moves[piece][i];
             }
-
+            cleanContext(&newContext);
         }
     }
 
@@ -158,7 +157,6 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
     }
 
-    cleanContext(&newContext);
     freeMoves(&moves);
 
     if (depth == 0) {
@@ -183,7 +181,6 @@ bool battleAgainstRandom(bool areWeWhite) {
 
     Context_t context; Piece_t bestMove; Piece_t** moves;
     initContext(&context);
-    srand(time(NULL));
 
     while (!isContextEnded(&context)) {
 
@@ -224,6 +221,7 @@ void testAgainstRandom() {
 
     int played = 0;
     int won = 0;
+    srand(time(NULL));
 
     for (size_t i = 0; i < 100; i++) {
         if (battleAgainstRandom(i % 2 == 0))

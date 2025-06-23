@@ -40,9 +40,9 @@ void allocateMoves(Piece_t **moves)
     //Allocazione delle mosse
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
-        //FIXME: 30 è provvisorio, un valore più preciso potrebbe fare più comodo
-        moves[i] = malloc(30 * sizeof(Position_t));
-        memset(moves[i], 0xff, 30 * sizeof(Position_t));
+        //FIXME: 120 è provvisorio, un valore più preciso potrebbe fare più comodo
+        moves[i] = malloc(120 * sizeof(Position_t));
+        memset(moves[i], 0xff, 120 * sizeof(Position_t));
     }
 }
 
