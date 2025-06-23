@@ -108,17 +108,3 @@ typedef struct Context
     GameType_t gameType;
     Pieces_t lastMovedPiece;
 } Context_t;
-
-/*
-    Il contesto sarà il contesto MODIFICATO dalla mossa che muove il pezzo pieceMoved.
-    Non serve sapere dov'era il pezzo prima: il nodo padre avrà il contesto originale.
-*/
-typedef struct Node
-{
-    struct Node *left;
-    struct Node *right;
-    Context_t *context;
-
-    uint8_t child_number;
-    Piece_t pieceMoved;
-} __attribute__((__packed__)) Node_t;

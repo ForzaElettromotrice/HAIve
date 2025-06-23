@@ -11,11 +11,27 @@
 #include <pthread.h>
 #include <moves.h>
 
+#include "logger.h"
+
 typedef struct ThreadArgs
 {
     const Context_t *context;
     Piece_t **moves;
 } ThreadArgs_t;
+
+Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
+{
+    if (toMove != B_QUEEN && toMove != W_QUEEN)
+        return color == WHITE ? W_QUEEN : B_QUEEN;
+    for (int i = 0; i < 28; ++i)
+    {
+        if (idToPos[i].z != -1 && i != toMove)
+            return i;
+    }
+    //Unreachable
+    logE(stderr, "Impossible to reach!\n");
+    return -1;
+}
 
 void allocateMoves(Piece_t **moves)
 {
@@ -786,10 +802,10 @@ void* mosquitoMoves(void *arguments)
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_MOSQUITO];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_MOSQUITO : B_MOSQUITO;
-    Position_t *positions = context->idToPos;
-    Position_t position = positions[id];
+    const Pieces_t *board = context->board;
+    const Pieces_t id = context->curColor == WHITE ? W_MOSQUITO : B_MOSQUITO;
+    const Position_t *positions = context->idToPos;
+    const Position_t position = positions[id];
     uint_fast8_t idx = 0;
 
     const int_fast8_t z = position.z;
@@ -812,8 +828,6 @@ void* mosquitoMoves(void *arguments)
             continue;
         switch (neighbor)
         {
-            case NULLPIECE:
-                break;
             case B_QUEEN:
             case W_QUEEN:
                 queenMoves(id, &position, board, moves, &idx);
@@ -857,6 +871,7 @@ void* mosquitoMoves(void *arguments)
             case W_SPIDER_2:
                 spiderMoves(id, &position, board, moves, &idx);
                 break;
+            default:
         }
     }
     return NULL;
@@ -1022,7 +1037,7 @@ void getMoves(const Context_t *context, Piece_t ***moves_ptr)
                 continue;
             bool visited[28];
             visited[color == WHITE ? i + 14 : i] = true;
-            Pieces_t startingPoint = color == WHITE ? W_QUEEN : B_QUEEN;
+            const Pieces_t startingPoint = chooseStartingPoint(i, color, positions);
             if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
                 continue;
             pthread_create(&threads[i], NULL, funcs[i], &args);

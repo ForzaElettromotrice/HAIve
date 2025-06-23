@@ -10,7 +10,6 @@
 
 void initContext(Context_t *context)
 {
-    *context = (Context_t){0};
     context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
     context->moves = calloc(1024, sizeof(char));
     context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
