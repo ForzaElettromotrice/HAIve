@@ -55,7 +55,8 @@ double mzingaHeuristic(const Context_t *context) {
             }
         }
 
-        // How to check if isPinned?
+        if (howManyAround(context, static_cast<Pieces_t>(i), true) + howManyAround(context, static_cast<Pieces_t>(i), false) > 2)
+            result += pieceMetric.isPinnedWeight();
 
         const Pieces_t enemyQueen = isBlack(i) ? W_QUEEN : B_QUEEN;
         if (context->idToPos[enemyQueen].z == -1)
