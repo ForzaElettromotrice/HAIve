@@ -61,6 +61,32 @@ struct HiveCNNImpl : torch::nn::Module
 
 TORCH_MODULE(HiveCNN);
 
+struct HiveCNNEnhancedImpl : torch::nn::Module {
+    std::string checkpoint_file;
+    torch::nn::Sequential conv_layers{nullptr}, fc_layers{nullptr};
+    torch::nn::MaxPool2d pool{nullptr};
+
+    explicit HiveCNNEnhancedImpl(std::string checkpoint = "model_enh_checkpoint.pt")
+        : checkpoint_file(std::move(checkpoint)),
+          pool(torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2).stride(2))) {
+
+        auto conv = torch::nn::Sequential(
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(16, 24, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2)),
+
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(24, 32, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2)),
+
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 48, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2))
+        );
+        conv_layers = register_module("conv_layers", conv);
+
+        // TODO: Fill seq_layers
+        // TODO: Forward pass
+    }
+};
+
 Result resultOf(const Context *context);
 float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveCNN &net);
 void testAgainstRandom();
