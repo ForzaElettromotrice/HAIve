@@ -85,7 +85,7 @@ double mzingaHeuristic(const Context_t *context) {
     Fills x with some useful statistics about the context.
 */
 
-void setHeuristicParams(Context_t *context, torch::Tensor &x) {
+void setHeuristicParams(const Context_t *context, torch::Tensor &x) {
     // n_neigh_friendly + enemy  // moves (quiet/noisy)
     size_t size = 2 * NUM_PIECES + 2 * NUM_PIECES;
 

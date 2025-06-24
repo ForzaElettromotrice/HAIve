@@ -45,6 +45,51 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer>& opt
     }
 }
 
+// HiveCNNEnhanced
+
+torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t* context) {
+    torch::Tensor x;
+    torch::Tensor y = torch::zeros(paramSize);
+    Processor::boardToTensor(context->idToPos, x);
+    setHeuristicParams(context, y);
+
+    x = x.to(torch::kFloat);
+    x = conv_layers->forward(x);
+    x = x.view({1, -1});
+
+    x = torch::cat({x, y});
+    x = fc1->forward(x);
+
+    // Optional activation:
+    // x = torch::tanh(x);
+
+    return x;
+}
+
+void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) const {
+    torch::serialize::OutputArchive archive;
+    const std::filesystem::path path(checkpoint_file);
+    auto parent_dir = path.parent_path();
+    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir)) {
+        std::filesystem::create_directories(parent_dir);
+    }
+
+    this->save(archive);
+    optimizer->save(archive);
+    archive.save_to(checkpoint_file);
+}
+
+void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) {
+    torch::serialize::InputArchive archive;
+    archive.load_from(checkpoint_file);
+    this->load(archive);
+    if (optimizer) {
+        optimizer->load(archive);
+    }
+}
+
+// Other stuff
+
 float evaluate(const Context_t* context, HiveCNN& model, const bool isWhiteTurn) {
 
     torch::Tensor x;
