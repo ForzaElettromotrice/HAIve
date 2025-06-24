@@ -115,7 +115,7 @@ void Processor::multipleSaveToFile(const std::string &fileName,
 */
 void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor) {
     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
-    tensor = torch::zeros({sizeLayer, BOARD_Y, BOARD_X}, options);
+    tensor = torch::zeros({sizeLayer, BOARD_Y / 2, BOARD_X}, options);
 
     for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
         const int_fast8_t z = positions[i].z;
@@ -123,8 +123,8 @@ void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor
             continue;
         const int_fast8_t y = positions[i].y;
         const int_fast8_t x = positions[i].x;
-        uint8_t layerValue = pieceToLayer(static_cast<const Pieces_t>(i), positions[i].z);
-        tensor.index_put_({layerValue, yOf(y), xOf(x)}, i <= 13 ? -1 : 1);
+        uint8_t layerValue = pieceToLayer(static_cast<const Pieces_t>(i), z);
+        tensor.index_put_({layerValue, yOf(y) / 2, xOf(x)}, i <= 13 ? -1 : 1);
     }
 }
 
