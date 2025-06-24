@@ -46,13 +46,12 @@ void allocateMoves(Piece_t **moves)
     }
 }
 
-void freeMoves(Piece_t ***moves) {
+void freeMoves(Piece_t **moves) {
 
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
-        free(moves[0][i]);
+        free(moves[i]);
     }
-    free(moves[0]);
 
 }
 
@@ -875,15 +874,13 @@ void* mosquitoMoves(void *arguments)
     return NULL;
 }
 
-void getMoves(const Context_t *context, Piece_t ***moves_ptr)
+void getMoves(const Context_t *context, Piece_t **moves)
 {
     const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
-    Piece_t **moves = malloc(sizeof(Piece_t *) * MOVES_ARRAYS);
-    moves_ptr[0] = moves;
     allocateMoves(moves);
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
@@ -1035,7 +1032,7 @@ void getMoves(const Context_t *context, Piece_t ***moves_ptr)
                 continue;
             bool visited[28];
             visited[color == WHITE ? i + 14 : i] = true;
-            const Pieces_t startingPoint = chooseStartingPoint(i, color, positions);
+            const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
             if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
                 continue;
             pthread_create(&threads[i], NULL, funcs[i], &args);
