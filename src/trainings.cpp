@@ -9,9 +9,9 @@
 void getRandomState(Context_t* toFill, const uint8_t minMoves, const uint8_t maxMoves) {
 
     const uint8_t movesToPlay = (rand() % (maxMoves - minMoves)) + minMoves;
-    Piece_t** moves;
+    Piece_t *moves[15];
     for (uint8_t i = 0; i < movesToPlay && !isContextEnded(toFill); i++) {
-        getMoves(toFill, &moves);
+        getMoves(toFill, moves);
 
         // DEBUG
         uint16_t mSize = 0;

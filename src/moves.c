@@ -46,7 +46,8 @@ void allocateMoves(Piece_t **moves)
     }
 }
 
-void freeMoves(Piece_t **moves) {
+void freeMoves(Piece_t **moves)
+{
 
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
@@ -1044,8 +1045,8 @@ void getMoves(const Context_t *context, Piece_t **moves)
     //join
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
-        if (created[i])
         //TODO: per il futuro, se vogliamo iniziare a creare i nodi dei thread che finiscono prima, tocca studia un altro metodo
+        if (created[i])
             pthread_join(threads[i], NULL);
     }
 

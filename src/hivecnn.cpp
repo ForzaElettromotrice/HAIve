@@ -115,8 +115,8 @@ float negamax_net(const Context_t* context, const int depth, const int maxDepth,
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t** moves;
-    getMoves(context, &moves);
+    Piece_t *moves[15];
+    getMoves(context, moves);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
@@ -172,8 +172,8 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t** moves;
-    getMoves(context, &moves);
+    Piece_t *moves[15];
+    getMoves(context, moves);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
@@ -202,7 +202,7 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
     }
 
-    freeMoves(&moves);
+    freeMoves(moves);
 
     if (depth == 0) {
         *bestMove = curBestMove;
@@ -224,7 +224,7 @@ Result resultOf(const Context* context) {
 
 bool battleAgainstRandom(bool areWeWhite) {
 
-    Context_t context; Piece_t bestMove; Piece_t** moves;
+    Context_t context; Piece_t bestMove; Piece_t *moves[15];
     initContext(&context);
 
     while (!isContextEnded(&context)) {
@@ -235,7 +235,7 @@ bool battleAgainstRandom(bool areWeWhite) {
             addOurMove(&context, bestMove);
 
         } else {
-            getMoves(&context, &moves);
+            getMoves(&context, moves);
             uint_fast8_t chosenPiece; uint16_t chosenMove;
             if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1) {
                 chosenPiece = 14;
@@ -246,7 +246,7 @@ bool battleAgainstRandom(bool areWeWhite) {
             }
             chosenMove = rand() % getMovesSize(moves[chosenPiece]);
             addOurMove(&context, moves[chosenPiece][chosenMove]);
-            freeMoves(&moves);
+            freeMoves(moves);
         }
 
     }
