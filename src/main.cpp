@@ -16,9 +16,6 @@ int main()
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
 
-    testAgainstRandom();
-    return 0;
-
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
 
     size_t buf_size = 128;
@@ -55,6 +52,7 @@ int main()
                 //TODO:(PARALLELISMO) fare si che il processo che gestisce l'albero si resetti
                 break;
             case PLAY:
+                //TODO: ignora il play se è la nostra mossa
                 move = buffer + 5;
                 doMove(&context, move);
                 printGameString(&context);

@@ -105,6 +105,5 @@ typedef struct Context
     int16_t turn;
     Colors_t curColor;
     GameStatus_t gameStatus;
-    GameType_t gameType;
     Pieces_t lastMovedPiece;
 } Context_t;

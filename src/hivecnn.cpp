@@ -9,7 +9,8 @@
 #include "heuristics.h"
 
 // HiveCNN
-float HiveCNNImpl::forward(const Context_t* context) {
+float HiveCNNImpl::forward(const Context_t *context)
+{
     torch::Tensor x;
     Processor::boardToTensor(context->idToPos, x);
 
@@ -26,11 +27,13 @@ float HiveCNNImpl::forward(const Context_t* context) {
     return x.item().toFloat();
 }
 
-void HiveCNNImpl::save_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) const {
+void HiveCNNImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer) const
+{
     torch::serialize::OutputArchive archive;
     std::filesystem::path path(checkpoint_file);
     auto parent_dir = path.parent_path();
-    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir)) {
+    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir))
+    {
         std::filesystem::create_directories(parent_dir);
     }
 
@@ -39,18 +42,21 @@ void HiveCNNImpl::save_model(const std::shared_ptr<torch::optim::Optimizer>& opt
     archive.save_to(checkpoint_file);
 }
 
-void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) {
+void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer)
+{
     torch::serialize::InputArchive archive;
     archive.load_from(checkpoint_file);
     this->load(archive);
-    if (optimizer) {
+    if (optimizer)
+    {
         optimizer->load(archive);
     }
 }
 
 // HiveCNNEnhanced
 
-float HiveCNNEnhancedImpl::forward(const Context_t* context) {
+float HiveCNNEnhancedImpl::forward(const Context_t *context)
+{
     torch::Tensor x;
     torch::Tensor y = torch::zeros(paramSize);
     Processor::boardToTensor(context->idToPos, x);
@@ -69,11 +75,13 @@ float HiveCNNEnhancedImpl::forward(const Context_t* context) {
     return x.item().toFloat();
 }
 
-void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) const {
+void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer) const
+{
     torch::serialize::OutputArchive archive;
     const std::filesystem::path path(checkpoint_file);
     auto parent_dir = path.parent_path();
-    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir)) {
+    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir))
+    {
         std::filesystem::create_directories(parent_dir);
     }
 
@@ -82,30 +90,32 @@ void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimiz
     archive.save_to(checkpoint_file);
 }
 
-void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) {
+void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer)
+{
     torch::serialize::InputArchive archive;
     archive.load_from(checkpoint_file);
     this->load(archive);
-    if (optimizer) {
+    if (optimizer)
+    {
         optimizer->load(archive);
     }
 }
 
 // Other stuff
 
-float evaluate(const Context_t* context, HiveCNN& model, const bool isWhiteTurn) {
-
+float evaluate(const Context_t *context, HiveCNN &model, const bool isWhiteTurn)
+{
     float y = model->forward(context);
     y *= !isWhiteTurn ? -1 : 1;
     if (y > 1) return 1;
     if (y < -1) return -1;
     return y;
-
 }
 
-float negamax_net(const Context_t* context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t* bestMove, HiveCNN& net) {
-
-    if (depth >= maxDepth) {
+float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveCNN &net)
+{
+    if (depth >= maxDepth)
+    {
         return evaluate(context, net, true);
     }
 
@@ -122,17 +132,21 @@ float negamax_net(const Context_t* context, const int depth, const int maxDepth,
     Piece_t curBestMove;
 
     const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
-    const uint_fast8_t end = start + 14; bool moved = false;
+    const uint_fast8_t end = start + 14;
+    bool moved = false;
 
-    for (uint_fast8_t piece = context->curColor == WHITE ? W_QUEEN : B_QUEEN; piece < end; piece++) {
-        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+    for (uint_fast8_t piece = context->curColor == WHITE ? W_QUEEN : B_QUEEN; piece < end; piece++)
+    {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++)
+        {
             Context_t newContext;
             initContext(&newContext);
             copyContext(context, &newContext);
 
             moved = true;
-            addOurMove(&newContext, moves[piece][i]);
-            if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal) {
+            addOurMove(&newContext, &moves[piece][i]);
+            if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal)
+            {
                 maxVal = tmp;
                 curBestMove = moves[piece][i];
             }
@@ -141,28 +155,31 @@ float negamax_net(const Context_t* context, const int depth, const int maxDepth,
         }
     }
 
-    if (!moved) {
+    if (!moved)
+    {
         Context_t newContext;
         initContext(&newContext);
         copyContext(context, &newContext);
 
-        addOurMove(&newContext, pass);
+        addOurMove(&newContext, &pass);
         maxVal = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net);
 
         cleanContext(&newContext);
     }
 
 
-    if (depth == 0) {
+    if (depth == 0)
+    {
         *bestMove = curBestMove;
         return 0;
-    } return -maxVal;
-
+    }
+    return -maxVal;
 }
 
-float negamax_heuristic(const Context_t* context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t* bestMove, std::function<float(const Context_t*)> heuristicFunc) {
-
-    if (depth >= maxDepth) {
+float negamax_heuristic(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, std::function<float(const Context_t *)> heuristicFunc)
+{
+    if (depth >= maxDepth)
+    {
         return heuristicFunc(context);
     }
 
@@ -179,16 +196,20 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
     Piece_t curBestMove;
 
     const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
-    const uint_fast8_t end = start + 14; bool moved = false;
+    const uint_fast8_t end = start + 14;
+    bool moved = false;
 
     Context_t newContext;
-    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
-        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
+    {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++)
+        {
             copyContext(context, &newContext);
 
             moved = true;
-            addOurMove(&newContext, moves[piece][i]);
-            if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal) {
+            addOurMove(&newContext, &moves[piece][i]);
+            if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal)
+            {
                 maxVal = tmp;
                 curBestMove = moves[piece][i];
             }
@@ -196,60 +217,66 @@ float negamax_heuristic(const Context_t* context, const int depth, const int max
         }
     }
 
-    if (!moved) {
+    if (!moved)
+    {
         copyContext(context, &newContext);
 
-        addOurMove(&newContext, pass);
+        addOurMove(&newContext, &pass);
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
     }
 
     freeMoves(moves);
 
-    if (depth == 0) {
+    if (depth == 0)
+    {
         *bestMove = curBestMove;
         return 0;
-    } return -maxVal;
-
+    }
+    return -maxVal;
 }
 
-Result resultOf(const Context* context) {
-
+Result resultOf(const Context *context)
+{
     const GameStatus_t gameStat = context->gameStatus;
     if (gameStat == WHITE_WON)
         return Result::RESULT_WHITE_WON;
     if (gameStat == BLACK_WON)
         return Result::RESULT_BLACK_WON;
     return Result::RESULT_DRAW;
-
 }
 
-bool battleAgainstRandom(bool areWeWhite) {
-
-    Context_t context; Piece_t bestMove; Piece_t *moves[15];
+bool battleAgainstRandom(bool areWeWhite)
+{
+    Context_t context;
+    Piece_t bestMove;
+    Piece_t *moves[15];
     initContext(&context);
 
-    while (!isContextEnded(&context)) {
-
-        if ( (areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK) ) {
-
+    while (!isContextEnded(&context))
+    {
+        if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
+        {
             negamax_heuristic(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic);
-            addOurMove(&context, bestMove);
-
-        } else {
+            addOurMove(&context, &bestMove);
+        } else
+        {
             getMoves(&context, moves);
-            uint_fast8_t chosenPiece; uint16_t chosenMove;
-            if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1) {
+            uint_fast8_t chosenPiece;
+            uint16_t chosenMove;
+            if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1)
+            {
                 chosenPiece = 14;
-            } else {
-                do {
+            } else
+            {
+                do
+                {
                     chosenPiece = rand() % MOVES_ARRAYS;
                 } while (moves[chosenPiece][0].id == NULLPIECE);
             }
             chosenMove = rand() % getMovesSize(moves[chosenPiece]);
-            addOurMove(&context, moves[chosenPiece][chosenMove]);
+            addOurMove(&context, &moves[chosenPiece][chosenMove]);
             freeMoves(moves);
         }
-
     }
 
     const GameStatus_t gameStat = getGameStatus(&context);
@@ -260,21 +287,20 @@ bool battleAgainstRandom(bool areWeWhite) {
     if (!areWeWhite && gameStat == BLACK_WON)
         return true;
     return false;
-
 }
 
-void testAgainstRandom() {
-
+void testAgainstRandom()
+{
     int played = 0;
     int won = 0;
     srand(time(NULL));
 
-    for (size_t i = 0; i < 100; i++) {
+    for (size_t i = 0; i < 100; i++)
+    {
         if (battleAgainstRandom(i % 2 == 0))
             won++;
         played++;
 
         printf("%d / %d", won, played);
     }
-
 }

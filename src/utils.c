@@ -7,6 +7,132 @@
 #include <utils.h>
 #include <logger.h>
 #include <enums.h>
+#include <xxhash.h>
+
+uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
+{
+    const int_fast8_t z = pos->z;
+    const int_fast8_t y = pos->y;
+    const int_fast8_t x = pos->x;
+
+    int_fast8_t max = -2;
+    uint_fast8_t idx = 0;
+    for (uint_fast8_t i = 0; i < 6; i++)
+    {
+        const int_fast8_t newY = (int_fast8_t) (y + directions[i][0]);
+        const int_fast8_t newX = (int_fast8_t) (x + directions[i][1]);
+
+        const Pieces_t neighbor = board[MtA(z, newY, newX)];
+        if (neighbor == NULLPIECE)
+            continue;
+
+        if (neighbor > max)
+        {
+            max = neighbor;
+            idx = i;
+        }
+    }
+
+    for (uint_fast8_t i = 0; i < 6; ++i)
+    {
+        const int_fast8_t newY = (int_fast8_t) (y + directions[(idx - 1) % 6][0]);
+        const int_fast8_t newX = (int_fast8_t) (x + directions[(idx - 1) % 6][1]);
+
+        if (board[MtA(z, newY, newX)] != max)
+            break;
+
+        idx = (idx - 1) % 6;
+    }
+
+
+    uint64_t hash = 0;
+    for (uint_fast8_t i = 0; i < 6; ++i, idx = (idx + 1) % 6)
+    {
+        const int_fast8_t newY = (int_fast8_t) (y + directions[idx][0]);
+        const int_fast8_t newX = (int_fast8_t) (x + directions[idx][1]);
+
+        int8_t value = 0;
+        switch (board[MtA(z, newY, newX)])
+        {
+            case B_QUEEN:
+                value = 0;
+                break;
+            case B_PILLBUG:
+                value = 1;
+                break;
+            case B_LADYBUG:
+                value = 2;
+                break;
+            case B_MOSQUITO:
+                value = 3;
+                break;
+            case B_ANT_1:
+            case B_ANT_2:
+            case B_ANT_3:
+                value = 4;
+                break;
+            case B_GRASSHOPPER_1:
+            case B_GRASSHOPPER_2:
+            case B_GRASSHOPPER_3:
+                value = 5;
+                break;
+            case B_BEETLE_1:
+            case B_BEETLE_2:
+                value = 6;
+                break;
+            case B_SPIDER_1:
+            case B_SPIDER_2:
+                value = 7;
+                break;
+            case W_QUEEN:
+                value = 8;
+                break;
+            case W_PILLBUG:
+                value = 9;
+                break;
+            case W_LADYBUG:
+                value = 10;
+                break;
+            case W_MOSQUITO:
+                value = 11;
+                break;
+            case W_ANT_1:
+            case W_ANT_2:
+            case W_ANT_3:
+                value = 12;
+                break;
+            case W_GRASSHOPPER_1:
+            case W_GRASSHOPPER_2:
+            case W_GRASSHOPPER_3:
+                value = 13;
+                break;
+            case W_BEETLE_1:
+            case W_BEETLE_2:
+                value = 14;
+                break;
+            case W_SPIDER_1:
+            case W_SPIDER_2:
+                value = 15;
+                break;
+            case NULLPIECE:
+                value = 16;
+                break;
+        }
+
+        hash = (hash << 8) + value;
+    }
+    return hash;
+}
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
+{
+    uint64_t toHash[28];
+
+    for (uint_fast8_t i = 0; i < 28; ++i)
+        toHash[i] = hashPiece(&positions[i], board);
+
+    return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
+}
+
 
 void initContext(Context_t *context)
 {
@@ -26,7 +152,6 @@ void resetContext(Context_t *context)
     context->turn = 1;
     context->curColor = WHITE;
     context->gameStatus = NOT_STARTED;
-    context->gameType = (GameType_t){true, true, true};
     context->lastMovedPiece = NULLPIECE;
 }
 void copyContext(const Context_t *src, Context_t *dst)
@@ -99,10 +224,10 @@ Pieces_t parsePiece(const char *piece)
 
     return NULLPIECE; // Default case for invalid input
 }
-Piece_t parseMove(const Position_t *idToPos, char *move)
+Piece_t *parseMove(const Position_t *idToPos, char *move)
 {
     if (strcmp(move, "pass") == 0)
-        return (Piece_t){-1, {-1, -1, -1}};
+        return &(Piece_t){-1, {-1, -1, -1}};
 
     const char *firstStr = strtok(move, " ");
     const char *secondStr = strtok(NULL, " ");
@@ -110,7 +235,7 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
     const Pieces_t first = parsePiece(firstStr);
 
     if (secondStr == NULL)
-        return (Piece_t){first, {0, 0, 0}};
+        return &(Piece_t){first, {0, 0, 0}};
 
 
     int8_t direction;
@@ -156,12 +281,12 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
     if (direction == -1)
     {
         secondPos.z++;
-        return (Piece_t){first, secondPos};
+        return &(Piece_t){first, secondPos};
     }
 
     secondPos.y = (int8_t) (secondPos.y + directions[direction][0]);
     secondPos.x = (int8_t) (secondPos.x + directions[direction][1]);
-    return (Piece_t){first, secondPos};
+    return &(Piece_t){first, secondPos};
 }
 
 
@@ -235,26 +360,26 @@ void addMazingaMove(Context_t *context, const char *move)
     strcat(context->moves, ";");
     strcat(context->moves, move);
 }
-void addOurMove(Context_t *context, const Piece_t move)
+void addOurMove(Context_t *context, const Piece_t *move)
 {
     context->turn++;
     context->curColor *= -1;
-    if (move.id == -1)
+    if (move->id == -1)
         return;
 
-    const Position_t oldPos = context->idToPos[move.id];
+    const Position_t oldPos = context->idToPos[move->id];
     if (oldPos.z != -1)
         context->board[MtA(oldPos.z, oldPos.y, oldPos.x)] = NULLPIECE;
 
 
-    const int8_t z = move.position.z;
-    const int8_t y = move.position.y;
-    const int8_t x = move.position.x;
-    context->board[MtA(z, y, x)] = move.id;
+    const int8_t z = move->position.z;
+    const int8_t y = move->position.y;
+    const int8_t x = move->position.x;
+    context->board[MtA(z, y, x)] = move->id;
 
-    context->idToPos[move.id] = move.position;
+    context->idToPos[move->id] = move->position;
 
-    context->lastMovedPiece = move.id;
+    context->lastMovedPiece = move->id;
     context->gameStatus = checkGameStatus(context);
 }
 void doMove(Context_t *context, char *move)
@@ -262,7 +387,7 @@ void doMove(Context_t *context, char *move)
     addMazingaMove(context, move);
 
     //TODO: salva l'hash della board
-    const Piece_t piece = parseMove(context->idToPos, move);
+    const Piece_t *piece = parseMove(context->idToPos, move);
     addOurMove(context, piece);
 }
 

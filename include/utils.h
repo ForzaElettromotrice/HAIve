@@ -18,6 +18,7 @@
 #define isBlack(x) (x < 14)
 #define isWhite(x) (x >= 14)
 
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
 
 void initContext(Context_t *context);
 void resetContext(Context_t *context);
@@ -36,6 +37,6 @@ void printGameString(const Context_t *context);
 
 GameStatus_t getGameStatus(const Context_t *context);
 int_fast8_t howManyAround(const Context_t *context, Pieces_t id, bool friendly);
-void addOurMove(Context_t *context, Piece_t move);
+void addOurMove(Context_t *context, Piece_t *move);
 
 bool isContextEnded(const Context_t* context);

@@ -27,7 +27,7 @@ add_executable(HAIve
         src/hivecnn.cpp
         src/preprocessor.cpp
         src/heuristics.cpp
-        src/tree.c
+        src/tree.cpp
 )
 
 target_include_directories(
