@@ -116,7 +116,7 @@ void *negamax(void *args)
 
 int initTree()
 {
-    root = calloc(1, sizeof(Node_t));
+    root = static_cast<Node_t *>(calloc(1, sizeof(Node_t)));
     initContext(root->context);
 
     initHashmap(hashtable, 8192);
@@ -125,7 +125,7 @@ int initTree()
     //TODO: inizializza rete
 
 
-    const int result = pthread_create(&thread, NULL, negamax, root);
+    const int result = pthread_create(&threads[tCount++], nullptr, negamax, root);
     if (result)
     {
         logE(stderr, "pthread_create: %d\n", result);

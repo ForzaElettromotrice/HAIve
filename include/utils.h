@@ -37,6 +37,6 @@ void printGameString(const Context_t *context);
 
 GameStatus_t getGameStatus(const Context_t *context);
 int_fast8_t howManyAround(const Context_t *context, Pieces_t id, bool friendly);
-void addOurMove(Context_t *context, Piece_t *move);
+void addOurMove(Context_t *context, const Piece_t *move);
 
-bool isContextEnded(const Context_t* context);
+bool isContextEnded(const Context_t *context);

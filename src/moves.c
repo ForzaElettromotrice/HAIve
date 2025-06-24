@@ -35,7 +35,6 @@ Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const 
 
 void allocateMoves(Piece_t **moves)
 {
-
     //TODO: fare una versione che alloca il giusto per ogni pezzo e vedere quale va piu veloce
     //Allocazione delle mosse
     for (int i = 0; i < MOVES_ARRAYS; ++i)
@@ -48,12 +47,10 @@ void allocateMoves(Piece_t **moves)
 
 void freeMoves(Piece_t **moves)
 {
-
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
         free(moves[i]);
     }
-
 }
 
 bool canSlide(const Position_t *pos, const int_fast8_t direction, const Pieces_t *board)
@@ -183,11 +180,11 @@ void *addMoves(void *arguments)
 
             char key[7];
             sprintf(key, "%03d%03d", newY1, newX1);
-            if (getByKey(key, &visited) != NULL)
+            if (getByStr(key, &visited) != NULL)
                 continue;
 
             int ignoreMe = 1;
-            setByKey(key, &ignoreMe, sizeof(int), &visited);
+            setByStr(key, &ignoreMe, sizeof(int), &visited);
 
             bool ok = true;
             for (int k = 0; k < 6; ++k)
@@ -247,9 +244,9 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
         moves[(*idx)++] = move;
     }
 }
-void* queen1Moves(void *arguments)
+void *queen1Moves(void *arguments)
 {
-    const ThreadArgs_t *args = (ThreadArgs_t*) arguments;
+    const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
     const Context_t *context = args->context;
     Piece_t *moves = args->moves[B_QUEEN];
 
@@ -308,7 +305,7 @@ void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
         moves[(*idx)++] = move;
     }
 }
-void* beetle1Moves(void *arguments)
+void *beetle1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
@@ -321,7 +318,7 @@ void* beetle1Moves(void *arguments)
     beetleMoves(id, &position, board, moves, &idx);
     return NULL;
 }
-void* beetle2Moves(void *arguments)
+void *beetle2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
@@ -501,7 +498,6 @@ void *pillbug1Moves(void *arguments)
 
 void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
 {
-
     Hashmap_t hashmap;
     initHashmap(&hashmap, 512);
     const int_fast8_t y = position->y;
@@ -585,12 +581,12 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
 
                 char key[7];
                 sprintf(key, "%03d%03d", newY3, newX3);
-                if (getByKey(key, &hashmap) != NULL)
+                if (getByStr(key, &hashmap) != NULL)
                     continue;
                 int ignoreMe = 1;
-                setByKey(key, &ignoreMe, sizeof(int), &hashmap);
+                setByStr(key, &ignoreMe, sizeof(int), &hashmap);
 
-                moves[(*idx)++] = (Piece_t) {id, {0, newY3, newX3}};
+                moves[(*idx)++] = (Piece_t){id, {0, newY3, newX3}};
             }
         }
     }
@@ -676,10 +672,10 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
 
                 char key[7];
                 sprintf(key, "%03d%03d", newY3, newX3);
-                if (getByKey(key, &hashmap) != NULL)
+                if (getByStr(key, &hashmap) != NULL)
                     continue;
                 int ignoreMe = 1;
-                setByKey(key, &ignoreMe, sizeof(int), &hashmap);
+                setByStr(key, &ignoreMe, sizeof(int), &hashmap);
 
                 moves[(*idx)++] = move;
             }
@@ -739,11 +735,11 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
 
         char key[7];
         sprintf(key, "%03d%03d", newY, newX);
-        if (getByKey(key, visited) != NULL)
+        if (getByStr(key, visited) != NULL)
             continue;
 
         int ignoreMe = 1;
-        setByKey(key, &ignoreMe, sizeof(int), visited);
+        setByStr(key, &ignoreMe, sizeof(int), visited);
 
         const Piece_t move = {id, {0, newY, newX}};
         if (!hasNeighbor(&move, board))
@@ -755,7 +751,7 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
     if (first)
         freeHashmap(visited);
 }
-void* ant1Moves(void *arguments)
+void *ant1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
@@ -768,7 +764,7 @@ void* ant1Moves(void *arguments)
     antMoves(id, &position, board, moves, &idx, NULL);
     return NULL;
 }
-void* ant2Moves(void *arguments)
+void *ant2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
@@ -781,7 +777,7 @@ void* ant2Moves(void *arguments)
     antMoves(id, &position, board, moves, &idx, NULL);
     return NULL;
 }
-void* ant3Moves(void *arguments)
+void *ant3Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
@@ -795,7 +791,7 @@ void* ant3Moves(void *arguments)
     return NULL;
 }
 
-void* mosquitoMoves(void *arguments)
+void *mosquitoMoves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
@@ -870,6 +866,9 @@ void* mosquitoMoves(void *arguments)
                 spiderMoves(id, &position, board, moves, &idx);
                 break;
             default:
+
+
+
         }
     }
     return NULL;
@@ -977,11 +976,11 @@ void getMoves(const Context_t *context, Piece_t **moves)
 
                 char key[7];
                 sprintf(key, "%03d%03d", newY1, newX1);
-                if (getByKey(key, &visited) != NULL)
+                if (getByStr(key, &visited) != NULL)
                     continue;
 
                 int ignoreMe = 1;
-                setByKey(key, &ignoreMe, sizeof(int), &visited);
+                setByStr(key, &ignoreMe, sizeof(int), &visited);
 
                 bool ok = true;
                 for (int k = 0; k < 6; ++k)
@@ -1023,7 +1022,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
     pthread_create(&threads[14], NULL, addMoves, &args);
     created[14] = true;
 
-    void* (*funcs[])(void *) = {queen1Moves, pillbug1Moves, ladybug1Moves, mosquitoMoves, ant1Moves, ant2Moves, ant3Moves, grasshopper1Moves, grasshopper2Moves, grasshopper3Moves, beetle1Moves, beetle2Moves, spider1Moves, spider2Moves};
+    void * (*funcs[])(void *) = {queen1Moves, pillbug1Moves, ladybug1Moves, mosquitoMoves, ant1Moves, ant2Moves, ant3Moves, grasshopper1Moves, grasshopper2Moves, grasshopper3Moves, beetle1Moves, beetle2Moves, spider1Moves, spider2Moves};
     //se la regina non c'è i pezzi non possono muoversi
     if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
     {
@@ -1031,7 +1030,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
         {
             if (positions[i].z == -1)
                 continue;
-            bool visited[28] = { };
+            bool visited[28] = {};
             visited[color == WHITE ? i + 14 : i] = true;
             const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
             if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
@@ -1039,7 +1038,6 @@ void getMoves(const Context_t *context, Piece_t **moves)
             pthread_create(&threads[i], NULL, funcs[i], &args);
             created[i] = true;
         }
-
     }
 
     //join
@@ -1049,6 +1047,5 @@ void getMoves(const Context_t *context, Piece_t **moves)
         if (created[i])
             pthread_join(threads[i], NULL);
     }
-
 }
 
