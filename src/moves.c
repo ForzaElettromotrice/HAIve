@@ -1031,7 +1031,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
         {
             if (positions[i].z == -1)
                 continue;
-            bool visited[28];
+            bool visited[28] = { };
             visited[color == WHITE ? i + 14 : i] = true;
             const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
             if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))

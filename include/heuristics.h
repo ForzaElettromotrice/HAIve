@@ -13,6 +13,8 @@ extern "C" {
 #include "preprocessor.h"
 #include <array>
 
+#define paramSize 2*NUM_PIECES+2*NUM_PIECES
+
 class HeuristicMetrics {
     std::array<double, 7> values_;
 
@@ -194,5 +196,6 @@ inline HeuristicMetrics getMetrics(const Pieces_t piece) {
 
 double mzingaHeuristic(const Context_t* context);
 uint_fast8_t getMovesSize(const Piece_t *moves);
+void setHeuristicParams(const Context_t *context, torch::Tensor &x);
 
 #endif //HEURISTICS_H

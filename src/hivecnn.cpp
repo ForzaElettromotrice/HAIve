@@ -9,7 +9,10 @@
 #include "heuristics.h"
 
 // HiveCNN
-torch::Tensor HiveCNNImpl::forward(torch::Tensor x) {
+float HiveCNNImpl::forward(const Context_t* context) {
+    torch::Tensor x;
+    Processor::boardToTensor(context->idToPos, x);
+
     x = x.to(torch::kFloat);
     x = conv_layers->forward(x);
     x = pool->forward(x);
@@ -20,7 +23,7 @@ torch::Tensor HiveCNNImpl::forward(torch::Tensor x) {
     // Optional activation:
     // x = torch::tanh(x);
 
-    return x;
+    return x.item().toFloat();
 }
 
 void HiveCNNImpl::save_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) const {
@@ -47,7 +50,7 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer>& opt
 
 // HiveCNNEnhanced
 
-torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t* context) {
+float HiveCNNEnhancedImpl::forward(const Context_t* context) {
     torch::Tensor x;
     torch::Tensor y = torch::zeros(paramSize);
     Processor::boardToTensor(context->idToPos, x);
@@ -63,7 +66,7 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t* context) {
     // Optional activation:
     // x = torch::tanh(x);
 
-    return x;
+    return x.item().toFloat();
 }
 
 void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer>& optimizer) const {
@@ -92,9 +95,7 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
 
 float evaluate(const Context_t* context, HiveCNN& model, const bool isWhiteTurn) {
 
-    torch::Tensor x;
-    Processor::boardToTensor(context->idToPos, x);
-    float y = model->forward(x).item().toFloat();
+    float y = model->forward(context);
     y *= !isWhiteTurn ? -1 : 1;
     if (y > 1) return 1;
     if (y < -1) return -1;

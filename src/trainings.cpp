@@ -68,7 +68,7 @@ void LearnFromHeuristicTrainer::train(const bool toLoad) {
             Processor::boardToTensor(context.idToPos, x);
             x = x.set_requires_grad(true);
 
-            const torch::Tensor y_gt = torch::tensor(heuristic(&context));
+            const float y_gt = heuristic(&context);
             const torch::Tensor y_pred = model->forward(x);
             torch::Tensor loss = torch::abs(y_pred - y_gt);
 
