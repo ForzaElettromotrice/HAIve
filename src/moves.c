@@ -111,7 +111,7 @@ bool dfs(const Position_t *start, const Context_t *context, bool *visited, const
     if (first)
     {
         for (int_fast8_t i = 0; i < 28; ++i)
-            if (!visited[i] && positions[i].z != -1)
+            if (!visited[i] && positions[i].z == 0)
                 return false;
     }
     return true;
@@ -423,6 +423,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
     Pieces_t startingPoint = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
     bool visited[28] = {0};
     visited[id] = true;
+    visited[startingPoint] = true;
     if (dfs(&positions[startingPoint], context, visited, true))
     {
         //Per muovere se stesso
@@ -476,7 +477,8 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
             const Piece_t move = {neighbor, freeLocations[j]};
             memset(visited, 0, sizeof(visited));
             visited[neighbor] = true;
-            if (!dfs(&positions[startingPoint], context, visited, true))
+            visited[chooseStartingPoint(neighbor, context->curColor, positions)] = true;
+            if (!dfs(&positions[chooseStartingPoint(neighbor, context->curColor, positions)], context, visited, true))
             {
                 visited[neighbor] = false;
                 continue;
@@ -885,11 +887,6 @@ void getMoves(const Context_t *context, Piece_t **moves)
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
-    if (context->turn == 60)
-    {
-        printf("Ciao");
-    }
-
     allocateMoves(moves);
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
@@ -1037,11 +1034,12 @@ void getMoves(const Context_t *context, Piece_t **moves)
     {
         for (uint_fast8_t i = 0; i < 14; ++i)
         {
-            if (positions[i].z == -1)
+            if (positions[color == WHITE ? i + 14 : i].z == -1)
                 continue;
             bool visited[28] = {};
             visited[color == WHITE ? i + 14 : i] = true;
             const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
+            visited[startingPoint] = true;
             if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
                 continue;
             pthread_create(&threads[i], NULL, funcs[i], &args);
