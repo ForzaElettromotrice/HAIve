@@ -4,8 +4,12 @@
 
 #include <pthread.h>
 #include <stdlib.h>
+
+
+extern "C" {
 #include <logger.h>
 #include <hashmap.h>
+}
 
 #include "hivecnn.h"
 #include "tree.hpp"
