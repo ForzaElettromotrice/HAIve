@@ -14,9 +14,10 @@
 #define yOf(y) (y + 14)
 #define xOf(x) (x + 28)
 
-#define pass (Piece_t){NULLPIECE, {0, 0, 0}}
 #define isBlack(x) (x < 14)
 #define isWhite(x) (x >= 14)
+
+extern const Piece_t pass;
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
 

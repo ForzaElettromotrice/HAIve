@@ -8,9 +8,18 @@
 
 #include "heuristics.h"
 
+// HiveNet
+HiveNet::HiveNet() {
+
+}
+
+HiveNet::~HiveNet() {
+
+}
+
+
 // HiveCNN
-float HiveCNNImpl::forward(const Context_t *context)
-{
+float HiveCNNImpl::forward(const Context_t* context) {
     torch::Tensor x;
     Processor::boardToTensor(context->idToPos, x);
 
@@ -200,10 +209,12 @@ float negamax_heuristic(const Context_t *context, const int depth, const int max
     bool moved = false;
 
     Context_t newContext;
-    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
-    {
-        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++)
-        {
+    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+            if (i >= 120)
+            {
+                logE(stderr, "Too many moves!\n");
+            }
             copyContext(context, &newContext);
 
             moved = true;
@@ -243,13 +254,21 @@ Result resultOf(const Context *context)
     if (gameStat == BLACK_WON)
         return Result::RESULT_BLACK_WON;
     return Result::RESULT_DRAW;
+
 }
 
-bool battleAgainstRandom(bool areWeWhite)
-{
-    Context_t context;
-    Piece_t bestMove;
-    Piece_t *moves[15];
+bool isPass(Piece_t **moves) {
+
+    for (uint8_t i = 0; i < MOVES_ARRAYS; i++) {
+        if (moves[i][0].id != NULLPIECE)
+            return false;
+    } return true;
+
+}
+
+bool battleAgainstRandom(bool areWeWhite) {
+
+    Context_t context; Piece_t bestMove; Piece_t *moves[15];
     initContext(&context);
 
     while (!isContextEnded(&context))
@@ -266,12 +285,17 @@ bool battleAgainstRandom(bool areWeWhite)
             if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1)
             {
                 chosenPiece = 14;
-            } else
-            {
-                do
-                {
-                    chosenPiece = rand() % MOVES_ARRAYS;
-                } while (moves[chosenPiece][0].id == NULLPIECE);
+            } else {
+                if (isPass(moves)) {
+                    addOurMove(&context, &pass);
+                    freeMoves(moves);
+                    continue;
+                }
+                else {
+                    do {
+                        chosenPiece = rand() % MOVES_ARRAYS;
+                    } while (moves[chosenPiece][0].id == NULLPIECE);
+                }
             }
             chosenMove = rand() % getMovesSize(moves[chosenPiece]);
             addOurMove(&context, &moves[chosenPiece][chosenMove]);
@@ -293,7 +317,7 @@ void testAgainstRandom()
 {
     int played = 0;
     int won = 0;
-    srand(time(NULL));
+    // srand(time(NULL));
 
     for (size_t i = 0; i < 100; i++)
     {

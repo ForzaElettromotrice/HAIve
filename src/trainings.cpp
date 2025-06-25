@@ -60,7 +60,6 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
 
     Context_t context;
     initContext(&context);
-    torch::Tensor x;
 
     auto avg_error = DBL_MAX;
     while (avg_error > 0.01 && epochs < maxEpochs)
@@ -73,12 +72,10 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
             context.gameStatus = NOT_STARTED;
 
             getRandomState(&context, 1, 100);
-            Processor::boardToTensor(context.idToPos, x);
-            x = x.set_requires_grad(true);
 
             const float y_gt = heuristic(&context);
-            const torch::Tensor y_pred = model->forward(x);
-            torch::Tensor loss = torch::abs(y_pred - y_gt);
+            const float y_pred = model->forward(&context);
+            torch::Tensor loss = torch::abs(torch::tensor(y_pred - y_gt));
 
             optimizer->zero_grad();
             loss.backward();
@@ -90,10 +87,9 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
         {
             resetContext(&context);
             getRandomState(&context, 1, 60);
-            Processor::boardToTensor(context.idToPos, x);
 
             const double y_gt = heuristic(&context);
-            const double y_pred = model->forward(x).item().toFloat();
+            const double y_pred = model->forward(&context);
 
             totError += abs(y_pred - y_gt);
         }

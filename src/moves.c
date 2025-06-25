@@ -207,6 +207,9 @@ void *addMoves(void *arguments)
 
             for (uint8_t k = 0; k < addSize; ++k)
             {
+                if (idx >= 120) {
+                    logE(stderr, "Too many moves\n");
+                }
                 moves[idx++] = (Piece_t)
                 {
                     toAdd[k],
@@ -472,7 +475,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
             const Piece_t move = {neighbor, freeLocations[j]};
             memset(visited, 0, sizeof(visited));
             visited[neighbor] = true;
-            if (!dfs(&positions[neighbor], context, visited, true))
+            if (!dfs(&positions[startingPoint], context, visited, true))
             {
                 visited[neighbor] = false;
                 continue;
@@ -880,6 +883,10 @@ void getMoves(const Context_t *context, Piece_t **moves)
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
+
+    if (context->turn == 60) {
+        printf("Ciao");
+    }
 
     allocateMoves(moves);
 

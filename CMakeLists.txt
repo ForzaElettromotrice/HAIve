@@ -5,12 +5,11 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_C_FLAGS "-O3")
 
-
 add_compile_options(-Wall)
 add_compile_definitions(Debug)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
-set(Torch_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/libtorch/share/cmake/Torch")
+set(Torch_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libtorch/share/cmake/Torch)
 
 
 find_package(Torch REQUIRED)

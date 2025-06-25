@@ -9,6 +9,8 @@
 #include <enums.h>
 #include <xxhash.h>
 
+const Piece_t pass = {NULLPIECE, {0, 0, 0}};
+
 uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
 {
     const int_fast8_t z = pos->z;

@@ -203,7 +203,7 @@ GameStatus_t getGameStatus(Context_t *context)
 }
 
 // Tells how many pieces are around the given one
-int_fast8_t howManyAround(Context_t *context, Pieces_t id)
+int_fast8_t howManyAround(const Context_t *context, Pieces_t id)
 {
     char nearAround = 0;
     int8_t z = context->idToPos[id].z;

@@ -9,10 +9,14 @@
 #include <preprocessor.h>
 #include <iostream>
 #include <filesystem>
-
+extern "C" {
+    #include <logger.h>
+}
 struct HiveNet : torch::nn::Module {
 
-    virtual float forward(const Context_t* context);
+    HiveNet();
+    ~HiveNet();
+    virtual float forward(const Context_t* context) = 0;
 
 };
 
