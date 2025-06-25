@@ -40,8 +40,8 @@ void allocateMoves(Piece_t **moves)
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
         //FIXME: 120 è provvisorio, un valore più preciso potrebbe fare più comodo
-        moves[i] = malloc(120 * sizeof(Position_t));
-        memset(moves[i], 0xff, 120 * sizeof(Position_t));
+        moves[i] = malloc(120 * sizeof(Piece_t));
+        memset(moves[i], 0xff, 120 * sizeof(Piece_t));
     }
 }
 
@@ -207,7 +207,8 @@ void *addMoves(void *arguments)
 
             for (uint8_t k = 0; k < addSize; ++k)
             {
-                if (idx >= 120) {
+                if (idx >= 120)
+                {
                     logE(stderr, "Too many moves\n");
                 }
                 moves[idx++] = (Piece_t)
@@ -884,7 +885,8 @@ void getMoves(const Context_t *context, Piece_t **moves)
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
-    if (context->turn == 60) {
+    if (context->turn == 60)
+    {
         printf("Ciao");
     }
 
