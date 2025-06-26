@@ -194,7 +194,7 @@ inline HeuristicMetrics getMetrics(const Pieces_t piece) {
     return HeuristicMetrics({0});;
 }
 
-double mzingaHeuristic(const Context_t* context);
+double mzingaHeuristic(Context_t* context);
 uint_fast8_t getMovesSize(const Piece_t *moves);
 void setHeuristicParams(const Context_t *context, torch::Tensor &x);
 

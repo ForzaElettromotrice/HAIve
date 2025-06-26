@@ -185,7 +185,7 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
     return -maxVal;
 }
 
-float negamax_heuristic(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, std::function<float(const Context_t *)> heuristicFunc)
+float negamax_heuristic(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc)
 {
     if (depth >= maxDepth)
     {

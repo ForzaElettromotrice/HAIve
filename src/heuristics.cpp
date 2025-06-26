@@ -13,26 +13,33 @@ uint_fast8_t getMovesSize(const Piece_t *moves) {
 
 }
 
-double mzingaHeuristic(const Context_t *context) {
+double mzingaHeuristic(Context_t *context) {
     if (context->gameStatus == WHITE_WON)
         return static_cast<double>(Result::RESULT_WHITE_WON);
     if (context->gameStatus == BLACK_WON)
         return static_cast<double>(Result::RESULT_BLACK_WON);
 
-    // TODO: Get moves both for WHite and Black
-
     double result = 0;
     bool whiteTurn = context->curColor == WHITE;
     Piece_t *moves[15];
-    getMoves(context, moves);
+    if (context->curColor == BLACK)
+        getMoves(context, moves);
+    else {
+        context->curColor = static_cast<Colors_t>(context->curColor * -1);
+        getMoves(context, moves);
+    }
 
-    for (uint8_t i = B_QUEEN; i < W_QUEEN; i++) {
+    for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++) {
+        if (i == W_QUEEN) {
+            context->curColor = static_cast<Colors_t>(context->curColor * -1);
+            getMoves(context, moves);
+        }
         const Position_t piecePos = context->idToPos[i];
-        const uint16_t mSize = getMovesSize(moves[i]);
+        const uint16_t mSize = getMovesSize(moves[i % 14]);
         if (piecePos.z == -1)
             continue;
         HeuristicMetrics pieceMetric = getMetrics(static_cast<Pieces_t>(i));
-        if (!whiteTurn)
+        if ( (whiteTurn && isBlack(i)) || (!whiteTurn && isWhite(i)) )
             pieceMetric = pieceMetric.black();
 
         result += pieceMetric.inPlayWeight();
@@ -62,8 +69,8 @@ double mzingaHeuristic(const Context_t *context) {
         if (context->idToPos[enemyQueen].z == -1)
             result += (pieceMetric.quietMoveWeight() * mSize);
 
-        for (size_t j = 0; moves[i][j].id != NULLPIECE; j++) {
-            const Position_t newPos = moves[i][j].position;
+        for (size_t j = 0; moves[i % 14][j].id != NULLPIECE; j++) {
+            const Position_t newPos = moves[i % 14][j].position;
             const Position_t enemyQueenPos = context->idToPos[enemyQueen];
             if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2) {
                 result += pieceMetric.quietMoveWeight();
@@ -76,9 +83,10 @@ double mzingaHeuristic(const Context_t *context) {
         }
     }
 
+    context->curColor = whiteTurn ? WHITE : BLACK;
     freeMoves(moves);
     result /= 1100000;
-    // if (result > 1 || result < -1) printf("GOT EXCEEDING RESULT\n");
+    if (result > 1 || result < -1) printf("GOT EXCEEDING RESULT\n");
     return result;
 }
 
