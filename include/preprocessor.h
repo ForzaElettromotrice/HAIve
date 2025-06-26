@@ -18,9 +18,9 @@ extern "C" {
 
 enum class Result : int8_t
 {
-    RESULT_BLACK_WON = -1,
+    RESULT_BLACK_WON = -2,
     RESULT_DRAW = 0,
-    RESULT_WHITE_WON = 1,
+    RESULT_WHITE_WON = 2,
 };
 
 enum class Layer : uint8_t

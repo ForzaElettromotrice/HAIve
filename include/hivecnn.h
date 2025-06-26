@@ -72,7 +72,7 @@ TORCH_MODULE(HiveCNN);
 struct HiveCNNEnhancedImpl : HiveNet {
     std::string checkpoint_file;
     torch::nn::Sequential conv_layers{nullptr};
-    torch::nn::Linear fc1{nullptr};
+    torch::nn::Sequential fc_layers{nullptr};
     uint16_t num_channels = 64;
 
     explicit HiveCNNEnhancedImpl(std::string checkpoint = "model_enh_checkpoint.pt")
@@ -96,16 +96,22 @@ struct HiveCNNEnhancedImpl : HiveNet {
                 torch::nn::Functional(torch::relu),
 
                 torch::nn::Conv2d(torch::nn::Conv2dOptions(num_channels, 256, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(num_channels)),
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(256)),
                 torch::nn::Functional(torch::relu),
 
                 torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 16, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(num_channels)),
-                torch::nn::Functional(torch::relu)
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(16)),
+                torch::nn::Functional(torch::relu),
+
+                torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2))
             ));
 
         // Fully connected layers
-        fc1 = register_module("fc1", torch::nn::Linear(288, 1));
+        fc_layers = register_module("fc1", torch::nn::Sequential(
+            torch::nn::Linear(3248, 16),
+                torch::nn::Functional(torch::relu),
+                torch::nn::Linear(16, 1)
+            ));
 
         // TODO: Add an action-prob layer?
     }
@@ -118,7 +124,7 @@ struct HiveCNNEnhancedImpl : HiveNet {
 TORCH_MODULE(HiveCNNEnhanced);
 
 Result resultOf(const Context *context);
-float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveCNN &net);
+float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net);
 void testAgainstRandom();
 
 #endif //HIVECNN_H

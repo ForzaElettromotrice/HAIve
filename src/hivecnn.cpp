@@ -72,11 +72,13 @@ float HiveCNNEnhancedImpl::forward(const Context_t *context)
     setHeuristicParams(context, y);
 
     x = x.to(torch::kFloat);
+    x = x.unsqueeze(0);
     x = conv_layers->forward(x);
     x = x.view({1, -1});
 
-    x = torch::cat({x, y});
-    x = fc1->forward(x);
+    y = y.unsqueeze(0);
+    x = torch::cat({x, y}, 1);
+    x = fc_layers->forward(x);
 
     // Optional activation:
     // x = torch::tanh(x);
@@ -112,16 +114,16 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
 
 // Other stuff
 
-float evaluate(const Context_t *context, HiveCNN &model, const bool isWhiteTurn)
+float evaluate(const Context_t *context, HiveNet &model, const bool isWhiteTurn)
 {
-    float y = model->forward(context);
+    float y = model.forward(context);
     y *= !isWhiteTurn ? -1 : 1;
     if (y > 1) return 1;
     if (y < -1) return -1;
     return y;
 }
 
-float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveCNN &net)
+float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net)
 {
     if (depth >= maxDepth)
     {
@@ -140,16 +142,13 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
-    const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
-    const uint_fast8_t end = start + 14;
     bool moved = false;
 
-    for (uint_fast8_t piece = context->curColor == WHITE ? W_QUEEN : B_QUEEN; piece < end; piece++)
+    for (uint_fast8_t piece = B_QUEEN; piece < MOVES_ARRAYS; piece++)
     {
         for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++)
         {
             Context_t newContext;
-            initContext(&newContext);
             copyContext(context, &newContext);
 
             moved = true;
@@ -167,7 +166,6 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
     if (!moved)
     {
         Context_t newContext;
-        initContext(&newContext);
         copyContext(context, &newContext);
 
         addOurMove(&newContext, &pass);
@@ -176,6 +174,7 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
         cleanContext(&newContext);
     }
 
+    freeMoves(moves);
 
     if (depth == 0)
     {
@@ -234,6 +233,7 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
 
         addOurMove(&newContext, &pass);
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
+        cleanContext(&newContext);
     }
 
     freeMoves(moves);
@@ -245,6 +245,73 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
     }
     return -maxVal;
 }
+
+float negamax_heuristic_ab(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc, float alpha, float beta)
+{
+    if (depth >= maxDepth)
+    {
+        return heuristicFunc(context) * (isWhiteTurn ? 1 : -1);
+    }
+
+    const GameStatus_t gameStat = getGameStatus(context);
+    if (gameStat == WHITE_WON)
+        return isWhiteTurn ? 1 : -1;
+    if (gameStat == BLACK_WON)
+        return isWhiteTurn ? -1 : 1;
+
+    // Trova i figli
+    Piece_t *moves[15];
+    getMoves(context, moves);
+    float maxVal = -2, tmp;
+    Piece_t curBestMove;
+
+    const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
+    const uint_fast8_t end = start + 14;
+    bool moved = false;
+
+    Context_t newContext;
+    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
+        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+            if (i >= 120)
+            {
+                logE(stderr, "Too many moves!\n");
+            }
+            copyContext(context, &newContext);
+
+            moved = true;
+            addOurMove(&newContext, &moves[piece][i]);
+            tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha);
+            cleanContext(&newContext);
+            if (tmp > maxVal)
+            {
+                maxVal = tmp;
+                curBestMove = moves[piece][i];
+            }
+            if (maxVal > alpha)
+                alpha = maxVal;
+            if (alpha >= beta)
+                break;
+        }
+    }
+
+    if (!moved)
+    {
+        copyContext(context, &newContext);
+
+        addOurMove(&newContext, &pass);
+        maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha);
+    }
+
+    freeMoves(moves);
+
+    if (depth == 0)
+    {
+        *bestMove = curBestMove;
+        return 0;
+    }
+    return maxVal;
+}
+
 
 Result resultOf(const Context *context)
 {
@@ -275,7 +342,7 @@ bool battleAgainstRandom(bool areWeWhite) {
     {
         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
         {
-            negamax_heuristic(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic);
+            negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -1, 1);
             addOurMove(&context, &bestMove);
         } else
         {

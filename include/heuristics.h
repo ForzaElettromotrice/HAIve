@@ -50,7 +50,7 @@ public:
         return values_[6];
     }
 
-    HeuristicMetrics black() const {
+    HeuristicMetrics enemy() const {
         auto new_values_ = std::array<double, 7>();
         for (uint8_t i = 0; i < 7; i++) {
             new_values_[i] = -values_[i];
@@ -142,49 +142,41 @@ inline HeuristicMetrics ladybugMetrics({
 inline HeuristicMetrics getMetrics(const Pieces_t piece) {
     switch (piece) {
         case W_QUEEN:
-            return queenMetrics;
         case B_QUEEN:
-            return queenMetrics.black();
+            return queenMetrics;
         case W_LADYBUG:
-            return ladybugMetrics;
         case B_LADYBUG:
-            return ladybugMetrics.black();
+            return ladybugMetrics;
         case W_ANT_1:
         case W_ANT_2:
         case W_ANT_3:
-            return antMetrics;
         case B_ANT_1:
         case B_ANT_2:
         case B_ANT_3:
-            return antMetrics.black();
+            return antMetrics;
         case W_PILLBUG:
-            return pillbugMetrics;
         case B_PILLBUG:
-            return pillbugMetrics.black();
+            return pillbugMetrics;
         case W_MOSQUITO:
-            return mosquitoMetrics;
         case B_MOSQUITO:
-            return mosquitoMetrics.black();
+            return mosquitoMetrics;
         case W_BEETLE_1:
         case W_BEETLE_2:
-            return beetleMetrics;
         case B_BEETLE_1:
         case B_BEETLE_2:
-            return beetleMetrics.black();
+            return beetleMetrics;
         case W_GRASSHOPPER_1:
         case W_GRASSHOPPER_2:
         case W_GRASSHOPPER_3:
-            return grasshopperMetrics;
         case B_GRASSHOPPER_1:
         case B_GRASSHOPPER_2:
         case B_GRASSHOPPER_3:
-            return grasshopperMetrics.black();
+            return grasshopperMetrics;
         case W_SPIDER_1:
         case W_SPIDER_2:
-            return spiderMetrics;
         case B_SPIDER_1:
         case B_SPIDER_2:
-            return spiderMetrics.black();
+            return spiderMetrics;
         case NULLPIECE:
             printf("ERROR: Non-existing metrics for nullpiece\n");
     }

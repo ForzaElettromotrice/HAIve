@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <array>
 #include "heuristics.h"
+#include <type_traits>
 
 class Trainer {
     std::string filename_;
@@ -50,9 +51,16 @@ public:
     double heuristic(Context_t *context) override;
 };
 
-inline void train() {
+inline void trainHeur() {
     MzingaHeuristicTrainer mzinga = MzingaHeuristicTrainer("model_checkpoint.pt");
     mzinga.train(false);
+}
+
+inline void trainSelfPlay(const bool toLoad) {
+
+    auto self_play_trainer = SelfPlayTrainer("model_checkpoint");
+    self_play_trainer.train(toLoad);
+
 }
 
 #endif //TRAININGS_H

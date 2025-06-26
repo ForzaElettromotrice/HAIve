@@ -105,8 +105,8 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
 
 void SelfPlayTrainer::train(const bool toLoad)
 {
-    auto ourModel = HiveCNN(getFilename());
-    auto enemyModel = HiveCNN(getFilename());
+    auto ourModel = HiveCNNEnhanced(getFilename());
+    auto enemyModel = HiveCNNEnhanced(getFilename());
     if (toLoad && std::filesystem::exists(getFilename()))
     {
         ourModel->load_model();
@@ -125,13 +125,13 @@ void SelfPlayTrainer::train(const bool toLoad)
         processor.newGame();
         const bool areWeWhite = i % 2 == 0;
 
-        while (context.gameStatus != DRAW && context.gameStatus != WHITE_WON && context.gameStatus != BLACK_WON)
+        while (context.gameStatus != DRAW && context.gameStatus != WHITE_WON && context.gameStatus != BLACK_WON && context.turn <= 100)
         {
             Piece_t bestMove;
             if (context.curColor == WHITE)
-                negamax_net(&context, 0, 1, true, &bestMove, areWeWhite ? ourModel : enemyModel);
+                negamax_net(&context, 0, 1, true, &bestMove, areWeWhite ? *ourModel : *enemyModel);
             else
-                negamax_net(&context, 0, 1, false, &bestMove, areWeWhite ? enemyModel : ourModel);
+                negamax_net(&context, 0, 1, false, &bestMove, areWeWhite ? *enemyModel : *ourModel);
             addOurMove(&context, &bestMove);
             if (context.gameStatus != DRAW && context.gameStatus != WHITE_WON && context.gameStatus != BLACK_WON)
                 processor.playMove(&context);

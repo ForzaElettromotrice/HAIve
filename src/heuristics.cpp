@@ -32,15 +32,16 @@ double mzingaHeuristic(Context_t *context) {
     for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++) {
         if (i == W_QUEEN) {
             context->curColor = static_cast<Colors_t>(context->curColor * -1);
+            freeMoves(moves);
             getMoves(context, moves);
         }
         const Position_t piecePos = context->idToPos[i];
-        const uint16_t mSize = getMovesSize(moves[i % 14]);
         if (piecePos.z == -1)
             continue;
+        const uint16_t mSize = getMovesSize(moves[i % 14]);
         HeuristicMetrics pieceMetric = getMetrics(static_cast<Pieces_t>(i));
         if ( (whiteTurn && isBlack(i)) || (!whiteTurn && isWhite(i)) )
-            pieceMetric = pieceMetric.black();
+            pieceMetric = pieceMetric.enemy();
 
         result += pieceMetric.inPlayWeight();
 
@@ -66,8 +67,10 @@ double mzingaHeuristic(Context_t *context) {
             result += pieceMetric.isPinnedWeight();
 
         const Pieces_t enemyQueen = isBlack(i) ? W_QUEEN : B_QUEEN;
-        if (context->idToPos[enemyQueen].z == -1)
+        if (context->idToPos[enemyQueen].z == -1) {
             result += (pieceMetric.quietMoveWeight() * mSize);
+            continue;
+        }
 
         for (size_t j = 0; moves[i % 14][j].id != NULLPIECE; j++) {
             const Position_t newPos = moves[i % 14][j].position;
@@ -85,8 +88,14 @@ double mzingaHeuristic(Context_t *context) {
 
     context->curColor = whiteTurn ? WHITE : BLACK;
     freeMoves(moves);
-    result /= 1100000;
-    if (result > 1 || result < -1) printf("GOT EXCEEDING RESULT\n");
+
+    const Pieces_t enemyQueen = whiteTurn ? B_QUEEN : W_QUEEN;
+    // myVal
+    if (context->idToPos[enemyQueen].z != -1)
+        result += 0.1 * (howManyAround(context, enemyQueen, false) + howManyAround(context, enemyQueen, true));
+
+    result /= 5200000;
+    if (result > 2 || result < -2) printf("GOT EXCEEDING RESULT: %lf\n", result);
     return result;
 }
 
@@ -112,13 +121,13 @@ void setHeuristicParams(const Context_t *context, torch::Tensor &x) {
         const Pieces_t enemyQueen = isBlack(i) ? W_QUEEN : B_QUEEN;
         uint16_t noisyMoves = 0, quietMoves = 0;
         if (context->idToPos[enemyQueen].z == -1) {
-            for (uint_fast16_t j = 0; moves[i][j].id != NULLPIECE; j++) {
+            for (uint_fast16_t j = 0; moves[i % 14][j].id != NULLPIECE; j++) {
                 quietMoves++;
             }
         } else {
-            for (size_t j = 0; moves[i][j].id != NULLPIECE; j++) {
+            for (size_t j = 0; moves[i % 14][j].id != NULLPIECE; j++) {
                 const Position_t piecePos = context->idToPos[i];
-                const Position_t newPos = moves[i][j].position;
+                const Position_t newPos = moves[i % 14][j].position;
                 const Position_t enemyQueenPos = context->idToPos[enemyQueen];
 
                 if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2) {
