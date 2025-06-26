@@ -51,11 +51,11 @@ uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z) {
 
 void Processor::saveToFile(std::ofstream &os, const Position_t *positions, const Result &result) {
     for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
-        const int_fast8_t z = positions[i].z;
+        const int z = positions[i].z;
         if (z == -1)
             continue;
-        const int_fast8_t y = positions[i].y;
-        const int_fast8_t x = positions[i].x;
+        const int y = positions[i].y;
+        const int x = positions[i].x;
         os << i << ":(" << z << ',' << y << ',' << x << ");";
     }
     os << std::endl;
@@ -102,7 +102,7 @@ void Processor::multipleSaveToFile(const std::string &fileName,
 
 void Processor::multipleSaveToFile(const std::string &fileName,
                                    const std::vector<std::vector<Position_t> > &allPositions, const Result &result) {
-    std::ofstream os(fileName);
+    std::ofstream os(fileName, std::ios::binary);
     if (!os)
         throw std::runtime_error("Could not open file " + fileName);
     for (const auto &allPosition: allPositions) {
