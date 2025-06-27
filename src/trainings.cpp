@@ -113,6 +113,9 @@ void FromFilesTrainer::train(const bool toLoad){
         model->load_model();
     }
 
+    torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+    model->to(device);
+
     MinManager minManager = MinManager();
 
     std::shared_ptr<torch::optim::Optimizer> optimizer =
@@ -126,7 +129,7 @@ void FromFilesTrainer::train(const bool toLoad){
         if (entry.is_regular_file()) {
 
             minManager.load(entry.path().string());
-            torch::Tensor yT = torch::tensor({minManager.result()}, torch::kFloat);
+            torch::Tensor yT = torch::tensor({minManager.result()}, torch::kFloat).to(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
             while (!minManager.isEnded()) {
 
                 Context_t *context = minManager.getNext();

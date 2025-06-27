@@ -72,6 +72,8 @@ float HiveCNNEnhancedImpl::forward(const Context_t *context)
     setHeuristicParams(context, y);
 
     x = x.to(torch::kFloat);
+    if (torch::cuda::is_available())
+        x = x.to(torch::kCUDA);
     x = x.unsqueeze(0);
     x = conv_layers->forward(x);
     x = x.view({1, -1});
