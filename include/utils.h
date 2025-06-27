@@ -28,7 +28,7 @@ void cleanContext(const Context_t *context);
 
 Command_t parseCommand(const char *command);
 
-
+Piece_t parseMove(const Position_t *idToPos, char *move);
 void doMove(Context_t *context, char *move);
 void bestMove(const Context_t *context);
 

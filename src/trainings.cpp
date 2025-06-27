@@ -6,6 +6,10 @@
 
 #include <cfloat>
 
+#include "minmanager.h"
+
+namespace fs = std::filesystem;
+
 void getRandomState(Context_t *toFill, const uint8_t minMoves, const uint8_t maxMoves)
 {
     const uint8_t movesToPlay = (rand() % (maxMoves - minMoves)) + minMoves;
@@ -102,6 +106,48 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
     model->save_model(optimizer);
 }
 
+void FromFilesTrainer::train(const bool toLoad){
+
+    auto model = HiveCNNEnhanced(getFilename());
+    if (toLoad && std::filesystem::exists(getFilename())) {
+        model->load_model();
+    }
+
+    MinManager minManager = MinManager();
+
+    std::shared_ptr<torch::optim::Optimizer> optimizer =
+        std::make_shared<torch::optim::Adam>(model->parameters(), torch::optim::AdamOptions(5e-4));
+
+    torch::Tensor loss;
+    torch::Tensor total_loss = torch::zeros({});
+    int steps = 0;
+
+    for (const auto& entry : fs::directory_iterator(dirName_)) {
+        if (entry.is_regular_file()) {
+
+            minManager.load(entry.path().string());
+            torch::Tensor yT = torch::tensor({minManager.result()}, torch::kFloat);
+            while (!minManager.isEnded()) {
+
+                Context_t *context = minManager.getNext();
+                torch::Tensor yP = torch::Tensor({model.forward(context)}, torch::kFloat);
+                loss = torch::abs(yP - yT);
+
+                optimizer->zero_grad();
+                loss.backward();
+                optimizer->step();
+
+                total_loss += loss;
+                steps++;
+
+            }
+
+            std::cout << "Running loss: " << (total_loss / steps).item<float>() << std::endl;
+
+        }
+    }
+
+}
 
 void SelfPlayTrainer::train(const bool toLoad)
 {

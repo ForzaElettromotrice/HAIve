@@ -226,10 +226,10 @@ Pieces_t parsePiece(const char *piece)
 
     return NULLPIECE; // Default case for invalid input
 }
-Piece_t *parseMove(const Position_t *idToPos, char *move)
+Piece_t parseMove(const Position_t *idToPos, char *move)
 {
     if (strcmp(move, "pass") == 0)
-        return &(Piece_t){-1, {-1, -1, -1}};
+        return (Piece_t){-1, {-1, -1, -1}};
 
     const char *firstStr = strtok(move, " ");
     const char *secondStr = strtok(NULL, " ");
@@ -237,7 +237,7 @@ Piece_t *parseMove(const Position_t *idToPos, char *move)
     const Pieces_t first = parsePiece(firstStr);
 
     if (secondStr == NULL)
-        return &(Piece_t){first, {0, 0, 0}};
+        return (Piece_t){first, {0, 0, 0}};
 
 
     int8_t direction;
@@ -283,12 +283,12 @@ Piece_t *parseMove(const Position_t *idToPos, char *move)
     if (direction == -1)
     {
         secondPos.z++;
-        return &(Piece_t){first, secondPos};
+        return (Piece_t){first, secondPos};
     }
 
     secondPos.y = (int8_t) (secondPos.y + directions[direction][0]);
     secondPos.x = (int8_t) (secondPos.x + directions[direction][1]);
-    return &(Piece_t){first, secondPos};
+    return (Piece_t){first, secondPos};
 }
 
 

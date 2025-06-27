@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <array>
 #include "heuristics.h"
+#include <filesystem>
 #include <type_traits>
 
 class Trainer {
@@ -36,10 +37,24 @@ public:
 };
 
 class SelfPlayTrainer : public Trainer {
+
 public:
     explicit SelfPlayTrainer(const std::string &filename) : Trainer(filename) {
     }
 
+    void train(bool toLoad) override;
+
+};
+
+class FromFilesTrainer : public Trainer {
+
+    std::string dirName_;
+
+public:
+    explicit FromFilesTrainer(const std::string &filename, const std::string &dirName) : Trainer(filename), dirName_(dirName){}
+    std::string& getDir(){
+        return dirName_;
+    }
     void train(bool toLoad) override;
 };
 

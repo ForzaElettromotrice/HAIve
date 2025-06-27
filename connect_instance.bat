@@ -1,0 +1,1 @@
+ssh -i "C:\Users\filip\.ssh\windows-keys.pem" ec2-user@13.48.248.188
