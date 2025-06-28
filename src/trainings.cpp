@@ -112,9 +112,7 @@ void FromFilesTrainer::train(const bool toLoad) {
     MinManager minManager = MinManager();
 
     float total_loss = 0.0f;
-    int steps = 0;
-
-    int numEntry = 0;
+    int steps = 0, numEntry = 0, signs = 0;
 
     std::vector<fs::directory_entry> entries;
     for (const auto &entry: fs::directory_iterator(dirName_)) {
@@ -125,7 +123,7 @@ void FromFilesTrainer::train(const bool toLoad) {
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::shuffle(entries.begin(), entries.end(), g);
 
-    const auto num_selected = static_cast<size_t>(entries.size() * 0.0008l);
+    const auto num_selected = static_cast<size_t>(entries.size() * 0.0015l);
     std::vector selected(entries.begin(), entries.begin() + num_selected);
 
     for (size_t epoch = 0; epoch < 15; epoch++) {
@@ -139,11 +137,13 @@ void FromFilesTrainer::train(const bool toLoad) {
                 yT = yT.reshape({1, 1});
                 while (!minManager.isEnded()) {
                     const Context_t *context = minManager.getNext();
-                    if (dis(g) < 0.1)
+                    if (dis(g) < 0.05 || context->turn <= 5)
                         continue;
                     torch::Tensor yP = model->forward(context);
                     torch::Tensor loss = smoothL1(yP, yT);
-                    loss += torch::where((yP * yT) < 0, torch::ones_like(loss), torch::zeros_like(loss)).mean();
+                    auto signMismatch = torch::where((yP * yT) < 0, torch::ones_like(loss), torch::zeros_like(loss)).mean();
+                    loss += signMismatch;
+                    signs += signMismatch.item<float>();
 
                     optimizer->zero_grad();
                     loss.backward();
@@ -153,16 +153,17 @@ void FromFilesTrainer::train(const bool toLoad) {
                     steps++;
                 }
 
-                if (numEntry % 50 == 0)
+                if (numEntry % 100 == 0)
                     std::cout << "Processed " << numEntry << " files out of " << selected.size() << std::endl;
 
             }
         }
 
-        std::cout << "Epoch " << epoch + 1 << " loss: " << total_loss / steps << std::endl;
+        std::cout << "Epoch " << epoch + 1 << " | Loss: " << total_loss / steps << " | Wrong signs: " << signs << "/" << steps << std::endl;
         total_loss = 0.0f;
         steps = 0;
         numEntry = 0;
+        signs = 0;
 
     }
 
