@@ -62,7 +62,7 @@ void *negamax(void *args)
 
     if (depth == 5)
     {
-        node->score = model->forward(node->context);
+        node->score = model->forward(node->context).item<float>();
         updateHashtable(node, 5);
         return nullptr;
     }

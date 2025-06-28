@@ -3,6 +3,18 @@
 //
 
 #include "minmanager.h"
+
+std::string rstrip(const std::string& s) {
+    std::string result = s;
+    result.erase(std::find_if(result.rbegin(), result.rend(),
+                              [](unsigned char ch) {
+                                  return !std::isspace(ch);
+                              }).base(),
+                 result.end());
+    return result;
+}
+
+
 void MinManager::initMinManager() {
     {
 
@@ -23,6 +35,7 @@ void MinManager::initMinManager() {
 
         // other line
         while (std::getline(is, line)) {
+            line = rstrip(line);
             char* mutable_line = new char[line.size() + 1];  // +1 for null terminator
             std::strcpy(mutable_line, line.c_str());
 

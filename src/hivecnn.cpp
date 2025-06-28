@@ -19,10 +19,11 @@ HiveNet::~HiveNet() {
 
 
 // HiveCNN
-float HiveCNNImpl::forward(const Context_t* context) {
+torch::Tensor HiveCNNImpl::forward(const Context_t* context) {
     torch::Tensor x;
     Processor::boardToTensor(context->idToPos, x);
 
+    x = x.clone().set_requires_grad(true);
     x = x.to(torch::kFloat);
     x = conv_layers->forward(x);
     x = pool->forward(x);
@@ -33,7 +34,7 @@ float HiveCNNImpl::forward(const Context_t* context) {
     // Optional activation:
     // x = torch::tanh(x);
 
-    return x.item().toFloat();
+    return x;
 }
 
 void HiveCNNImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer) const
@@ -64,13 +65,14 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &opt
 
 // HiveCNNEnhanced
 
-float HiveCNNEnhancedImpl::forward(const Context_t *context)
+torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
 {
     torch::Tensor x;
     torch::Tensor y = torch::zeros(paramSize);
     Processor::boardToTensor(context->idToPos, x);
     setHeuristicParams(context, y);
 
+    x = x.clone().set_requires_grad(true);
     x = x.to(torch::kFloat);
     if (torch::cuda::is_available())
         x = x.to(torch::kCUDA);
@@ -85,7 +87,7 @@ float HiveCNNEnhancedImpl::forward(const Context_t *context)
     // Optional activation:
     // x = torch::tanh(x);
 
-    return x.item().toFloat();
+    return x;
 }
 
 void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer) const
@@ -118,7 +120,7 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
 
 float evaluate(const Context_t *context, HiveNet &model, const bool isWhiteTurn)
 {
-    float y = model.forward(context);
+    float y = model.forward(context).item<float>();
     y *= !isWhiteTurn ? -1 : 1;
     if (y > 1) return 1;
     if (y < -1) return -1;

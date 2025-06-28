@@ -32,18 +32,20 @@ enum class Layer : uint8_t
     BEETLE_3 = 4,
     BEETLE_4 = 5,
     BEETLE_5 = 6,
-    SPIDER = 7,
-    GRASSHOPPER = 8,
-    MOSQUITO_1 = 9,
-    MOSQUITO_2 = 10,
-    MOSQUITO_3 = 11,
-    MOSQUITO_4 = 12,
-    MOSQUITO_5 = 13,
-    LADYBUG = 14,
-    PILLBUG = 15
+    BEETLE_6 = 7,
+    SPIDER = 8,
+    GRASSHOPPER = 9,
+    MOSQUITO_1 = 10,
+    MOSQUITO_2 = 11,
+    MOSQUITO_3 = 12,
+    MOSQUITO_4 = 13,
+    MOSQUITO_5 = 14,
+    MOSQUITO_6 = 15,
+    LADYBUG = 16,
+    PILLBUG = 17
 };
 
-constexpr uint8_t sizeLayer = 16;
+constexpr uint8_t sizeLayer = 18;
 
 class Processor {
 

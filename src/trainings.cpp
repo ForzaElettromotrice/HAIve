@@ -3,9 +3,8 @@
 //
 
 #include "trainings.h"
-
+#include <random>
 #include <cfloat>
-
 #include "minmanager.h"
 
 namespace fs = std::filesystem;
@@ -77,9 +76,10 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
 
             getRandomState(&context, 1, 100);
 
-            const float y_gt = heuristic(&context);
-            const float y_pred = model->forward(&context);
-            torch::Tensor loss = torch::abs(torch::tensor(y_pred - y_gt));
+            const float hOut = heuristic(&context);
+            torch::Tensor y_gt = torch::tensor({hOut}, torch::TensorOptions().dtype(torch::kFloat));
+            const torch::Tensor y_pred = model->forward(&context);
+            torch::Tensor loss = torch::abs(y_pred - y_gt);
 
             optimizer->zero_grad();
             loss.backward();
@@ -92,10 +92,11 @@ void LearnFromHeuristicTrainer::train(const bool toLoad)
             resetContext(&context);
             getRandomState(&context, 1, 60);
 
-            const double y_gt = heuristic(&context);
-            const double y_pred = model->forward(&context);
+            const double hOutput = heuristic(&context);
+            torch::Tensor y_gt = torch::tensor({hOutput}, torch::TensorOptions().dtype(torch::kFloat));
+            torch::Tensor y_pred = model->forward(&context);
 
-            totError += abs(y_pred - y_gt);
+            totError += torch::abs(y_pred - y_gt).item<double>();
         }
         avg_error = totError / testCycles;
 
@@ -113,39 +114,53 @@ void FromFilesTrainer::train(const bool toLoad){
         model->load_model();
     }
 
-    torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+    const torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
     model->to(device);
 
     MinManager minManager = MinManager();
 
-    std::shared_ptr<torch::optim::Optimizer> optimizer =
-        std::make_shared<torch::optim::Adam>(model->parameters(), torch::optim::AdamOptions(5e-4));
+    const std::shared_ptr<torch::optim::Optimizer> optimizer =
+        std::make_shared<torch::optim::AdamW>(model->parameters(), torch::optim::AdamWOptions(5e-4));
 
-    torch::Tensor loss;
-    torch::Tensor total_loss = torch::zeros({});
+    float total_loss = 0.0f;
     int steps = 0;
 
+    std::vector<fs::directory_entry> entries;
     for (const auto& entry : fs::directory_iterator(dirName_)) {
+        entries.push_back(entry);
+    }
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(entries.begin(), entries.end(), g);
+
+    for (const auto& entry : entries) {
         if (entry.is_regular_file()) {
 
             minManager.load(entry.path().string());
-            torch::Tensor yT = torch::tensor({minManager.result()}, torch::kFloat).to(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+            float result = minManager.result();
+            torch::Tensor yT = torch::tensor(result, torch::TensorOptions().dtype(torch::kFloat)).to(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
             while (!minManager.isEnded()) {
 
-                Context_t *context = minManager.getNext();
-                torch::Tensor yP = torch::Tensor({model.forward(context)}, torch::kFloat);
-                loss = torch::abs(yP - yT);
+                const Context_t *context = minManager.getNext();
+                torch::Tensor yP = model->forward(context);
+                torch::Tensor loss = torch::abs(yP - yT);
 
                 optimizer->zero_grad();
                 loss.backward();
                 optimizer->step();
 
-                total_loss += loss;
+                total_loss += loss.item<float>();
                 steps++;
 
             }
 
-            std::cout << "Running loss: " << (total_loss / steps).item<float>() << std::endl;
+            std::cout << "Running loss: " << (total_loss / steps) << std::endl;
+
+            if (steps > 2000) {
+                steps = 0;
+                total_loss = 0.0f;
+                model->save_model(optimizer);
+            }
 
         }
     }

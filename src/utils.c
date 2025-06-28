@@ -245,7 +245,7 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
     if (secondStr[0] == 'w' || secondStr[0] == 'b')
     {
         second = parsePiece(secondStr);
-        switch (secondStr[strlen(secondStr - 1)])
+        switch (secondStr[strlen(secondStr) - 1])
         {
             case '/':
                 direction = RIGHT_UP;
@@ -389,8 +389,8 @@ void doMove(Context_t *context, char *move)
     addMazingaMove(context, move);
 
     //TODO: salva l'hash della board
-    const Piece_t *piece = parseMove(context->idToPos, move);
-    addOurMove(context, piece);
+    const Piece_t piece = parseMove(context->idToPos, move);
+    addOurMove(context, &piece);
 }
 
 
