@@ -137,7 +137,7 @@ void FromFilesTrainer::train(const bool toLoad) {
                 yT = yT.reshape({1, 1});
                 while (!minManager.isEnded()) {
                     const Context_t *context = minManager.getNext();
-                    if (dis(g) < 0.05 || context->turn <= 5)
+                    if (dis(g) < 0.05 || context->turn <= 6)
                         continue;
                     torch::Tensor yP = model->forward(context);
                     torch::Tensor loss = smoothL1(yP, yT);
