@@ -13,11 +13,6 @@ HiveNet::HiveNet() {
 
 }
 
-HiveNet::~HiveNet() {
-
-}
-
-
 // HiveCNN
 torch::Tensor HiveCNNImpl::forward(const Context_t* context) {
     torch::Tensor x;
@@ -341,13 +336,15 @@ bool isPass(Piece_t **moves) {
 bool battleAgainstRandom(bool areWeWhite) {
 
     Context_t context; Piece_t bestMove; Piece_t *moves[15];
+    auto model = HiveCNNEnhanced("model_checkpoint");
+    model->eval();
     initContext(&context);
 
     while (!isContextEnded(&context))
     {
         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
         {
-            negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -1, 1);
+            negamax_net(&context, 0, 2, context.curColor == WHITE, &bestMove, *model);
             addOurMove(&context, &bestMove);
         } else
         {
@@ -397,6 +394,6 @@ void testAgainstRandom()
             won++;
         played++;
 
-        printf("%d / %d", won, played);
+        printf("%d / %d\n", won, played);
     }
 }

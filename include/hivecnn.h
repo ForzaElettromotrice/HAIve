@@ -15,7 +15,7 @@ extern "C" {
 struct HiveNet : torch::nn::Module {
 
     HiveNet();
-    ~HiveNet();
+    virtual ~HiveNet() {};
     virtual torch::Tensor forward(const Context_t* context) = 0;
 
 };
