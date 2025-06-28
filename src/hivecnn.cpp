@@ -78,6 +78,7 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
         x = x.to(torch::kCUDA);
     x = x.unsqueeze(0);
     x = conv_layers->forward(x);
+    x = x.mean({2, 3});
     x = x.view({1, -1});
 
     y = y.unsqueeze(0);

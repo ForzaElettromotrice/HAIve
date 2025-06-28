@@ -16,7 +16,7 @@ int main()
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
 
-    trainFromFiles(false);
+    trainFromFiles(true);
     return 0;
 
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero

@@ -237,7 +237,7 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
     const Pieces_t first = parsePiece(firstStr);
 
     if (secondStr == NULL)
-        return (Piece_t){first, {0, 0, 0}};
+        return (Piece_t){(first % 14) + 14, {0, 0, 0}};
 
 
     int8_t direction;
@@ -568,4 +568,15 @@ GameStatus_t getGameStatus(const Context_t *context) {
 bool isContextEnded(const Context_t* context) {
     const GameStatus_t gameStatus = context->gameStatus;
     return gameStatus == WHITE_WON || gameStatus == BLACK_WON || gameStatus == DRAW;
+}
+void printPos(const Position_t* idToPos) {
+
+    for (int i = 0; i < NUM_PIECES; i++) {
+        if (idToPos[i].z == -1)
+            continue;
+        char piece[4] = {};
+        parsePieceToMazinga(i % 14, &piece);
+        printf("%s: %d %d %d\n", piece, idToPos[i].z, idToPos[i].y, idToPos[i].x);
+    }
+
 }

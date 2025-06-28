@@ -40,6 +40,8 @@ void MinManager::initMinManager() {
             std::strcpy(mutable_line, line.c_str());
 
             Piece_t p = parseMove(context_.idToPos, mutable_line);
+            if (p.position.z <= -1 && p.id != NULLPIECE)
+                break;
             moves_.push_back(p);
 
             addOurMove(&context_, &p);

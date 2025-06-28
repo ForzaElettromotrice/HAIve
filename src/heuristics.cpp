@@ -105,11 +105,10 @@ double mzingaHeuristic(Context_t *context) {
 
 void setHeuristicParams(const Context_t *context, torch::Tensor &x) {
     // n_neigh_friendly + enemy  // moves (quiet/noisy)
-    size_t size = 2 * NUM_PIECES + 2 * NUM_PIECES;
+    const size_t size = 2 * NUM_PIECES + 2 * NUM_PIECES;
+    TORCH_CHECK(x.dim() == 1 && x.size(0) >= size, "Tensor x has incorrect shape");
 
     // For other tests: maybe adding positional+identitary embeddings of pieces.
-
-    x.zero_();
 
     Piece_t *moves[15];
     getMoves(context, moves);
