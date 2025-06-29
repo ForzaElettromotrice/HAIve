@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <algorithm>
+#include <cctype>
 extern "C" {
 #include "enums.h"
 #include "utils.h"
@@ -27,7 +29,8 @@ public:
 
     MinManager() = default;
 
-    void load(const std::string &filename) : filename_(filename) {
+    void load(const std::string &filename) {
+        filename_ = filename;
         initMinManager();
     }
 

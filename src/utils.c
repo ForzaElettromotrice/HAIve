@@ -237,7 +237,7 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
     const Pieces_t first = parsePiece(firstStr);
 
     if (secondStr == NULL)
-        return (Piece_t){first, {0, 0, 0}};
+        return (Piece_t){(first % 14) + 14, {0, 0, 0}};
 
 
     int8_t direction;
@@ -245,7 +245,7 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
     if (secondStr[0] == 'w' || secondStr[0] == 'b')
     {
         second = parsePiece(secondStr);
-        switch (secondStr[strlen(secondStr - 1)])
+        switch (secondStr[strlen(secondStr) - 1])
         {
             case '/':
                 direction = RIGHT_UP;
@@ -389,8 +389,8 @@ void doMove(Context_t *context, char *move)
     addMazingaMove(context, move);
 
     //TODO: salva l'hash della board
-    const Piece_t *piece = parseMove(context->idToPos, move);
-    addOurMove(context, piece);
+    const Piece_t piece = parseMove(context->idToPos, move);
+    addOurMove(context, &piece);
 }
 
 
@@ -568,4 +568,15 @@ GameStatus_t getGameStatus(const Context_t *context) {
 bool isContextEnded(const Context_t* context) {
     const GameStatus_t gameStatus = context->gameStatus;
     return gameStatus == WHITE_WON || gameStatus == BLACK_WON || gameStatus == DRAW;
+}
+void printPos(const Position_t* idToPos) {
+
+    for (int i = 0; i < NUM_PIECES; i++) {
+        if (idToPos[i].z == -1)
+            continue;
+        char piece[4] = {};
+        parsePieceToMazinga(i % 14, &piece);
+        printf("%s: %d %d %d\n", piece, idToPos[i].z, idToPos[i].y, idToPos[i].x);
+    }
+
 }

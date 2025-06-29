@@ -78,4 +78,9 @@ inline void trainSelfPlay(const bool toLoad) {
 
 }
 
+inline void trainFromFiles(const bool toLoad) {
+    auto from_files_trainer = FromFilesTrainer("model_checkpoint", "/home/filippo/Scrivania/projects/HAIve/hive_games_min");
+    from_files_trainer.train(toLoad);
+}
+
 #endif //TRAININGS_H

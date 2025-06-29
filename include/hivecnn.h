@@ -15,8 +15,8 @@ extern "C" {
 struct HiveNet : torch::nn::Module {
 
     HiveNet();
-    ~HiveNet();
-    virtual float forward(const Context_t* context) = 0;
+    virtual ~HiveNet() {};
+    virtual torch::Tensor forward(const Context_t* context) = 0;
 
 };
 
@@ -32,7 +32,7 @@ struct HiveCNNImpl : HiveNet
     {
         // Build conv layers
         conv_layers = register_module("conv_layers", torch::nn::Sequential(
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(16, 24, /*kernel_size=*/2).padding(1).bias(true)),
+            torch::nn::Conv2d(torch::nn::Conv2dOptions(18, 24, /*kernel_size=*/2).padding(1).bias(true)),
             torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2)),
 
             torch::nn::Conv2d(torch::nn::Conv2dOptions(24, 32, /*kernel_size=*/2).padding(1).bias(true)),
@@ -62,7 +62,7 @@ struct HiveCNNImpl : HiveNet
         register_module("pool", pool);
     }
 
-    float forward(const Context_t* context) override;
+    torch::Tensor forward(const Context_t* context) override;
     void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const;
     void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr);
 };
@@ -73,50 +73,52 @@ struct HiveCNNEnhancedImpl : HiveNet {
     std::string checkpoint_file;
     torch::nn::Sequential conv_layers{nullptr};
     torch::nn::Sequential fc_layers{nullptr};
-    uint16_t num_channels = 64;
 
     explicit HiveCNNEnhancedImpl(std::string checkpoint = "model_enh_checkpoint.pt")
         : checkpoint_file(std::move(checkpoint)) {
 
         conv_layers = register_module("conv_layers", torch::nn::Sequential(
-                torch::nn::Conv2d(torch::nn::Conv2dOptions(16, num_channels, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(num_channels)),
-                torch::nn::Functional(torch::relu),
+                torch::nn::Conv2d(torch::nn::Conv2dOptions(18, 32, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(32)),
+                torch::nn::ReLU(),
 
-                torch::nn::Conv2d(torch::nn::Conv2dOptions(num_channels, num_channels, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(num_channels)),
-                torch::nn::Functional(torch::relu),
+                torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 64, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(64)),
+                torch::nn::ReLU(),
 
-                torch::nn::Conv2d(torch::nn::Conv2dOptions(num_channels, num_channels, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(num_channels)),
-                torch::nn::Functional(torch::relu),
+                torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 128, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(128)),
+                torch::nn::ReLU(),
 
-                torch::nn::Conv2d(torch::nn::Conv2dOptions(num_channels, num_channels, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(num_channels)),
-                torch::nn::Functional(torch::relu),
-
-                torch::nn::Conv2d(torch::nn::Conv2dOptions(num_channels, 256, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
+                torch::nn::Conv2d(torch::nn::Conv2dOptions(128, 256, /*kernel_size=*/3).stride(2).padding(1).bias(true)),
                 torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(256)),
-                torch::nn::Functional(torch::relu),
+                torch::nn::ReLU(),
+                torch::nn::Dropout(0.1),
 
-                torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 16, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
-                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(16)),
-                torch::nn::Functional(torch::relu),
+                torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 512, /*kernel_size=*/3).stride(2).padding(1).bias(true)),
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(512)),
+                torch::nn::ReLU(),
+                torch::nn::Dropout(0.1),
+
+                torch::nn::Conv2d(torch::nn::Conv2dOptions(512, 128, /*kernel_size=*/3).stride(1).padding(1).bias(true)),
+                torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(128)),
+                torch::nn::ReLU(),
 
                 torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2))
             ));
 
         // Fully connected layers
         fc_layers = register_module("fc1", torch::nn::Sequential(
-            torch::nn::Linear(3248, 16),
-                torch::nn::Functional(torch::relu),
+            torch::nn::Linear(240, 16),
+                torch::nn::ReLU(),
+                torch::nn::Dropout(0.1),
                 torch::nn::Linear(16, 1)
             ));
 
         // TODO: Add an action-prob layer?
     }
 
-    float forward(const Context_t* context) override;
+    torch::Tensor forward(const Context_t* context) override;
     void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const;
     void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr);
 };
