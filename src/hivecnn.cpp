@@ -112,6 +112,23 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
     }
 }
 
+void HiveCNNEnhancedImpl::save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer, int part) const {
+
+    torch::serialize::OutputArchive archive;
+    const std::filesystem::path path(checkpoint_file + std::to_string(part) + ".pt");
+    auto parent_dir = path.parent_path();
+    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir))
+    {
+        std::filesystem::create_directories(parent_dir);
+    }
+
+    this->save(archive);
+    optimizer->save(archive);
+    archive.save_to(checkpoint_file);
+
+}
+
+
 // Other stuff
 
 float evaluate(const Context_t *context, HiveNet &model, const bool isWhiteTurn)
@@ -251,7 +268,8 @@ float negamax_heuristic_ab(
     const bool isWhiteTurn,
     Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc,
     float alpha, float beta,
-    const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs
+    const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs,
+    Hashmap_t* hashtable
     )
 {
     auto now = std::chrono::high_resolution_clock::now();
@@ -262,7 +280,14 @@ float negamax_heuristic_ab(
 
     if (depth >= maxDepth)
     {
-        return heuristicFunc(context);
+        const uint64_t hash = hashAll(context->board, context->idToPos);
+        if (const auto result = static_cast<float *>(getByHash(hash, hashtable)); result != nullptr)
+        {
+            return *result;
+        }
+        const float res = heuristicFunc(context);
+        setByHash(hash, &res, sizeof(float), hashtable);
+        return res;
     }
 
     const GameStatus_t gameStat = getGameStatus(context);
@@ -299,7 +324,7 @@ float negamax_heuristic_ab(
 
             moved = true;
             addOurMove(&newContext, &moves[piece][i]);
-            tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs);
+            tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
             cleanContext(&newContext);
 
             if (tmp == -9999.0f) {
@@ -324,7 +349,7 @@ float negamax_heuristic_ab(
         copyContext(context, &newContext);
 
         addOurMove(&newContext, &pass);
-        maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs);
+        maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
 
         cleanContext(&newContext);
     }
@@ -363,9 +388,10 @@ bool isPass(Piece_t **moves) {
 bool battleAgainstRandom(bool areWeWhite) {
 
     Context_t context; Piece_t bestMove; Piece_t *moves[15];
-    auto model = HiveCNNEnhanced("model_checkpoint");
-    model->eval();
     initContext(&context);
+
+    Hashmap_t hashtable;
+    initHashmap(&hashtable, 8192);
 
     while (!isContextEnded(&context))
     {
@@ -373,7 +399,7 @@ bool battleAgainstRandom(bool areWeWhite) {
             printf("Turn %d\n", context.turn);
         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
         {
-            negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000);
+            negamax_heuristic_ab(&context, 0, 3, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
             addOurMove(&context, &bestMove);
         } else
         {
@@ -438,7 +464,7 @@ void bestMove(const Context_t *originalContext)
 
     Context_t ourContext;
     copyContext(originalContext, &ourContext);
-    Hashmap_t* hashtable; initHashmap(hashtable, 8192);
+    Hashmap_t hashtable; initHashmap(&hashtable, 8192);
 
     for (int depth = 1; depth <= 100; ++depth)
     {
@@ -456,8 +482,9 @@ void bestMove(const Context_t *originalContext)
             ourContext.curColor == WHITE,
             &currentBestMove,
             mzingaHeuristic,    // Your heuristic lambda or function
-            -1.0f, 1.0f,       // alpha-beta initial bounds
-            startTime, MAX_TIME_MS
+            -2, 2,       // alpha-beta initial bounds
+            startTime, MAX_TIME_MS,
+            &hashtable
         );
 
         // If we finished cleanly before timeout, update final best

@@ -18,6 +18,8 @@ int main()
 
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
 
+    testAgainstRandom();
+    return 0;
 
     size_t buf_size = 128;
     auto buffer = static_cast<char *>(malloc(sizeof(char) * buf_size));

@@ -123,7 +123,7 @@ void FromFilesTrainer::train(const bool toLoad) {
     std::uniform_real_distribution<> dis(0.0, 1.0);
     std::shuffle(entries.begin(), entries.end(), g);
 
-    const auto num_selected = static_cast<size_t>(entries.size() * 0.0015l);
+    const auto num_selected = static_cast<size_t>(entries.size() * 0.01l);
     std::vector selected(entries.begin(), entries.begin() + num_selected);
 
     for (size_t epoch = 0; epoch < 15; epoch++) {
@@ -153,7 +153,7 @@ void FromFilesTrainer::train(const bool toLoad) {
                     steps++;
                 }
 
-                if (numEntry % 100 == 0)
+                if (numEntry % 200 == 0)
                     std::cout << "Processed " << numEntry << " files out of " << selected.size() << std::endl;
 
             }
@@ -164,10 +164,10 @@ void FromFilesTrainer::train(const bool toLoad) {
         steps = 0;
         numEntry = 0;
         signs = 0;
-
+        model->save_partial(optimizer, epoch + 1);
     }
 
-    model->save_model(optimizer);
+
 }
 
 void SelfPlayTrainer::train(const bool toLoad) {
