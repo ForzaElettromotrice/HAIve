@@ -399,7 +399,7 @@ bool battleAgainstRandom(bool areWeWhite) {
             printf("Turn %d\n", context.turn);
         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
         {
-            negamax_heuristic_ab(&context, 0, 3, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
+            negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
             addOurMove(&context, &bestMove);
         } else
         {

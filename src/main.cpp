@@ -12,14 +12,12 @@ extern "C" {
 
 int main()
 {
+/*
 #ifdef Debug
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
-
+*/
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
-
-    testAgainstRandom();
-    return 0;
 
     size_t buf_size = 128;
     auto buffer = static_cast<char *>(malloc(sizeof(char) * buf_size));
@@ -29,10 +27,11 @@ int main()
 
     while (true)
     {
+        /*
 #ifdef Debug
         printf("> ");
 #endif
-
+*/
         const int32_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;

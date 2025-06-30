@@ -41,8 +41,8 @@ void allocateMoves(Piece_t **moves)
     {
         //FIXME: 120 è provvisorio, un valore più preciso potrebbe fare più comodo
         moves[i] = malloc(140 * sizeof(Piece_t));
-        if (moves[i] == NULL)
-            printf("Oh no :(\n");
+        // if (moves[i] == NULL)
+        //    printf("Oh no :(\n");
         memset(moves[i], 0xff, 140 * sizeof(Piece_t));
     }
 }

@@ -121,8 +121,8 @@ void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor
         const int_fast8_t z = positions[i].z;
         if (z == -1)
             continue;
-        if (z >= 5)
-            printf("Aiuto");
+        // if (z >= 5)
+        //    printf("Aiuto");
         const int_fast8_t y = positions[i].y;
         const int_fast8_t x = positions[i].x;
         uint8_t layerValue = pieceToLayer(static_cast<const Pieces_t>(i), z);
