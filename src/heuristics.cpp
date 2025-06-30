@@ -90,12 +90,16 @@ double mzingaHeuristic(Context_t *context) {
     freeMoves(moves);
 
     const Pieces_t enemyQueen = whiteTurn ? B_QUEEN : W_QUEEN;
-    // myVal
-    if (context->idToPos[enemyQueen].z != -1)
-        result += 0.1 * (howManyAround(context, enemyQueen, false) + howManyAround(context, enemyQueen, true));
 
     result /= 5200000;
-    if (result > 2 || result < -2) printf("GOT EXCEEDING RESULT: %lf\n", result);
+    // myVal
+    if (context->idToPos[enemyQueen].z != -1) {
+        // result += (0.17 * (howManyAround(context, enemyQueen, false) + howManyAround(context, enemyQueen, true)));
+        int howMany = howManyAround(context, enemyQueen, false) + howManyAround(context, enemyQueen, true);
+        result += (howMany * howMany * 0.032);
+        result -= (howMany * 0.0286);
+        result += 0.0179;
+    }
     return result;
 }
 

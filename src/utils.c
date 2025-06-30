@@ -496,14 +496,19 @@ void printGameString(const Context_t *context)
 
 void printMove(const Context_t *context, const Piece_t move)
 {
-    const int8_t z = context->idToPos[move.id].z;
-    const int8_t y = context->idToPos[move.id].y;
-    const int8_t x = context->idToPos[move.id].x;
+    const int8_t z = move.position.z;
+    const int8_t y = move.position.y;
+    const int8_t x = move.position.x;
 
     char out[20];
     sprintf(out, "%s", move.id < 14 ? "b" : "w");
     parsePieceToMazinga(move.id % 14, out);
     strcat(out, " ");
+
+    if (context->turn == 1) {
+        printf("%s\nok\n", out);
+        return;
+    }
 
     bool hover = true;
     for (int8_t i = 0; i < 6; ++i)
@@ -512,34 +517,39 @@ void printMove(const Context_t *context, const Piece_t move)
         const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
         const Pieces_t neighbor = context->board[MtA(z, newY, newX)];
-        if (neighbor == NULLPIECE)
+        if (neighbor == NULLPIECE || neighbor == move.id)
             continue;
-
 
         switch (i)
         {
             case RIGHT_UP:
                 strcat(out, "/");
-                parsePieceToMazinga(neighbor, out);
+                strcat(out, neighbor < 14 ? "b" : "w");
+                parsePieceToMazinga(neighbor % 14, out);
                 break;
             case RIGHT:
                 strcat(out, "-");
-                parsePieceToMazinga(neighbor, out);
+                strcat(out, neighbor < 14 ? "b" : "w");
+                parsePieceToMazinga(neighbor % 14, out);
                 break;
             case RIGHT_DOWN:
                 strcat(out, "\\");
-                parsePieceToMazinga(neighbor, out);
+                strcat(out, neighbor < 14 ? "b" : "w");
+                parsePieceToMazinga(neighbor % 14, out);
                 break;
             case LEFT_DOWN:
-                parsePieceToMazinga(neighbor, out);
+                strcat(out, neighbor < 14 ? "b" : "w");
+                parsePieceToMazinga(neighbor % 14, out);
                 strcat(out, "/");
                 break;
             case LEFT:
-                parsePieceToMazinga(neighbor, out);
+                strcat(out, neighbor < 14 ? "b" : "w");
+                parsePieceToMazinga(neighbor % 14, out);
                 strcat(out, "-");
                 break;
             case LEFT_UP:
-                parsePieceToMazinga(neighbor, out);
+                strcat(out, neighbor < 14 ? "b" : "w");
+                parsePieceToMazinga(neighbor % 14, out);
                 strcat(out, "\\");
                 break;
             default:
@@ -552,13 +562,8 @@ void printMove(const Context_t *context, const Piece_t move)
 
     if (hover)
         parsePieceToMazinga(context->board[MtA(z-1, y, x)], out);
-}
 
-void bestMove(const Context_t *context)
-{
-    //TODO: prendi il figlio con valore maggiore dall'albero
-    const Piece_t child = {0, {0, 0, 0}};
-    printMove(context, child);
+    printf("%s\nok\n", out);
 }
 
 GameStatus_t getGameStatus(const Context_t *context) {

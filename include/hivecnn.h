@@ -12,6 +12,12 @@
 extern "C" {
     #include <logger.h>
 }
+
+typedef struct HashValueHeur
+{
+    float score;
+} HashValueHeur_t;
+
 struct HiveNet : torch::nn::Module {
 
     HiveNet();
@@ -128,5 +134,6 @@ TORCH_MODULE(HiveCNNEnhanced);
 Result resultOf(const Context *context);
 float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net);
 void testAgainstRandom();
+void bestMove(const Context_t *context);
 
 #endif //HIVECNN_H
