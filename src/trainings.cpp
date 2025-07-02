@@ -11,14 +11,14 @@ namespace fs = std::filesystem;
 
 void getRandomState(Context_t *toFill, const uint8_t minMoves, const uint8_t maxMoves) {
     const uint8_t movesToPlay = (rand() % (maxMoves - minMoves)) + minMoves;
-    Piece_t *moves[15];
+    Piece_t *moves;
     for (uint8_t i = 0; i < movesToPlay && !isContextEnded(toFill); i++) {
-        getMoves(toFill, moves);
+        getMoves(toFill, &moves);
 
         // DEBUG
         uint16_t mSize = 0;
         for (uint_fast8_t j = 0; j < MOVES_ARRAYS; j++) {
-            mSize += getMovesSize(moves[j]);
+            mSize += getMovesSize(&moves[MMtA(j, 0)]);
         }
         if (mSize == 0) {
             printf("ERROR!!!");
@@ -28,9 +28,9 @@ void getRandomState(Context_t *toFill, const uint8_t minMoves, const uint8_t max
         uint8_t chosenPiece;
         do {
             chosenPiece = rand() % MOVES_ARRAYS;
-        } while (moves[chosenPiece][0].id == NULLPIECE);
-        uint16_t chosenMove = rand() % getMovesSize(moves[chosenPiece]);
-        addOurMove(toFill, &moves[chosenPiece][chosenMove]);
+        } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
+        uint16_t chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
+        addOurMove(toFill, &moves[MMtA(chosenPiece, chosenMove)]);
     }
 }
 

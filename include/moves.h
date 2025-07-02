@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #define MOVES_ARRAYS 15
+#define MMtA(piece, idx) ((piece) * 140 + (idx))
 
 void getMoves(const Context_t *context, Piece_t **moves_ptr);
 void freeMoves(Piece_t **moves);

@@ -33,6 +33,7 @@ void initNode(Node_t *node, Piece_t *move, const Context_t *context)
     node->score = -2;
     node->cCount = 0;
     node->isComplete = false;
+    getMoves(context, &node->moves);
     node->hash = hashAll(node->context->board, node->context->idToPos);
 }
 void evaluateNode(Node_t *node);
@@ -73,11 +74,11 @@ void *negamax(void *args)
     uint8_t cCount = 0;
     for (uint_fast8_t i = 0; i < 15; ++i)
     {
-        for (uint_fast8_t j = 0; node->moves[i][j].id != NULLPIECE; ++j)
+        for (uint_fast8_t j = 0; node->moves[MMtA(i, j)].id != NULLPIECE; ++j)
         {
             //TODO: riciclo dei nodi
             Node_t child = node->childs[node->cCount++];
-            initNode(&child, &node->moves[i][j], node->context);
+            initNode(&child, &node->moves[MMtA(i, j)], node->context);
 
             const HashValue_t *result = static_cast<HashValue_t *>(getByHash(child.hash, hashtable));
             if (result == nullptr || (!result->isInTree && result->depthCNN > depth))

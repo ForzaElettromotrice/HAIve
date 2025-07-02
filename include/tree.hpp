@@ -14,7 +14,7 @@ typedef struct Node
     double score;
     int16_t cCount;
     bool isComplete;
-    Piece_t *moves[15];
+    Piece_t *moves;
     uint64_t hash;
 } Node_t;
 

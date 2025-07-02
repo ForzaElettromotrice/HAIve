@@ -9,12 +9,13 @@
 #include "heuristics.hpp"
 
 // HiveNet
-HiveNet::HiveNet() {
-
+HiveNet::HiveNet()
+{
 }
 
 // HiveCNN
-torch::Tensor HiveCNNImpl::forward(const Context_t* context) {
+torch::Tensor HiveCNNImpl::forward(const Context_t *context)
+{
     torch::Tensor x;
     Processor::boardToTensor(context->idToPos, x);
 
@@ -112,8 +113,8 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
     }
 }
 
-void HiveCNNEnhancedImpl::save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer, int part) const {
-
+void HiveCNNEnhancedImpl::save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer, int part) const
+{
     torch::serialize::OutputArchive archive;
     const std::filesystem::path path(checkpoint_file + std::to_string(part) + ".pt");
     auto parent_dir = path.parent_path();
@@ -125,7 +126,6 @@ void HiveCNNEnhancedImpl::save_partial(const std::shared_ptr<torch::optim::Optim
     this->save(archive);
     optimizer->save(archive);
     archive.save_to(checkpoint_file);
-
 }
 
 
@@ -154,8 +154,8 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t *moves[15];
-    getMoves(context, moves);
+    Piece_t *moves;
+    getMoves(context, &moves);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
@@ -163,17 +163,17 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
 
     for (uint_fast8_t piece = B_QUEEN; piece < MOVES_ARRAYS; piece++)
     {
-        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++)
+        for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
         {
             Context_t newContext;
             copyContext(context, &newContext);
 
             moved = true;
-            addOurMove(&newContext, &moves[piece][i]);
+            addOurMove(&newContext, &moves[MMtA(piece, i)]);
             if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal)
             {
                 maxVal = tmp;
-                curBestMove = moves[piece][i];
+                curBestMove = moves[MMtA(piece, i)];
             }
 
             cleanContext(&newContext);
@@ -191,7 +191,7 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
         cleanContext(&newContext);
     }
 
-    freeMoves(moves);
+    free(moves);
 
     if (depth == 0)
     {
@@ -201,7 +201,7 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
     return -maxVal;
 }
 
-float negamax_heuristic(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc)
+float negamax_heuristic(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(Context_t *)> &heuristicFunc)
 {
     if (depth >= maxDepth)
     {
@@ -215,8 +215,8 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t *moves[15];
-    getMoves(context, moves);
+    Piece_t *moves;
+    getMoves(context, &moves);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
@@ -225,8 +225,10 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
     bool moved = false;
 
     Context_t newContext;
-    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
-        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
+    {
+        for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
+        {
             if (i >= 120)
             {
                 logE(stderr, "Too many moves!\n");
@@ -234,11 +236,11 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
             copyContext(context, &newContext);
 
             moved = true;
-            addOurMove(&newContext, &moves[piece][i]);
+            addOurMove(&newContext, &moves[MMtA(piece, i)]);
             if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal)
             {
                 maxVal = tmp;
-                curBestMove = moves[piece][i];
+                curBestMove = moves[MMtA(piece, i)];
             }
             cleanContext(&newContext);
         }
@@ -253,7 +255,7 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
         cleanContext(&newContext);
     }
 
-    freeMoves(moves);
+    free(moves);
 
     if (depth == 0)
     {
@@ -266,15 +268,16 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
 float negamax_heuristic_ab(
     Context_t *context, const int depth, const int maxDepth,
     const bool isWhiteTurn,
-    Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc,
+    Piece_t *bestMove, const std::function<float(Context_t *)> &heuristicFunc,
     float alpha, float beta,
     const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs,
-    Hashmap_t* hashtable
-    )
+    Hashmap_t *hashtable
+)
 {
     auto now = std::chrono::high_resolution_clock::now();
     int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
-    if (elapsed >= maxDurationMs) {
+    if (elapsed >= maxDurationMs)
+    {
         return -9999.0f;
     }
 
@@ -297,8 +300,8 @@ float negamax_heuristic_ab(
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
-    Piece_t *moves[15];
-    getMoves(context, moves);
+    Piece_t *moves;
+    getMoves(context, &moves);
     float maxVal = -2, tmp;
     Piece_t curBestMove;
 
@@ -307,8 +310,10 @@ float negamax_heuristic_ab(
     bool moved = false;
 
     Context_t newContext;
-    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++) {
-        for (uint16_t i = 0; moves[piece][i].id != NULLPIECE; i++){
+    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
+    {
+        for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
+        {
             if (i >= 120)
             {
                 logE(stderr, "Too many moves!\n");
@@ -317,25 +322,27 @@ float negamax_heuristic_ab(
 
             auto check = std::chrono::high_resolution_clock::now();
             int elapsedLoop = std::chrono::duration_cast<std::chrono::milliseconds>(check - startTime).count();
-            if (elapsedLoop >= maxDurationMs) {
-                freeMoves(moves);
+            if (elapsedLoop >= maxDurationMs)
+            {
+                free(moves);
                 return -9999.0f; // Early abort
             }
 
             moved = true;
-            addOurMove(&newContext, &moves[piece][i]);
+            addOurMove(&newContext, &moves[MMtA(piece, i)]);
             tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
             cleanContext(&newContext);
 
-            if (tmp == -9999.0f) {
-                freeMoves(moves);
+            if (tmp == -9999.0f)
+            {
+                free(moves);
                 return -9999.0f; // propagate timeout
             }
 
             if (tmp > maxVal)
             {
                 maxVal = tmp;
-                curBestMove = moves[piece][i];
+                curBestMove = moves[MMtA(piece, i)];
             }
             if (maxVal > alpha)
                 alpha = maxVal;
@@ -354,7 +361,7 @@ float negamax_heuristic_ab(
         cleanContext(&newContext);
     }
 
-    freeMoves(moves);
+    free(moves);
 
     if (depth == 0)
     {
@@ -373,21 +380,23 @@ Result resultOf(const Context *context)
     if (gameStat == BLACK_WON)
         return Result::RESULT_BLACK_WON;
     return Result::RESULT_DRAW;
-
 }
 
-bool isPass(Piece_t **moves) {
-
-    for (uint8_t i = 0; i < MOVES_ARRAYS; i++) {
-        if (moves[i][0].id != NULLPIECE)
+bool isPass(Piece_t *moves)
+{
+    for (uint8_t i = 0; i < MOVES_ARRAYS; i++)
+    {
+        if (moves[MMtA(i, 0)].id != NULLPIECE)
             return false;
-    } return true;
-
+    }
+    return true;
 }
 
-bool battleAgainstRandom(bool areWeWhite) {
-
-    Context_t context; Piece_t bestMove; Piece_t *moves[15];
+bool battleAgainstRandom(bool areWeWhite)
+{
+    Context_t context;
+    Piece_t bestMove;
+    Piece_t *moves;
     initContext(&context);
 
     Hashmap_t hashtable;
@@ -403,27 +412,30 @@ bool battleAgainstRandom(bool areWeWhite) {
             addOurMove(&context, &bestMove);
         } else
         {
-            getMoves(&context, moves);
+            getMoves(&context, &moves);
             uint_fast8_t chosenPiece;
             uint16_t chosenMove;
             if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1)
             {
                 chosenPiece = 14;
-            } else {
-                if (isPass(moves)) {
+            } else
+            {
+                if (isPass(moves))
+                {
                     addOurMove(&context, &pass);
-                    freeMoves(moves);
+                    free(moves);
                     continue;
-                }
-                else {
-                    do {
+                } else
+                {
+                    do
+                    {
                         chosenPiece = rand() % MOVES_ARRAYS;
-                    } while (moves[chosenPiece][0].id == NULLPIECE);
+                    } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
                 }
             }
-            chosenMove = rand() % getMovesSize(moves[chosenPiece]);
-            addOurMove(&context, &moves[chosenPiece][chosenMove]);
-            freeMoves(moves);
+            chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
+            addOurMove(&context, &moves[MMtA(chosenPiece, chosenMove)]);
+            free(moves);
         }
     }
 
@@ -464,7 +476,8 @@ void bestMove(const Context_t *originalContext)
 
     Context_t ourContext;
     copyContext(originalContext, &ourContext);
-    Hashmap_t hashtable; initHashmap(&hashtable, 8192);
+    Hashmap_t hashtable;
+    initHashmap(&hashtable, 8192);
 
     for (int depth = 1; depth <= 100; ++depth)
     {
@@ -477,12 +490,12 @@ void bestMove(const Context_t *originalContext)
 
         float res = negamax_heuristic_ab(
             &ourContext,
-            0,                // current depth
-            depth,            // maxDepth
+            0, // current depth
+            depth, // maxDepth
             ourContext.curColor == WHITE,
             &currentBestMove,
-            mzingaHeuristic,    // Your heuristic lambda or function
-            -2, 2,       // alpha-beta initial bounds
+            mzingaHeuristic, // Your heuristic lambda or function
+            -2, 2, // alpha-beta initial bounds
             startTime, MAX_TIME_MS,
             &hashtable
         );
@@ -492,11 +505,11 @@ void bestMove(const Context_t *originalContext)
         long int elapsedAfter = std::chrono::duration_cast<std::chrono::milliseconds>(after - startTime).count();
         if (res == -9999.0f)
             break;
-        if (elapsedAfter < MAX_TIME_MS) {
+        if (elapsedAfter < MAX_TIME_MS)
+        {
             finalBestMove = currentBestMove;
         }
     }
 
     printMove(originalContext, finalBestMove);
-
 }

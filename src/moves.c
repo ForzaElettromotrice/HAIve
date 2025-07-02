@@ -16,7 +16,7 @@
 typedef struct ThreadArgs
 {
     const Context_t *context;
-    Piece_t **moves;
+    Piece_t *moves;
 } ThreadArgs_t;
 
 Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
@@ -31,29 +31,6 @@ Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const 
     //Unreachable
     logE(stderr, "Impossible to reach!\n");
     return -1;
-}
-
-void allocateMoves(Piece_t **moves)
-{
-    //TODO: fare una versione che alloca il giusto per ogni pezzo e vedere quale va piu veloce
-    //Allocazione delle mosse
-    for (int i = 0; i < MOVES_ARRAYS; ++i)
-    {
-        //FIXME: 140 è provvisorio, un valore più preciso potrebbe fare più comodo
-        moves[i] = malloc(140 * sizeof(Piece_t));
-        // if (moves[i] == NULL)
-        //    printf("Oh no :(\n");
-        memset(moves[i], 0xff, 140 * sizeof(Piece_t));
-    }
-}
-
-void freeMoves(Piece_t **moves)
-{
-    for (int i = 0; i < MOVES_ARRAYS; ++i)
-    {
-        if (moves[i] != NULL)
-            free(moves[i]);
-    }
 }
 
 bool canSlide(const Position_t *pos, const int_fast8_t direction, const Pieces_t *board)
@@ -124,7 +101,7 @@ void *addMoves(void *arguments)
 {
     const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[14];
+    Piece_t *moves = &args->moves[MMtA(14, 0)];
 
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
@@ -255,7 +232,7 @@ void *queen1Moves(void *arguments)
 {
     const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_QUEEN];
+    Piece_t *moves = &args->moves[MMtA(B_QUEEN, 0)];
 
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
@@ -316,7 +293,7 @@ void *beetle1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_BEETLE_1];
+    Piece_t *moves = &args->moves[MMtA(B_BEETLE_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_BEETLE_1 : B_BEETLE_1;
     Position_t position = context->idToPos[id];
@@ -329,7 +306,7 @@ void *beetle2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_BEETLE_2];
+    Piece_t *moves = &args->moves[MMtA(B_BEETLE_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_BEETLE_2 : B_BEETLE_2;
     Position_t position = context->idToPos[id];
@@ -375,7 +352,7 @@ void *grasshopper1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_GRASSHOPPER_1];
+    Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_1 : B_GRASSHOPPER_1;
     Position_t position = context->idToPos[id];
@@ -388,7 +365,7 @@ void *grasshopper2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_GRASSHOPPER_2];
+    Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_2 : B_GRASSHOPPER_2;
     Position_t position = context->idToPos[id];
@@ -401,7 +378,7 @@ void *grasshopper3Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_GRASSHOPPER_3];
+    Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_3, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_3 : B_GRASSHOPPER_3;
     Position_t position = context->idToPos[id];
@@ -495,7 +472,7 @@ void *pillbug1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_PILLBUG];
+    Piece_t *moves = &args->moves[MMtA(B_PILLBUG, 0)];
     Pieces_t id = context->curColor == WHITE ? W_PILLBUG : B_PILLBUG;
     Position_t *positions = context->idToPos;
     Position_t position = positions[id];
@@ -604,7 +581,7 @@ void *ladybug1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_LADYBUG];
+    Piece_t *moves = &args->moves[MMtA(B_LADYBUG, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_LADYBUG : B_LADYBUG;
     Position_t *positions = context->idToPos;
@@ -695,7 +672,7 @@ void *spider1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_SPIDER_1];
+    Piece_t *moves = &args->moves[MMtA(B_SPIDER_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_SPIDER_1 : B_SPIDER_1;
     Position_t position = context->idToPos[id];
@@ -708,7 +685,7 @@ void *spider2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_SPIDER_2];
+    Piece_t *moves = &args->moves[MMtA(B_SPIDER_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_SPIDER_2 : B_SPIDER_2;
     Position_t position = context->idToPos[id];
@@ -764,7 +741,7 @@ void *ant1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_ANT_1];
+    Piece_t *moves = &args->moves[MMtA(B_ANT_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_ANT_1 : B_ANT_1;
     Position_t position = context->idToPos[id];
@@ -777,7 +754,7 @@ void *ant2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_ANT_2];
+    Piece_t *moves = &args->moves[MMtA(B_ANT_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_ANT_2 : B_ANT_2;
     Position_t position = context->idToPos[id];
@@ -790,7 +767,7 @@ void *ant3Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_ANT_3];
+    Piece_t *moves = &args->moves[MMtA(B_ANT_3, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_ANT_3 : B_ANT_3;
     Position_t position = context->idToPos[id];
@@ -804,7 +781,7 @@ void *mosquitoMoves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
-    Piece_t *moves = args->moves[B_MOSQUITO];
+    Piece_t *moves = &args->moves[MMtA(B_MOSQUITO, 0)];
     const Pieces_t *board = context->board;
     const Pieces_t id = context->curColor == WHITE ? W_MOSQUITO : B_MOSQUITO;
     const Position_t *positions = context->idToPos;
@@ -827,8 +804,6 @@ void *mosquitoMoves(void *arguments)
         const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
         const Pieces_t neighbor = board[MtA(0, newY, newX)];
-        if (neighbor == NULLPIECE)
-            continue;
         switch (neighbor)
         {
             case B_QUEEN:
@@ -874,6 +849,8 @@ void *mosquitoMoves(void *arguments)
             case W_SPIDER_2:
                 spiderMoves(id, &position, board, moves, &idx);
                 break;
+            case NULLPIECE:
+                break;
         }
     }
     return NULL;
@@ -886,7 +863,8 @@ void getMoves(const Context_t *context, Piece_t **moves)
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
-    allocateMoves(moves);
+    *moves = malloc(140 * 15 * sizeof(Piece_t));
+    memset(*moves, 0xff, 140 * 15 * sizeof(Piece_t));
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
@@ -894,7 +872,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
         uint_fast8_t idx = 0;
         for (int i = W_PILLBUG; i < NUM_PIECES; ++i)
         {
-            moves[14][idx++] = (Piece_t)
+            *moves[MMtA(14, idx++)] = (Piece_t)
             {
                 i,
                 {
@@ -926,7 +904,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
         {
             for (uint_fast8_t j = 0; j < 6; ++j)
             {
-                moves[14][idx++] = (Piece_t)
+                *moves[MMtA(14, idx++)] = (Piece_t)
                 {
                     i,
                     {
@@ -1006,7 +984,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
                 if (!ok)
                     continue;
 
-                moves[14][idx++] = (Piece_t)
+                *moves[MMtA(14, idx++)] = (Piece_t)
                 {
                     color == WHITE ? W_QUEEN : B_QUEEN,
                     {
@@ -1023,7 +1001,7 @@ void getMoves(const Context_t *context, Piece_t **moves)
     bool created[MOVES_ARRAYS] = {false};
 
     //add
-    ThreadArgs_t args = {context, moves};
+    ThreadArgs_t args = {context, *moves};
     pthread_create(&threads[14], NULL, addMoves, &args);
     created[14] = true;
 

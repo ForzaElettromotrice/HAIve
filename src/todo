@@ -1,5 +1,5 @@
-- [ ] Refactor mosse (Piece_t** -> Piece_t*, stile board)
-- [ ] Macro per accedere alle mosse
+- [X] Refactor mosse (Piece_t** -> Piece_t*, stile board)
+- [X] Macro per accedere alle mosse
 - [ ] Alert a più valori per evitare di eccedere il numero di mosse
 
 - [ ] Finire albero - negamax
