@@ -19,6 +19,33 @@ typedef struct ThreadArgs
     Piece_t *moves;
 } ThreadArgs_t;
 
+void alertMoves(const uint16_t idx)
+{
+    if (idx > 140)
+    {
+        logE(stderr, "idx > 140!\n");
+        return;
+    }
+    if (idx > 120)
+    {
+        logE(stderr, "idx > 120!\n");
+        return;
+    }
+    if (idx > 100)
+    {
+        logE(stderr, "idx > 100!\n");
+        return;
+    }
+    if (idx > 80)
+    {
+        logE(stderr, "idx > 80!\n");
+        return;
+    }
+    if (idx > 70)
+    {
+        logE(stderr, "idx > 70!\n");
+    }
+}
 Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
 {
     if (toMove != B_QUEEN && toMove != W_QUEEN)
@@ -187,10 +214,7 @@ void *addMoves(void *arguments)
 
             for (uint8_t k = 0; k < addSize; ++k)
             {
-                if (idx >= 120)
-                {
-                    logE(stderr, "Too many moves\n");
-                }
+                alertMoves(idx);
                 moves[idx++] = (Piece_t)
                 {
                     toAdd[k],
@@ -225,6 +249,7 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
         if (!hasNeighbor(&move, board))
             continue;
 
+        alertMoves(*idx);
         moves[(*idx)++] = move;
     }
 }
@@ -286,6 +311,8 @@ void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
         const Piece_t move = {id, {n, newY, newX}};
         if (!hasNeighbor(&move, board))
             continue;
+
+        alertMoves(*idx);
         moves[(*idx)++] = move;
     }
 }
@@ -345,6 +372,8 @@ void grasshopperMoves(const Pieces_t id, const Position_t *position, const Piece
         }
 
         const Piece_t move = {id, {0, newY, newX}};
+
+        alertMoves(*idx);
         moves[(*idx)++] = move;
     }
 }
@@ -423,6 +452,8 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
             const Piece_t move = {id, free};
             if (!hasNeighbor(&move, board))
                 continue;
+
+            alertMoves(*idx);
             moves[(*idx)++] = move;
         }
     } else
@@ -464,6 +495,8 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
                 continue;
             }
             visited[neighbor] = false;
+
+            alertMoves(*idx);
             moves[(*idx)++] = move;
         }
     }
@@ -572,6 +605,7 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
                 int ignoreMe = 1;
                 setByStr(key, &ignoreMe, sizeof(int), &hashmap);
 
+                alertMoves(*idx);
                 moves[(*idx)++] = (Piece_t){id, {0, newY3, newX3}};
             }
         }
@@ -663,6 +697,7 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
                 int ignoreMe = 1;
                 setByStr(key, &ignoreMe, sizeof(int), &hashmap);
 
+                alertMoves(*idx);
                 moves[(*idx)++] = move;
             }
         }
@@ -730,6 +765,8 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
         const Piece_t move = {id, {0, newY, newX}};
         if (!hasNeighbor(&move, board))
             continue;
+
+        alertMoves(*idx);
         moves[(*idx)++] = move;
 
         antMoves(id, &move.position, board, moves, idx, visited);
