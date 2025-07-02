@@ -9,6 +9,7 @@ extern "C" {
     #include "enums.h"
     #include "utils.h"
     #include "moves.h"
+#include "hashmap.h"
 }
 #include "string"
 #include <limits>

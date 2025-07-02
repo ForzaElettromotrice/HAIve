@@ -23,7 +23,7 @@ bool kill;
 
 Node_t *root;
 Hashmap_t *hashtable;
-HiveNet *model;
+HiveCNNEnhanced model;
 
 
 void initNode(Node_t *node, Piece_t *move, const Context_t *context)
@@ -124,7 +124,8 @@ int initTree()
     initContext(root->context);
 
     initHashmap(hashtable, 8192);
-
+    model = HiveCNNEnhanced(MODEL_PATH);
+    model->load_model();
 
     //TODO: inizializza rete
 

@@ -177,11 +177,11 @@ inline HeuristicMetrics getMetrics(const Pieces_t piece) {
         case B_SPIDER_1:
         case B_SPIDER_2:
             return spiderMetrics;
-        case NULLPIECE:
-            printf("ERROR: Non-existing metrics for nullpiece\n");
+        // case NULLPIECE:
+            // printf("ERROR: Non-existing metrics for nullpiece\n");
     }
 
-    printf("ERROR: No known piece\n");
+    // printf("ERROR: No known piece\n");
 
     return HeuristicMetrics({0});;
 }

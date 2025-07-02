@@ -12,6 +12,7 @@
 extern "C" {
     #include <logger.h>
 }
+
 struct HiveNet : torch::nn::Module {
 
     HiveNet();
@@ -120,6 +121,7 @@ struct HiveCNNEnhancedImpl : HiveNet {
 
     torch::Tensor forward(const Context_t* context) override;
     void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const;
+    void save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr, int part = 0) const;
     void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr);
 };
 
@@ -128,5 +130,6 @@ TORCH_MODULE(HiveCNNEnhanced);
 Result resultOf(const Context *context);
 float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net);
 void testAgainstRandom();
+void bestMove(const Context_t *context);
 
 #endif //HIVECNN_H

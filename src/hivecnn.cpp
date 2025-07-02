@@ -112,6 +112,23 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
     }
 }
 
+void HiveCNNEnhancedImpl::save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer, int part) const {
+
+    torch::serialize::OutputArchive archive;
+    const std::filesystem::path path(checkpoint_file + std::to_string(part) + ".pt");
+    auto parent_dir = path.parent_path();
+    if (!parent_dir.empty() && !std::filesystem::exists(parent_dir))
+    {
+        std::filesystem::create_directories(parent_dir);
+    }
+
+    this->save(archive);
+    optimizer->save(archive);
+    archive.save_to(checkpoint_file);
+
+}
+
+
 // Other stuff
 
 float evaluate(const Context_t *context, HiveNet &model, const bool isWhiteTurn)
@@ -246,11 +263,31 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
     return -maxVal;
 }
 
-float negamax_heuristic_ab(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc, float alpha, float beta)
+float negamax_heuristic_ab(
+    Context_t *context, const int depth, const int maxDepth,
+    const bool isWhiteTurn,
+    Piece_t *bestMove, const std::function<float(Context_t *)>& heuristicFunc,
+    float alpha, float beta,
+    const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs,
+    Hashmap_t* hashtable
+    )
 {
+    auto now = std::chrono::high_resolution_clock::now();
+    int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
+    if (elapsed >= maxDurationMs) {
+        return -9999.0f;
+    }
+
     if (depth >= maxDepth)
     {
-        return heuristicFunc(context) * (isWhiteTurn ? 1 : -1);
+        const uint64_t hash = hashAll(context->board, context->idToPos);
+        if (const auto result = static_cast<float *>(getByHash(hash, hashtable)); result != nullptr)
+        {
+            return *result;
+        }
+        const float res = heuristicFunc(context);
+        setByHash(hash, &res, sizeof(float), hashtable);
+        return res;
     }
 
     const GameStatus_t gameStat = getGameStatus(context);
@@ -278,10 +315,23 @@ float negamax_heuristic_ab(Context_t *context, const int depth, const int maxDep
             }
             copyContext(context, &newContext);
 
+            auto check = std::chrono::high_resolution_clock::now();
+            int elapsedLoop = std::chrono::duration_cast<std::chrono::milliseconds>(check - startTime).count();
+            if (elapsedLoop >= maxDurationMs) {
+                freeMoves(moves);
+                return -9999.0f; // Early abort
+            }
+
             moved = true;
             addOurMove(&newContext, &moves[piece][i]);
-            tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha);
+            tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
             cleanContext(&newContext);
+
+            if (tmp == -9999.0f) {
+                freeMoves(moves);
+                return -9999.0f; // propagate timeout
+            }
+
             if (tmp > maxVal)
             {
                 maxVal = tmp;
@@ -299,7 +349,9 @@ float negamax_heuristic_ab(Context_t *context, const int depth, const int maxDep
         copyContext(context, &newContext);
 
         addOurMove(&newContext, &pass);
-        maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha);
+        maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
+
+        cleanContext(&newContext);
     }
 
     freeMoves(moves);
@@ -336,15 +388,18 @@ bool isPass(Piece_t **moves) {
 bool battleAgainstRandom(bool areWeWhite) {
 
     Context_t context; Piece_t bestMove; Piece_t *moves[15];
-    auto model = HiveCNNEnhanced("model_checkpoint");
-    model->eval();
     initContext(&context);
+
+    Hashmap_t hashtable;
+    initHashmap(&hashtable, 8192);
 
     while (!isContextEnded(&context))
     {
+        if (context.turn % 10 == 0)
+            printf("Turn %d\n", context.turn);
         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
         {
-            negamax_net(&context, 0, 2, context.curColor == WHITE, &bestMove, *model);
+            negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
             addOurMove(&context, &bestMove);
         } else
         {
@@ -386,7 +441,7 @@ void testAgainstRandom()
 {
     int played = 0;
     int won = 0;
-    // srand(time(NULL));
+    srand(time(NULL));
 
     for (size_t i = 0; i < 100; i++)
     {
@@ -396,4 +451,52 @@ void testAgainstRandom()
 
         printf("%d / %d\n", won, played);
     }
+}
+
+void bestMove(const Context_t *originalContext)
+{
+    //TODO: prendi il figlio con valore maggiore dall'albero
+
+    const int MAX_TIME_MS = 4900;
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    Piece_t finalBestMove = pass;
+
+    Context_t ourContext;
+    copyContext(originalContext, &ourContext);
+    Hashmap_t hashtable; initHashmap(&hashtable, 8192);
+
+    for (int depth = 1; depth <= 100; ++depth)
+    {
+        auto now = std::chrono::high_resolution_clock::now();
+        long int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
+        if (elapsed >= MAX_TIME_MS)
+            break;
+
+        Piece_t currentBestMove = pass;
+
+        float res = negamax_heuristic_ab(
+            &ourContext,
+            0,                // current depth
+            depth,            // maxDepth
+            ourContext.curColor == WHITE,
+            &currentBestMove,
+            mzingaHeuristic,    // Your heuristic lambda or function
+            -2, 2,       // alpha-beta initial bounds
+            startTime, MAX_TIME_MS,
+            &hashtable
+        );
+
+        // If we finished cleanly before timeout, update final best
+        auto after = std::chrono::high_resolution_clock::now();
+        long int elapsedAfter = std::chrono::duration_cast<std::chrono::milliseconds>(after - startTime).count();
+        if (res == -9999.0f)
+            break;
+        if (elapsedAfter < MAX_TIME_MS) {
+            finalBestMove = currentBestMove;
+        }
+    }
+
+    printMove(originalContext, finalBestMove);
+
 }
