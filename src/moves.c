@@ -39,7 +39,7 @@ void allocateMoves(Piece_t **moves)
     //Allocazione delle mosse
     for (int i = 0; i < MOVES_ARRAYS; ++i)
     {
-        //FIXME: 120 è provvisorio, un valore più preciso potrebbe fare più comodo
+        //FIXME: 140 è provvisorio, un valore più preciso potrebbe fare più comodo
         moves[i] = malloc(140 * sizeof(Piece_t));
         // if (moves[i] == NULL)
         //    printf("Oh no :(\n");
@@ -874,10 +874,6 @@ void *mosquitoMoves(void *arguments)
             case W_SPIDER_2:
                 spiderMoves(id, &position, board, moves, &idx);
                 break;
-            default:
-
-
-
         }
     }
     return NULL;
