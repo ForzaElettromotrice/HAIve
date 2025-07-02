@@ -10,7 +10,7 @@ extern "C" {
 #include "moves.h"
 }
 
-#include "preprocessor.h"
+#include "preprocessor.hpp"
 #include <array>
 
 #define paramSize 2*NUM_PIECES+2*NUM_PIECES

@@ -7,7 +7,7 @@
 #include <utils.h>
 #include <logger.h>
 
-#include <trainings.h>
+#include <trainings.hpp>
 
 int main()
 {

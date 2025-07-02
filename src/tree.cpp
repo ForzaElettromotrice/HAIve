@@ -9,10 +9,10 @@
 #include <logger.h>
 #include <hashmap.h>
 
-#include "hivecnn.h"
+#include "hivecnn.hpp"
 #include "tree.hpp"
 
-#include "heuristics.h"
+#include "heuristics.hpp"
 #include "utils.h"
 
 pthread_t threads[15];

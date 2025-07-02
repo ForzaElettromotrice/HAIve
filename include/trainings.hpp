@@ -5,18 +5,20 @@
 #ifndef TRAININGS_H
 #define TRAININGS_H
 
-#include "hivecnn.h"
+#include "hivecnn.hpp"
 #include <cstdlib>
 #include <array>
-#include "heuristics.h"
+#include "heuristics.hpp"
 #include <filesystem>
 #include <type_traits>
 
-class Trainer {
+class Trainer
+{
     std::string filename_;
 
 public:
-    explicit Trainer(std::string filename) {
+    explicit Trainer(std::string filename)
+    {
         filename_ = std::string(filename);
     }
 
@@ -27,58 +29,66 @@ public:
     const std::string &getFilename() const { return filename_; }
 };
 
-class LearnFromHeuristicTrainer : public Trainer {
+class LearnFromHeuristicTrainer : public Trainer
+{
 public:
-    explicit LearnFromHeuristicTrainer(const std::string &filename) : Trainer(filename) {
+    explicit LearnFromHeuristicTrainer(const std::string &filename) : Trainer(filename)
+    {
     }
 
     virtual double heuristic(Context_t *context) = 0; // Values must be saturated from -1 to 1
     void train(bool toLoad) override;
 };
 
-class SelfPlayTrainer : public Trainer {
-
+class SelfPlayTrainer : public Trainer
+{
 public:
-    explicit SelfPlayTrainer(const std::string &filename) : Trainer(filename) {
+    explicit SelfPlayTrainer(const std::string &filename) : Trainer(filename)
+    {
     }
 
     void train(bool toLoad) override;
-
 };
 
-class FromFilesTrainer : public Trainer {
-
+class FromFilesTrainer : public Trainer
+{
     std::string dirName_;
 
 public:
-    explicit FromFilesTrainer(const std::string &filename, const std::string &dirName) : Trainer(filename), dirName_(dirName){}
-    std::string& getDir(){
+    explicit FromFilesTrainer(const std::string &filename, const std::string &dirName) : Trainer(filename), dirName_(dirName)
+    {
+    }
+    std::string &getDir()
+    {
         return dirName_;
     }
     void train(bool toLoad) override;
 };
 
-class MzingaHeuristicTrainer : public LearnFromHeuristicTrainer {
+class MzingaHeuristicTrainer : public LearnFromHeuristicTrainer
+{
 public:
-    explicit MzingaHeuristicTrainer(const std::string &filename) : LearnFromHeuristicTrainer(filename) {
+    explicit MzingaHeuristicTrainer(const std::string &filename) : LearnFromHeuristicTrainer(filename)
+    {
     }
 
     double heuristic(Context_t *context) override;
 };
 
-inline void trainHeur() {
+inline void trainHeur()
+{
     MzingaHeuristicTrainer mzinga = MzingaHeuristicTrainer("model_checkpoint.pt");
     mzinga.train(false);
 }
 
-inline void trainSelfPlay(const bool toLoad) {
-
+inline void trainSelfPlay(const bool toLoad)
+{
     auto self_play_trainer = SelfPlayTrainer("model_checkpoint");
     self_play_trainer.train(toLoad);
-
 }
 
-inline void trainFromFiles(const bool toLoad) {
+inline void trainFromFiles(const bool toLoad)
+{
     auto from_files_trainer = FromFilesTrainer("model_checkpoint", "/home/filippo/Scrivania/projects/HAIve/hive_games_min");
     from_files_trainer.train(toLoad);
 }

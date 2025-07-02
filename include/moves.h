@@ -4,7 +4,15 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MOVES_ARRAYS 15
 
 void getMoves(const Context_t *context, Piece_t **moves_ptr);
 void freeMoves(Piece_t **moves);
+
+#ifdef __cplusplus
+}
+#endif

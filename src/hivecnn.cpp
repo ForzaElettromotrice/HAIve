@@ -2,11 +2,11 @@
 // Created by filip on 15/05/2025.
 //
 
-#include "hivecnn.h"
+#include "hivecnn.hpp"
 
 #include <filesystem>
 
-#include "heuristics.h"
+#include "heuristics.hpp"
 
 // HiveNet
 HiveNet::HiveNet() {

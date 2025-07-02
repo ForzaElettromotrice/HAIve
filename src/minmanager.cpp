@@ -2,7 +2,7 @@
 // Created by filip on 27/06/2025.
 //
 
-#include "minmanager.h"
+#include "minmanager.hpp"
 
 std::string rstrip(const std::string& s) {
     std::string result = s;

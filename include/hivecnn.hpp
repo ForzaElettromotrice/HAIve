@@ -6,7 +6,7 @@
 #define HIVECNN_H
 
 #include <torch/torch.h>
-#include <preprocessor.h>
+#include <preprocessor.hpp>
 #include <iostream>
 #include <filesystem>
 extern "C" {

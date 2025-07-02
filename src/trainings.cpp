@@ -2,10 +2,10 @@
 // Created by filip on 20/05/2025.
 //
 
-#include "trainings.h"
+#include "trainings.hpp"
 #include <random>
 #include <cfloat>
-#include "minmanager.h"
+#include "minmanager.hpp"
 
 namespace fs = std::filesystem;
 

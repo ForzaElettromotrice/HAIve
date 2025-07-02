@@ -27,7 +27,6 @@ add_executable(HAIve
         src/preprocessor.cpp
         src/heuristics.cpp
         src/tree.cpp
-        include/minmanager.h
         src/minmanager.cpp
 )
 

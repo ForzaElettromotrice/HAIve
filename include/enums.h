@@ -4,9 +4,12 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
+
 
 #define NUM_PIECES 28
 #define RIGHT_UP 0
@@ -79,13 +82,6 @@ typedef struct Piece
     Position_t position;
 } __attribute__((__packed__)) Piece_t;
 
-typedef struct GameType
-{
-    bool ladybug;
-    bool pillbug;
-    bool mosquito;
-} __attribute__((__packed__)) GameType_t;
-
 typedef enum GameStatus
 {
     NOT_STARTED,
@@ -107,3 +103,7 @@ typedef struct Context
     GameStatus_t gameStatus;
     Pieces_t lastMovedPiece;
 } Context_t;
+
+#ifdef __cplusplus
+}
+#endif

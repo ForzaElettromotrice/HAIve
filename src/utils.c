@@ -505,7 +505,8 @@ void printMove(const Context_t *context, const Piece_t move)
     parsePieceToMazinga(move.id % 14, out);
     strcat(out, " ");
 
-    if (context->turn == 1) {
+    if (context->turn == 1)
+    {
         printf("%s\nok\n", out);
         return;
     }
@@ -566,22 +567,24 @@ void printMove(const Context_t *context, const Piece_t move)
     printf("%s\nok\n", out);
 }
 
-GameStatus_t getGameStatus(const Context_t *context) {
+GameStatus_t getGameStatus(const Context_t *context)
+{
     return context->gameStatus;
 }
 
-bool isContextEnded(const Context_t* context) {
+bool isContextEnded(const Context_t *context)
+{
     const GameStatus_t gameStatus = context->gameStatus;
     return gameStatus == WHITE_WON || gameStatus == BLACK_WON || gameStatus == DRAW;
 }
-void printPos(const Position_t* idToPos) {
-
-    for (int i = 0; i < NUM_PIECES; i++) {
+void printPos(const Position_t *idToPos)
+{
+    for (int i = 0; i < NUM_PIECES; i++)
+    {
         if (idToPos[i].z == -1)
             continue;
         char piece[4] = {};
-        parsePieceToMazinga(i % 14, &piece);
+        parsePieceToMazinga(i % 14, piece);
         printf("%s: %d %d %d\n", piece, idToPos[i].z, idToPos[i].y, idToPos[i].x);
     }
-
 }

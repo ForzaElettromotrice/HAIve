@@ -2,7 +2,7 @@
 // Created by filippo on 15/06/25.
 //
 
-#include "heuristics.h"
+#include "heuristics.hpp"
 
 uint_fast8_t getMovesSize(const Piece_t *moves) {
 

@@ -5,6 +5,13 @@
 #pragma once
 
 #include <enums.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #define BOARD_SIZE (7 * 28 * 56)
 #define BOARD_Y 28
@@ -40,4 +47,8 @@ int_fast8_t howManyAround(const Context_t *context, Pieces_t id, bool friendly);
 void addOurMove(Context_t *context, const Piece_t *move);
 
 bool isContextEnded(const Context_t *context);
-void printPos(const Position_t* idToPos);
+void printPos(const Position_t *idToPos);
+
+#ifdef __cplusplus
+}
+#endif
