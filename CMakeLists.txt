@@ -28,6 +28,7 @@ add_executable(HAIve
         src/heuristics.cpp
         src/tree.cpp
         src/minmanager.cpp
+        src/HQueue.c
 )
 
 target_include_directories(

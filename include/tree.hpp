@@ -9,13 +9,13 @@
 typedef struct Node
 {
     Piece_t *move;
+    Piece_t *moves;
     Context_t *context;
     Node *childs;
+    uint64_t hash;
     double score;
     int16_t cCount;
     bool isComplete;
-    Piece_t *moves;
-    uint64_t hash;
 } Node_t;
 
 typedef struct HashValue
