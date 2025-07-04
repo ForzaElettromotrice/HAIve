@@ -88,7 +88,6 @@ void *hpop(HQueue_t *queue)
     }
 
 
-
     HNode_t *node = queue->level[level].head;
     void *val = node->val;
 
