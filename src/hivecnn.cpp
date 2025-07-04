@@ -73,14 +73,16 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
     if (torch::cuda::is_available())
         x = x.to(torch::kCUDA);
     x = x.unsqueeze(0);
+    y = y.unsqueeze(0);
+
+    pthread_mutex_lock(&this->mutex);
     x = conv_layers->forward(x);
     x = x.mean({2, 3});
     x = x.view({1, -1});
 
-    y = y.unsqueeze(0);
     x = torch::cat({x, y}, 1);
     x = fc_layers->forward(x);
-
+    pthread_mutex_unlock(&this->mutex);
     // Optional activation:
     // x = torch::tanh(x);
 

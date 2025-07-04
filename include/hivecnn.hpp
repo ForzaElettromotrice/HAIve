@@ -73,6 +73,7 @@ struct HiveCNNEnhancedImpl : HiveNet {
     std::string checkpoint_file;
     torch::nn::Sequential conv_layers{nullptr};
     torch::nn::Sequential fc_layers{nullptr};
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     explicit HiveCNNEnhancedImpl(std::string checkpoint = "model_enh_checkpoint.pt")
         : checkpoint_file(std::move(checkpoint)) {

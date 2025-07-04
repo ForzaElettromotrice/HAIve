@@ -7,7 +7,7 @@
 
 #include "logger.h"
 
-bool isHEmpty(const HQueue_t *queue, const int_fast8_t level)
+bool isHEmpty(const HQueue_t *queue, const uint_fast8_t level)
 {
     if (level >= LEVELS)
     {
@@ -29,7 +29,7 @@ HQueue_t *initHQueue()
 
     return queue;
 }
-void cleanHQueue(HQueue_t *queue, bool freeVals)
+void cleanHQueue(HQueue_t *queue, const bool freeVals)
 {
     for (int i = 0; i < LEVELS; ++i)
     {
@@ -46,7 +46,7 @@ void cleanHQueue(HQueue_t *queue, bool freeVals)
     }
 }
 
-void hpush(HQueue_t *queue, const int_fast8_t level, void *val)
+void hpush(HQueue_t *queue, const uint_fast8_t level, void *val)
 {
     if (level >= LEVELS)
     {
@@ -67,37 +67,36 @@ void hpush(HQueue_t *queue, const int_fast8_t level, void *val)
 
     pthread_mutex_unlock(&queue->level[level].mutex);
 }
-void *hpop(HQueue_t *queue)
+void *hpop(HQueue_t *queue, uint_fast8_t *level)
 {
-    int_fast8_t level = 0;
+    *level = 0;
     while (true)
     {
-        if (level == LEVELS)
+        if (*level == LEVELS)
             break;
-        pthread_mutex_lock(&queue->level[level].mutex);
-        if (!isHEmpty(queue, level))
+        pthread_mutex_lock(&queue->level[*level].mutex);
+        if (!isHEmpty(queue, *level))
             break;
-        pthread_mutex_unlock(&queue->level[level].mutex);
+        pthread_mutex_unlock(&queue->level[*level].mutex);
         level++;
     }
 
-    if (level >= LEVELS)
-    {
-        logE(stderr, "Level %d is too high. Max %d levels\n", level, LEVELS);
+    if (*level >= LEVELS)
         return NULL;
-    }
 
 
-    HNode_t *node = queue->level[level].head;
+    HNode_t *node = queue->level[*level].head;
     void *val = node->val;
 
-    if (queue->level[level].head == queue->level[level].tail)
+    if (queue->level[*level].head == queue->level[*level].tail)
     {
-        queue->level[level].head = NULL;
-        queue->level[level].tail = NULL;
+        queue->level[*level].head = NULL;
+        queue->level[*level].tail = NULL;
     } else
-        queue->level[level].head = node->next;
-    pthread_mutex_unlock(&queue->level[level].mutex);
+        queue->level[*level].head = node->next;
+    pthread_mutex_unlock(&queue->level[*level].mutex);
     free(node);
     return val;
 }
+
+//TODO: se una coda è bloccata, prova a usarne un altra

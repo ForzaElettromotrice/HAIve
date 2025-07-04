@@ -6,30 +6,30 @@
 
 #include "enums.h"
 
+#define THREADS_NUM 16
+
 typedef struct Node
 {
     Piece_t *move;
     Piece_t *moves;
-    Context_t *context;
     Node *childs;
     uint64_t hash;
     double score;
+    Context_t context;
     int16_t cCount;
-    bool isComplete;
 } Node_t;
 
 typedef struct HashValue
 {
     double score;
-    bool isInTree;
-    uint8_t depthCNN;
 } HashValue_t;
 
-typedef struct ThreadArgs
+typedef struct BatchContext
 {
-    uint8_t depth;
-    Node_t *node;
-} ThreadArgs_t;
+    Context_t *contexts;
+    uint_fast8_t size;
+} BatchContext_t;
+
 
 int initTree();
 void cleanTree();

@@ -2,16 +2,20 @@
 - [X] Macro per accedere alle mosse
 - [X] Alert a più valori per evitare di eccedere il numero di mosse
 
-- [ ] Finire albero - negamax
-- [ ] Rivedere logica valori di espansione
+- [X] Ho cucinato
+- [ ] DFS che aggiorna i valori
+- [ ] Rivedere logica valori di espansione (isExpandable)
 - [ ] Processo parallelo: scelta figlio + pulizia albero
 - [ ] Riciclo nodo !! (Array dei nodi liberi da riusare)
 
-- [ ] Lockare: array di thread; numero di thread; array di nodi liberi; hashmap
+- [X] Lockare: array di thread; numero di thread; array di nodi liberi; hashmap
 
-- [ ] Mettere il std::mutex nella forward
+- [X] Mettere il std::mutex nella forward
 - [ ] Servizio per batching dei contesti
+- [ ] Servizio subscribe per mandare nodi alla rete in blocco
+- [ ] Cambiare il forward della rete da Context_t * a Node_t * così non si devono ricalcolare le mosse
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
 - [ ] Allenare rete su tutto (crock)
 - [ ] Capire come usare GPU con Dockerfile
+- [ ] Benchmark sulla getMoves per vedere se accorpare qualche funzione

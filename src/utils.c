@@ -364,6 +364,9 @@ void addMazingaMove(Context_t *context, const char *move)
 }
 void addOurMove(Context_t *context, const Piece_t *move)
 {
+    if (move == NULL)
+        return;
+
     context->turn++;
     context->curColor *= -1;
     if (move->id == -1)

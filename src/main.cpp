@@ -9,6 +9,8 @@
 
 #include <trainings.hpp>
 
+#include "tree.hpp"
+
 int main()
 {
 #ifdef Debug
@@ -67,5 +69,6 @@ int main()
     //TODO: (PARALLELISMO) chiudi il thread che fa partire l'albero
     cleanContext(&context);
     free(buffer);
+    cleanTree();
     return EXIT_SUCCESS;
 }

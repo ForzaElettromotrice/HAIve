@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 #include <pthread.h>
@@ -27,3 +30,16 @@ typedef struct HQueue
 {
     HInnerQueue_t level[LEVELS];
 } HQueue_t;
+
+bool isHEmpty(const HQueue_t *queue, uint_fast8_t level);
+
+
+HQueue_t *initHQueue();
+void cleanHQueue(HQueue_t *queue, bool freeVals);
+
+void hpush(HQueue_t *queue, uint_fast8_t level, void *val);
+void *hpop(HQueue_t *queue, uint_fast8_t *level);
+#ifdef __cplusplus
+}
+#endif
+

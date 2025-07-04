@@ -9,7 +9,9 @@ extern "C" {
 #endif
 
 #define MOVES_ARRAYS 15
-#define MMtA(piece, idx) ((piece) * 140 + (idx))
+#define MOVES_SIZE 140
+//Moves Matrix to Array
+#define MMtA(piece, idx) ((piece) * MOVES_SIZE + (idx))
 
 void getMoves(const Context_t *context, Piece_t **moves_ptr);
 void freeMoves(Piece_t **moves);

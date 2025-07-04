@@ -900,8 +900,8 @@ void getMoves(const Context_t *context, Piece_t **moves)
     const Colors_t color = context->curColor;
     const Pieces_t last = context->lastMovedPiece;
 
-    *moves = malloc(140 * 15 * sizeof(Piece_t));
-    memset(*moves, 0xff, 140 * 15 * sizeof(Piece_t));
+    *moves = malloc(MOVES_SIZE * 15 * sizeof(Piece_t));
+    memset(*moves, 0xff, MOVES_SIZE * 15 * sizeof(Piece_t));
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
