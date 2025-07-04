@@ -69,14 +69,15 @@ void hpush(HQueue_t *queue, const int_fast8_t level, void *val)
 }
 void *hpop(HQueue_t *queue)
 {
-    //TODO: prendere dal livello più alto
     int_fast8_t level = 0;
     while (true)
     {
         if (level == LEVELS)
             break;
+        pthread_mutex_lock(&queue->level[level].mutex);
         if (!isHEmpty(queue, level))
             break;
+        pthread_mutex_unlock(&queue->level[level].mutex);
         level++;
     }
 
@@ -87,7 +88,7 @@ void *hpop(HQueue_t *queue)
     }
 
 
-    pthread_mutex_lock(&queue->level[level].mutex);
+
     HNode_t *node = queue->level[level].head;
     void *val = node->val;
 
