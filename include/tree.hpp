@@ -17,6 +17,7 @@ typedef struct Node
     double score;
     Context_t context;
     int16_t cCount;
+    Node *bestChoice;
 } Node_t;
 
 typedef struct HashValue
@@ -29,7 +30,6 @@ typedef struct BatchContext
     Context_t *contexts;
     uint_fast8_t size;
 } BatchContext_t;
-
 
 int initTree();
 void cleanTree();

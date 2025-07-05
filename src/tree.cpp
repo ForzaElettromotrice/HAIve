@@ -40,6 +40,7 @@ void initNode(Node_t *node, Piece_t *move, const Context_t *context)
     node->score = -2;
     node->cCount = 0;
     node->hash = hashAll(node->context.board, node->context.idToPos);
+    node->bestChoice = nullptr;
 }
 void freeNode(Node_t *node)
 {
@@ -48,6 +49,33 @@ void freeNode(Node_t *node)
     free(node->childs);
     free(node);
 }
+
+
+void dfs(Node_t *node, const uint8_t depth)
+{
+    if (node->score == -2 || depth == LEVELS)
+        return;
+
+    double score = -2;
+    Node_t *bestChild = nullptr;
+    for (uint_fast8_t i = 0; i < node->cCount; ++i)
+    {
+        dfs(&node->childs[i], depth + 1);
+
+        const double cScore = -node->childs[i].score;
+        if (cScore == 2)
+            continue;
+
+        if (cScore > score)
+        {
+            score = cScore;
+            bestChild = &node->childs[i];
+        }
+    }
+    node->score = score;
+    node->bestChoice = bestChild;
+}
+
 
 void *expandNode(void *args)
 {
@@ -66,8 +94,8 @@ void *expandNode(void *args)
             continue;
         }
 
-        //Valuto il nodo corrente
-        node->score = model->forward(&node->context).item<float>();
+        //TODO: Iscrivi nodo
+        // node->score = model->forward(&node->context).item<float>();
 
 
         for (int i = 0; i < 15; ++i)
@@ -95,6 +123,11 @@ void *expandNode(void *args)
 }
 void *evaluateTree(void *args)
 {
+    while (!stop)
+    {
+        dfs(root, 0);
+    }
+    return nullptr;
 }
 
 int initTree()
@@ -130,9 +163,9 @@ void cleanTree()
 {
     //Clean threads
     stop = true;
-    for (int i = 0; i < THREADS_NUM; ++i)
+    for (const unsigned long thread: threads)
     {
-        pthread_join(threads[i], nullptr);
+        pthread_join(thread, nullptr);
     }
 
     //Clean Hashmap
@@ -144,8 +177,3 @@ void cleanTree()
     //TODO: Clean rete
 }
 
-
-int getBestChild()
-{
-    //for sui figli della radice e prende il max
-}
