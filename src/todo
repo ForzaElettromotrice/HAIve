@@ -12,7 +12,7 @@
 
 - [X] Mettere il std::mutex nella forward
 - [ ] Servizio per batching dei contesti
-- [ ] Servizio subscribe per mandare nodi alla rete in blocco
+- [X con riserva] Servizio subscribe per mandare nodi alla rete in blocco
 - [ ] Cambiare il forward della rete da Context_t * a Node_t * così non si devono ricalcolare le mosse
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced

@@ -13,10 +13,12 @@
 
 HiveCNNEnhanced model;
 HQueue_t *workQueue;
+HInnerQueue_t *batchQueue;
 Hashmap_t hashtable;
 
 pthread_t threads[THREADS_NUM];
 pthread_t dfsThread;
+pthread_t batchThread;
 volatile bool stop;
 
 Node_t *root;
@@ -95,9 +97,6 @@ void *expandNode(void *args)
             continue;
         }
 
-        //TODO: Iscrivi nodo
-        // node->score = model->forward(&node->context).item<float>();
-
 
         for (int i = 0; i < 15; ++i)
         {
@@ -116,6 +115,9 @@ void *expandNode(void *args)
                 }
 
                 getMoves(&child->context, &child->moves);
+
+                //Iscrivo il figlio al calcolo del valore
+                simplehpush(batchQueue, child);
                 hpush(workQueue, level + 1, child);
             }
         }
@@ -130,6 +132,31 @@ void *evaluateTree(void *args)
     }
     return nullptr;
 }
+void *evaluateNodes(void *args)
+{
+    BatchContext bContext;
+    timespec t1, t2;
+    while (!stop)
+    {
+        bContext.count = 0;
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        while (bContext.count < BATCH_NUM)
+        {
+            clock_gettime(CLOCK_MONOTONIC, &t2);
+            if (t2.tv_sec - t1.tv_sec + (t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
+                break;
+
+            const auto node = static_cast<Node_t *>(simplehpop(batchQueue));
+            if (node == nullptr)
+                continue;
+            bContext.nodes[bContext.count++] = node;
+        }
+
+        //TODO: chiamare il forward della rete
+    }
+    return nullptr;
+}
+
 
 int initTree()
 {
@@ -140,15 +167,19 @@ int initTree()
     //Init work queue
     workQueue = initHQueue();
 
+    //Init batch queue
+    batchQueue = initSimpleHQueue();
+
     //Init Hashmap
     initHashmap(&hashtable, 16384);
 
 
     //Init root
     const auto node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-    const auto context = static_cast<Context_t *>(malloc(sizeof(Context_t)));
-    initContext(context);
-    initNode(node, nullptr, context);
+    Context_t context;
+    initContext(&context);
+    initNode(node, nullptr, &context);
+    node->score = 0; //Pareggio, nessuno ha mosso
     hpush(workQueue, 0, node);
 
     //Init threads
@@ -160,6 +191,9 @@ int initTree()
 
     //Init dfs
     pthread_create(&dfsThread, nullptr, evaluateTree, nullptr);
+
+    //Init evaluation nodes
+    pthread_create(&batchThread, nullptr, evaluateNodes, nullptr);
 
     return EXIT_SUCCESS;
 }
@@ -174,11 +208,18 @@ void cleanTree()
     //Clean dfs
     pthread_join(dfsThread, nullptr);
 
+    //Clean evaluation nodes
+    pthread_join(batchThread, nullptr);
+
     //Clean Hashmap
     freeHashmap(&hashtable);
 
     //Clean work queue
     cleanHQueue(workQueue, true);
+
+    //Clean batch queue
+    cleanSimpleHQueue(batchQueue, true);
+
 
     //TODO: Clean rete
 }

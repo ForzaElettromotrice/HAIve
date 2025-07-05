@@ -7,6 +7,9 @@
 #include "enums.h"
 
 #define THREADS_NUM 16
+#define BATCH_NUM 16
+//TODO: da vedere, per ora ho messo 1 secondo
+#define MIN_T 1
 
 typedef struct Node
 {
@@ -27,8 +30,8 @@ typedef struct HashValue
 
 typedef struct BatchContext
 {
-    Context_t *contexts;
-    uint_fast8_t size;
+    Node_t *nodes[BATCH_NUM];
+    uint8_t count;
 } BatchContext_t;
 
 int initTree();

@@ -16,7 +16,10 @@ bool isHEmpty(const HQueue_t *queue, const uint_fast8_t level)
     }
     return queue->level[level].head == NULL;
 }
-
+bool isSimpleHEmpty(const HInnerQueue_t *queue)
+{
+    return queue->head == NULL;
+}
 
 HQueue_t *initHQueue()
 {
@@ -100,3 +103,58 @@ void *hpop(HQueue_t *queue, uint_fast8_t *level)
 }
 
 //TODO: se una coda è bloccata, prova a usarne un altra
+
+
+HInnerQueue_t *initSimpleHQueue()
+{
+    HInnerQueue_t *queue = calloc(1, sizeof(HInnerQueue_t));
+
+    pthread_mutex_init(&queue->mutex, NULL);
+
+    return queue;
+}
+void cleanSimpleHQueue(HInnerQueue_t *queue, const bool freeVals)
+{
+
+    pthread_mutex_destroy(&queue->mutex);
+    HNode_t *start = queue->head;
+    while (start != NULL)
+    {
+        HNode_t *next = start->next;
+        if (freeVals)
+            free(start->val);
+        free(start);
+        start = next;
+    }
+}
+void simplehpush(HInnerQueue_t *queue, void *val)
+{
+    HNode_t *node = malloc(sizeof(HNode_t));
+    node->val = val;
+    node->next = NULL;
+    pthread_mutex_lock(&queue->mutex);
+
+    if (isSimpleHEmpty(queue))
+        queue->head = node;
+    else
+        queue->tail->next = node;
+    queue->tail = node;
+
+    pthread_mutex_unlock(&queue->mutex);
+}
+void *simplehpop(HInnerQueue_t *queue)
+{
+    pthread_mutex_lock(&queue->mutex);
+    HNode_t *node = queue->head;
+    void *val = node->val;
+
+    if (queue->head == queue->tail)
+    {
+        queue->head = NULL;
+        queue->tail = NULL;
+    } else
+        queue->head = node->next;
+    pthread_mutex_unlock(&queue->mutex);
+    free(node);
+    return val;
+}
