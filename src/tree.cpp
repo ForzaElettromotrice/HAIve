@@ -16,6 +16,7 @@ HQueue_t *workQueue;
 Hashmap_t hashtable;
 
 pthread_t threads[THREADS_NUM];
+pthread_t dfsThread;
 volatile bool stop;
 
 Node_t *root;
@@ -157,6 +158,9 @@ int initTree()
         pthread_create(&threads[i], nullptr, expandNode, nullptr);
     }
 
+    //Init dfs
+    pthread_create(&dfsThread, nullptr, evaluateTree, nullptr);
+
     return EXIT_SUCCESS;
 }
 void cleanTree()
@@ -167,6 +171,8 @@ void cleanTree()
     {
         pthread_join(thread, nullptr);
     }
+    //Clean dfs
+    pthread_join(dfsThread, nullptr);
 
     //Clean Hashmap
     freeHashmap(&hashtable);
