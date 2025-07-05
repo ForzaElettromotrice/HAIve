@@ -3,7 +3,7 @@
 - [X] Alert a più valori per evitare di eccedere il numero di mosse
 
 - [X] Ho cucinato
-- [ ] DFS che aggiorna i valori
+- [X] DFS che aggiorna i valori
 - [ ] Rivedere logica valori di espansione (isExpandable)
 - [ ] Processo parallelo: scelta figlio + pulizia albero
 - [ ] Riciclo nodo !! (Array dei nodi liberi da riusare)
