@@ -15,6 +15,7 @@ HiveCNNEnhanced model;
 HQueue_t *workQueue;
 HInnerQueue_t *batchQueue;
 Hashmap_t hashtable;
+pthread_mutex_t hLock;
 
 pthread_t threads[THREADS_NUM];
 pthread_t dfsThread;
@@ -93,6 +94,10 @@ void dfs(Node_t *node, const uint8_t depth)
         return;
     node->score = score;
     node->bestChoice = bestChild;
+    const HashValue_t hashValue = {node->score};
+    pthread_mutex_lock(&hLock);
+    setByHash(node->hash, &hashValue, sizeof(HashValue_t), &hashtable);
+    pthread_mutex_unlock(&hLock);
 }
 void markNodes(Node_t *node, Node_t *skip)
 {
@@ -191,6 +196,17 @@ void *evaluateNodes(void *args)
         }
 
         //TODO: chiamare il forward della rete
+
+        double *result;
+        for (uint8_t i = 0; i < bContext.count; ++i)
+        {
+            Node_t *node = bContext.nodes[i];
+            node->score = result[i];
+            const HashValue_t hashValue = {node->score};
+            pthread_mutex_lock(&hLock);
+            setByHash(node->hash, &hashValue, sizeof(HashValue_t), &hashtable);
+            pthread_mutex_unlock(&hLock);
+        }
     }
     return nullptr;
 }
@@ -223,7 +239,6 @@ int initTree()
     //Init Hashmap
     initHashmap(&hashtable, 16384);
 
-
     //Init root
     const auto node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
     Context_t context;
@@ -231,6 +246,9 @@ int initTree()
     initNode(node, nullptr, &context);
     node->score = 0; //Pareggio, nessuno ha mosso
     hpush(workQueue, 0, node);
+
+    //Init hashmap lock
+    pthread_mutex_init(&hLock, nullptr);
 
     //Init barrier
     pthread_barrier_init(&b, nullptr, THREADS_NUM + 3); //numero di thread + dfs + batch + chroot
@@ -265,8 +283,11 @@ void cleanTree()
     //Clean evaluation nodes
     pthread_join(batchThread, nullptr);
 
-    //Clean semaphore
+    //Clean barrier
     pthread_barrier_destroy(&b);
+
+    //Clean hashmap lock
+    pthread_mutex_destroy(&hLock);
 
     //Clean Hashmap
     freeHashmap(&hashtable);
