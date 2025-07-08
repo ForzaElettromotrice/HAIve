@@ -513,5 +513,5 @@ void bestMove(const Context_t *originalContext)
         }
     }
 
-    printMove(originalContext, finalBestMove);
+    printMove(originalContext, &finalBestMove);
 }

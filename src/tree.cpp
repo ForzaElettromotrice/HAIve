@@ -19,10 +19,21 @@ Hashmap_t hashtable;
 pthread_t threads[THREADS_NUM];
 pthread_t dfsThread;
 pthread_t batchThread;
+pthread_t chrootThread;
 volatile bool stop;
+pthread_barrier_t b;
+volatile bool pause;
 
 Node_t *root;
 
+void checkPause()
+{
+    if (pause)
+    {
+        pthread_barrier_wait(&b);
+        pthread_barrier_wait(&b);
+    }
+}
 bool isExpandable(const Node_t *node)
 {
     const HashValue_t *val = static_cast<HashValue_t *>(getByHash(node->hash, &hashtable));
@@ -44,6 +55,7 @@ void initNode(Node_t *node, Piece_t *move, const Context_t *context)
     node->cCount = 0;
     node->hash = hashAll(node->context.board, node->context.idToPos);
     node->bestChoice = nullptr;
+    node->outOfTree = false;
 }
 void freeNode(Node_t *node)
 {
@@ -56,13 +68,15 @@ void freeNode(Node_t *node)
 
 void dfs(Node_t *node, const uint8_t depth)
 {
-    if (node->score == -2 || depth == LEVELS)
+    if (node->score == -2 || depth == LEVELS || stop || pause)
         return;
 
     double score = -2;
     Node_t *bestChild = nullptr;
-    for (uint_fast8_t i = 0; i < node->cCount; ++i)
+    for (int16_t i = 0; i < node->cCount; ++i)
     {
+        if (stop || pause)
+            break;
         dfs(&node->childs[i], depth + 1);
 
         const double cScore = -node->childs[i].score;
@@ -75,8 +89,21 @@ void dfs(Node_t *node, const uint8_t depth)
             bestChild = &node->childs[i];
         }
     }
+    if (stop || pause)
+        return;
     node->score = score;
     node->bestChoice = bestChild;
+}
+void markNodes(Node_t *node, Node_t *skip)
+{
+    node->outOfTree = true;
+    for (int16_t i = 0; i < node->cCount; ++i)
+    {
+        Node_t *child = &node->childs[i];
+        if (child == skip)
+            continue;
+        markNodes(child, skip);
+    }
 }
 
 
@@ -88,8 +115,16 @@ void *expandNode(void *args)
         Node_t *node;
         do
         {
+            checkPause();
             node = static_cast<Node_t *>(hpop(workQueue, &level));
         } while (node == nullptr);
+
+        if (node->outOfTree)
+        {
+            //TODO: iscrivilo al riciclo nodi
+            continue;
+        }
+
 
         if (level == 10)
         {
@@ -121,6 +156,7 @@ void *expandNode(void *args)
                 hpush(workQueue, level + 1, child);
             }
         }
+        //TODO: Iscrivi questo nodo al riciclo
     }
     return nullptr;
 }
@@ -128,22 +164,24 @@ void *evaluateTree(void *args)
 {
     while (!stop)
     {
+        checkPause();
         dfs(root, 0);
     }
     return nullptr;
 }
 void *evaluateNodes(void *args)
 {
-    BatchContext bContext;
-    timespec t1, t2;
+    BatchContext bContext{};
+    timespec t1{}, t2{};
     while (!stop)
     {
         bContext.count = 0;
         clock_gettime(CLOCK_MONOTONIC, &t1);
         while (bContext.count < BATCH_NUM)
         {
+            checkPause();
             clock_gettime(CLOCK_MONOTONIC, &t2);
-            if (t2.tv_sec - t1.tv_sec + (t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
+            if (t2.tv_sec - t1.tv_sec + static_cast<double>(t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
                 break;
 
             const auto node = static_cast<Node_t *>(simplehpop(batchQueue));
@@ -156,7 +194,19 @@ void *evaluateNodes(void *args)
     }
     return nullptr;
 }
+void *changeRoot(void *args)
+{
+    Node_t *newRoot = root->bestChoice;
 
+    markNodes(root, newRoot);
+    swapPriority(workQueue);
+
+    root = newRoot;
+
+    pause = false;
+    pthread_barrier_wait(&b); //Libero tutti
+    return nullptr;
+}
 
 int initTree()
 {
@@ -182,8 +232,12 @@ int initTree()
     node->score = 0; //Pareggio, nessuno ha mosso
     hpush(workQueue, 0, node);
 
+    //Init barrier
+    pthread_barrier_init(&b, nullptr, THREADS_NUM + 3); //numero di thread + dfs + batch + chroot
+
     //Init threads
     stop = false;
+    pause = false;
     for (int i = 0; i < THREADS_NUM; ++i)
     {
         pthread_create(&threads[i], nullptr, expandNode, nullptr);
@@ -211,6 +265,9 @@ void cleanTree()
     //Clean evaluation nodes
     pthread_join(batchThread, nullptr);
 
+    //Clean semaphore
+    pthread_barrier_destroy(&b);
+
     //Clean Hashmap
     freeHashmap(&hashtable);
 
@@ -223,4 +280,14 @@ void cleanTree()
 
     //TODO: Clean rete
 }
+
+Piece_t *getBestChild()
+{
+    pause = true;
+    pthread_barrier_wait(&b); //Per essere sicuri tutti siano in pausa
+    pthread_create(&chrootThread, nullptr, changeRoot, nullptr);
+
+    return root->bestChoice->move;
+}
+
 

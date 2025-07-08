@@ -41,9 +41,11 @@ void cleanHQueue(HQueue_t *queue, bool freeVals);
 void hpush(HQueue_t *queue, uint_fast8_t level, void *val);
 void *hpop(HQueue_t *queue, uint_fast8_t *level);
 
+void swapPriority(HQueue_t *queue);
+
 
 HInnerQueue_t *initSimpleHQueue();
-void cleanSimpleHQueue(HInnerQueue_t *queue, const bool freeVals);
+void cleanSimpleHQueue(HInnerQueue_t *queue, bool freeVals);
 
 void simplehpush(HInnerQueue_t *queue, void *val);
 void *simplehpop(HInnerQueue_t *queue);

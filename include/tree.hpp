@@ -9,7 +9,7 @@
 #define THREADS_NUM 16
 #define BATCH_NUM 16
 //TODO: da vedere, per ora ho messo 1 secondo
-#define MIN_T 1
+#define MIN_T 1.0
 
 typedef struct Node
 {
@@ -21,6 +21,7 @@ typedef struct Node
     Context_t context;
     int16_t cCount;
     Node *bestChoice;
+    bool outOfTree;
 } Node_t;
 
 typedef struct HashValue
@@ -38,5 +39,5 @@ int initTree();
 void cleanTree();
 
 
-int getBestChild();
+Piece_t *getBestChild();
 int setRoot(Piece_t *move);

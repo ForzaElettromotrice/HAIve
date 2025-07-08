@@ -37,7 +37,7 @@ Command_t parseCommand(const char *command);
 
 Piece_t parseMove(const Position_t *idToPos, char *move);
 void doMove(Context_t *context, char *move);
-void printMove(const Context_t *context, Piece_t move);
+void printMove(const Context_t *context, const Piece_t *move);
 
 void printInfo();
 void printGameString(const Context_t *context);

@@ -102,6 +102,36 @@ void *hpop(HQueue_t *queue, uint_fast8_t *level)
     return val;
 }
 
+void swapPriority(HQueue_t *queue)
+{
+    for (int_fast8_t i = 0; i < LEVELS; ++i)
+    {
+        pthread_mutex_lock(&queue->level[i].mutex);
+    }
+
+    HNode_t *start = queue->level[0].head;
+    while (start != NULL)
+    {
+        HNode_t *next = start->next;
+        free(start);
+        start = next;
+    }
+
+    for (int_fast8_t i = 0; i < LEVELS - 1; ++i)
+    {
+        queue->level[i].head = queue->level[i + 1].head;
+        queue->level[i].tail = queue->level[i + 1].tail;
+    }
+    queue->level[LEVELS - 1].head = NULL;
+    queue->level[LEVELS - 1].tail = NULL;
+
+
+    for (int_fast8_t i = 0; i < LEVELS; ++i)
+    {
+        pthread_mutex_unlock(&queue->level[i].mutex);
+    }
+}
+
 //TODO: se una coda è bloccata, prova a usarne un altra
 
 
@@ -115,7 +145,6 @@ HInnerQueue_t *initSimpleHQueue()
 }
 void cleanSimpleHQueue(HInnerQueue_t *queue, const bool freeVals)
 {
-
     pthread_mutex_destroy(&queue->mutex);
     HNode_t *start = queue->head;
     while (start != NULL)
