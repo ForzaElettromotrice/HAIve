@@ -70,7 +70,6 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
     // setHeuristicParams(context, y);
 
 
-
     x = x.clone().set_requires_grad(true);
     x = x.to(torch::kFloat);
     if (torch::cuda::is_available())
@@ -288,7 +287,7 @@ float negamax_heuristic_ab(
 
     if (depth >= maxDepth)
     {
-        const uint64_t hash = hashAll(context->board, context->idToPos);
+        const uint64_t hash = hashAll(context->board, context->idToPos, context->curColor);
         if (const auto result = static_cast<float *>(getByHash(hash, hashtable)); result != nullptr)
         {
             return *result;

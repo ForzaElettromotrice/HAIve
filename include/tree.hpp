@@ -15,7 +15,7 @@ typedef struct Node
 {
     const Piece_t *move;
     Piece_t *moves;
-    Node *childs;
+    Node **childs;
     uint64_t hash;
     double score;
     Context_t context;
@@ -41,5 +41,5 @@ int initTree();
 void cleanTree();
 
 
-Piece_t *getBestChild();
+const Piece_t *getBestChild();
 int setRoot(Piece_t *move);
