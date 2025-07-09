@@ -4,9 +4,9 @@
 
 - [X] Ho cucinato
 - [X] DFS che aggiorna i valori
-- [ ] Rivedere logica valori di espansione (isExpandable)
+- [X] Rivedere logica valori di espansione (isExpandable)
 - [X] Processo parallelo: scelta figlio + pulizia albero
-- [ ] Riciclo nodo !! (Array dei nodi liberi da riusare)
+- [X] Riciclo nodo !! (Array dei nodi liberi da riusare)
 
 - [X] Lockare: array di thread; numero di thread; array di nodi liberi; hashmap
 

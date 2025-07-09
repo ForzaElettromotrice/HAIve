@@ -14,6 +14,7 @@
 HiveCNNEnhanced model;
 HQueue_t *workQueue;
 HInnerQueue_t *batchQueue;
+HInnerQueue_t *garbageQueue;
 Hashmap_t hashtable;
 pthread_mutex_t hLock;
 
@@ -72,6 +73,28 @@ void freeNode(Node_t *node)
     cleanContext(&node->context);
     free(node->childs);
     free(node);
+}
+Node_t *getNewNode(const Piece_t *move, const Context_t *context)
+{
+    auto *node = static_cast<Node_t *>(simplehpop(garbageQueue));
+    if (node == nullptr)
+    {
+        node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
+        initNode(node, move, context);
+        return node;
+    }
+
+    node->move = move;
+    free(node->moves);
+    node->moves = nullptr;
+    node->score = -2;
+    copyContext(context, &node->context);
+    addOurMove(&node->context, move);
+    node->cCount = 0;
+    node->bestChoice = nullptr;
+    node->outOfTree = false;
+    node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
+    return node;
 }
 
 
@@ -135,7 +158,7 @@ void *expandNode(void *args)
 
         if (node->outOfTree)
         {
-            //TODO: iscrivilo al riciclo nodi
+            simplehpush(garbageQueue, node);
             continue;
         }
 
@@ -152,9 +175,7 @@ void *expandNode(void *args)
             for (int j = 0; node->moves[MMtA(i, j)].id != NULLPIECE; ++j)
             {
                 passBool = false;
-                //TODO: riciclo nodi
-                auto *child = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-                initNode(child, &node->moves[MMtA(i, j)], &node->context);
+                auto *child = getNewNode(&node->moves[MMtA(i, j)], &node->context);
                 node->childs[node->cCount++] = child;
                 switch (child->context.gameStatus)
                 {
@@ -189,8 +210,7 @@ void *expandNode(void *args)
         }
         if (passBool)
         {
-            auto *child = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-            initNode(child, &pass, &node->context);
+            auto *child = getNewNode(&pass, &node->context);
             node->childs[node->cCount++] = child;
             switch (child->context.gameStatus)
             {
@@ -213,6 +233,10 @@ void *expandNode(void *args)
             if (!alreadySeen(child))
             {
                 getMoves(&child->context, &child->moves);
+                HashValue_t hashValue = {-2, node->moves};
+                pthread_mutex_lock(&hLock);
+                setByHash(node->hash, &hashValue, sizeof(HashValue_t), &hashtable);
+                pthread_mutex_unlock(&hLock);
                 simplehpush(batchQueue, child);
             }
 
@@ -291,6 +315,9 @@ int initTree()
     //Init batch queue
     batchQueue = initSimpleHQueue();
 
+    //Init garbage queue
+    garbageQueue = initSimpleHQueue();
+
     //Init Hashmap
     initHashmap(&hashtable, 16384);
 
@@ -351,7 +378,10 @@ void cleanTree()
     cleanHQueue(workQueue, true);
 
     //Clean batch queue
-    cleanSimpleHQueue(batchQueue, true);
+    cleanSimpleHQueue(batchQueue, false);
+
+    //Clean garbage queue
+    cleanSimpleHQueue(garbageQueue, true);
 
 
     //TODO: Clean rete
