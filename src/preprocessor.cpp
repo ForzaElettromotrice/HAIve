@@ -131,6 +131,24 @@ void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor
 
 }
 
+void * Processor::boardToTensor_mt(void* args) {
+
+    const auto arguments = static_cast<ProcessorArgs_t *>(args);
+
+    for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
+        const int_fast8_t z = arguments->positions[i].z;
+        if (z == -1)
+            continue;
+        const int_fast8_t y = arguments->positions[i].y;
+        const int_fast8_t x = arguments->positions[i].x;
+        uint8_t layerValue = pieceToLayer(static_cast<const Pieces_t>(i), z);
+        arguments->x.index_put_({layerValue, yOf(y) / 2, xOf(x)}, i <= 13 ? -1 : 1);
+    }
+
+    return nullptr;
+
+}
+
 Processor::Processor(std::string &fileName) : fileName_(fileName) {
     gameStatus_ = NOT_STARTED;
 }

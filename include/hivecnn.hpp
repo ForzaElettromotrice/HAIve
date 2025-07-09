@@ -8,6 +8,7 @@
 #include <torch/torch.h>
 #include <preprocessor.hpp>
 #include <filesystem>
+#include <tree.hpp>
 extern "C" {
     #include <logger.h>
 }
@@ -110,7 +111,7 @@ struct HiveCNNEnhancedImpl : HiveNet {
 
         // Fully connected layers
         fc_layers = register_module("fc1", torch::nn::Sequential(
-            torch::nn::Linear(240, 16),
+            torch::nn::Linear(128, 16),
                 torch::nn::ReLU(),
                 torch::nn::Dropout(0.1),
                 torch::nn::Linear(16, 1)
@@ -120,6 +121,7 @@ struct HiveCNNEnhancedImpl : HiveNet {
     }
 
     torch::Tensor forward(const Context_t* context) override;
+    void batchForward(BatchContext_t* batchContext);
     void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const;
     void save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr, int part = 0) const;
     void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr);
