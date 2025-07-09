@@ -35,15 +35,19 @@ void checkPause()
         pthread_barrier_wait(&b);
     }
 }
-bool isExpandable(const Node_t *node)
+bool alreadySeen(Node_t *node)
 {
     const HashValue_t *val = static_cast<HashValue_t *>(getByHash(node->hash, &hashtable));
+    if (val == nullptr)
+        return false;
 
-    //TODO: criteri di espansione
+    node->score = val->score;
+    node->moves = val->moves;
 
-    return true;
+
+    return false;
 }
-void initNode(Node_t *node, Piece_t *move, const Context_t *context)
+void initNode(Node_t *node, const Piece_t *move, const Context_t *context)
 {
     if (node == nullptr)
         return;
@@ -54,7 +58,7 @@ void initNode(Node_t *node, Piece_t *move, const Context_t *context)
     node->childs = static_cast<Node_t *>(malloc(300 * sizeof(Node_t)));
     node->score = -2;
     node->cCount = 0;
-    node->hash = hashAll(node->context.board, node->context.idToPos);
+    node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
     node->bestChoice = nullptr;
     node->outOfTree = false;
 }
@@ -137,31 +141,55 @@ void *expandNode(void *args)
             continue;
         }
 
-
+        bool passBool = true;
         for (int i = 0; i < 15; ++i)
         {
             for (int j = 0; node->moves[MMtA(i, j)].id != NULLPIECE; ++j)
             {
+                passBool = false;
                 //TODO: riciclo nodi
                 const auto child = static_cast<Node_t *>(malloc(sizeof(Node_t)));
                 initNode(child, &node->moves[MMtA(i, j)], &node->context);
-
-
-                if (!isExpandable(child))
+                switch (child->context.gameStatus)
                 {
-                    //TODO: ricicla
-                    freeNode(child);
-                    continue;
+                    case NOT_STARTED:
+                        logE(stderr, "In teoria è impossibile arrivare qui\n");
+                        break;
+                    case WHITE_WON:
+                        node->score = 1;
+                        continue;
+                    case BLACK_WON:
+                        node->score = -1;
+                        continue;
+                    case DRAW:
+                        node->score = 0;
+                        continue;
+                    case IN_PROGRESS:
+                        break;
                 }
 
-                getMoves(&child->context, &child->moves);
+                if (!alreadySeen(child))
+                {
+                    getMoves(&child->context, &child->moves);
+                    simplehpush(batchQueue, child);
+                }
 
-                //Iscrivo il figlio al calcolo del valore
-                simplehpush(batchQueue, child);
                 hpush(workQueue, level + 1, child);
             }
         }
-        //TODO: Iscrivi questo nodo al riciclo
+        if (passBool)
+        {
+            const auto child = static_cast<Node_t *>(malloc(sizeof(Node_t)));
+            initNode(child, &pass, &node->context);
+
+            if (!alreadySeen(child))
+            {
+                getMoves(&child->context, &child->moves);
+                simplehpush(batchQueue, child);
+            }
+
+            hpush(workQueue, level + 1, child);
+        }
     }
     return nullptr;
 }
@@ -186,7 +214,7 @@ void *evaluateNodes(void *args)
         {
             checkPause();
             clock_gettime(CLOCK_MONOTONIC, &t2);
-            if (t2.tv_sec - t1.tv_sec + static_cast<double>(t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
+            if (static_cast<double>(t2.tv_sec - t1.tv_sec) + static_cast<double>(t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
                 break;
 
             const auto node = static_cast<Node_t *>(simplehpop(batchQueue));
@@ -197,11 +225,10 @@ void *evaluateNodes(void *args)
 
         //TODO: chiamare il forward della rete
 
-        double *result;
         for (uint8_t i = 0; i < bContext.count; ++i)
         {
             Node_t *node = bContext.nodes[i];
-            node->score = result[i];
+            node->score = bContext.result[i];
             const HashValue_t hashValue = {node->score};
             pthread_mutex_lock(&hLock);
             setByHash(node->hash, &hashValue, sizeof(HashValue_t), &hashtable);

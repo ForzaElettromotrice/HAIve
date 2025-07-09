@@ -26,7 +26,7 @@ extern "C" {
 
 extern const Piece_t pass;
 
-uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions, Colors_t color);
 
 void initContext(Context_t *context);
 void resetContext(Context_t *context);

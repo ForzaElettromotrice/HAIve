@@ -125,13 +125,13 @@ uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
     }
     return hash;
 }
-uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions, const Colors_t color)
 {
-    uint64_t toHash[28];
+    uint64_t toHash[29];
 
     for (uint_fast8_t i = 0; i < 28; ++i)
         toHash[i] = hashPiece(&positions[i], board);
-
+    toHash[28] = color;
     return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
 }
 

@@ -13,7 +13,7 @@
 
 typedef struct Node
 {
-    Piece_t *move;
+    const Piece_t *move;
     Piece_t *moves;
     Node *childs;
     uint64_t hash;
@@ -27,12 +27,14 @@ typedef struct Node
 typedef struct HashValue
 {
     double score;
+    Piece_t *moves;
 } HashValue_t;
 
 typedef struct BatchContext
 {
     Node_t *nodes[BATCH_NUM];
     uint8_t count;
+    double result[BATCH_NUM];
 } BatchContext_t;
 
 int initTree();

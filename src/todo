@@ -14,6 +14,7 @@
 - [ ] Servizio per batching dei contesti
 - [X con riserva] Servizio subscribe per mandare nodi alla rete in blocco
 - [ ] Cambiare il forward della rete da Context_t * a Node_t * così non si devono ricalcolare le mosse
+- [ ] Parallelizzare boardToTensor
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
 - [ ] Allenare rete su tutto (crock)
