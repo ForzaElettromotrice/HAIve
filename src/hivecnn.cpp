@@ -91,8 +91,8 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
     return x;
 }
 
-void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext) {
-
+void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext)
+{
     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
     torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
     pthread_t threads[batchContext->count];
@@ -103,7 +103,8 @@ void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext) {
         pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args);
     }
 
-    for (uint8_t i = 0; i < batchContext->count; i++) {
+    for (uint8_t i = 0; i < batchContext->count; i++)
+    {
         pthread_join(threads[i], nullptr);
     }
 
@@ -121,10 +122,10 @@ void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext) {
 
     pthread_mutex_unlock(&this->mutex);
 
-    for (uint8_t i = 0; i < batchContext->count; i++) {
+    for (uint8_t i = 0; i < batchContext->count; i++)
+    {
         batchContext->result[i] = x[i].item<float>();
     }
-
 }
 
 
