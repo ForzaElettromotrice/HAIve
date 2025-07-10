@@ -96,10 +96,10 @@ void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext) {
     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
     torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
     pthread_t threads[batchContext->count];
-
+    ProcessorArgs_t args[batchContext->count];
     for (uint8_t i = 0; i < batchContext->count; i++)
     {
-        ProcessorArgs_t args = {x[i], batchContext->nodes[i]->context.idToPos};
+        args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
         pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args);
     }
 
