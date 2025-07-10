@@ -125,13 +125,13 @@ uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
     }
     return hash;
 }
-uint64_t hashAll(const Pieces_t *board, const Position_t *positions)
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions, const Colors_t color)
 {
-    uint64_t toHash[28];
+    uint64_t toHash[29];
 
     for (uint_fast8_t i = 0; i < 28; ++i)
         toHash[i] = hashPiece(&positions[i], board);
-
+    toHash[28] = color;
     return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
 }
 
@@ -497,15 +497,15 @@ void printGameString(const Context_t *context)
 }
 
 
-void printMove(const Context_t *context, const Piece_t move)
+void printMove(const Context_t *context, const Piece_t *move)
 {
-    const int8_t z = move.position.z;
-    const int8_t y = move.position.y;
-    const int8_t x = move.position.x;
+    const int8_t z = move->position.z;
+    const int8_t y = move->position.y;
+    const int8_t x = move->position.x;
 
     char out[20];
-    sprintf(out, "%s", move.id < 14 ? "b" : "w");
-    parsePieceToMazinga(move.id % 14, out);
+    sprintf(out, "%s", move->id < 14 ? "b" : "w");
+    parsePieceToMazinga(move->id % 14, out);
     strcat(out, " ");
 
     if (context->turn == 1)
@@ -514,6 +514,9 @@ void printMove(const Context_t *context, const Piece_t move)
         return;
     }
 
+    //TODO: potremmo semplicemente controllare se la z è != 0
+    // e mettere direttamente che il pezzo è sopra qualcun altro
+
     bool hover = true;
     for (int8_t i = 0; i < 6; ++i)
     {
@@ -521,7 +524,7 @@ void printMove(const Context_t *context, const Piece_t move)
         const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
         const Pieces_t neighbor = context->board[MtA(z, newY, newX)];
-        if (neighbor == NULLPIECE || neighbor == move.id)
+        if (neighbor == NULLPIECE || neighbor == move->id)
             continue;
 
         switch (i)

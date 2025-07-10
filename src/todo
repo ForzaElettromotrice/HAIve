@@ -3,17 +3,17 @@
 - [X] Alert a più valori per evitare di eccedere il numero di mosse
 
 - [X] Ho cucinato
-- [ ] DFS che aggiorna i valori
-- [ ] Rivedere logica valori di espansione (isExpandable)
-- [ ] Processo parallelo: scelta figlio + pulizia albero
-- [ ] Riciclo nodo !! (Array dei nodi liberi da riusare)
+- [X] DFS che aggiorna i valori
+- [X] Rivedere logica valori di espansione (isExpandable)
+- [X] Processo parallelo: scelta figlio + pulizia albero
+- [X] Riciclo nodo !! (Array dei nodi liberi da riusare)
 
 - [X] Lockare: array di thread; numero di thread; array di nodi liberi; hashmap
 
 - [X] Mettere il std::mutex nella forward
-- [ ] Servizio per batching dei contesti
-- [ ] Servizio subscribe per mandare nodi alla rete in blocco
-- [ ] Cambiare il forward della rete da Context_t * a Node_t * così non si devono ricalcolare le mosse
+- [X] Servizio per batching dei contesti
+- [X con riserva] Servizio subscribe per mandare nodi alla rete in blocco
+- [X] Parallelizzare boardToTensor
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
 - [ ] Allenare rete su tutto (crock)

@@ -26,7 +26,7 @@ extern "C" {
 
 extern const Piece_t pass;
 
-uint64_t hashAll(const Pieces_t *board, const Position_t *positions);
+uint64_t hashAll(const Pieces_t *board, const Position_t *positions, Colors_t color);
 
 void initContext(Context_t *context);
 void resetContext(Context_t *context);
@@ -37,7 +37,7 @@ Command_t parseCommand(const char *command);
 
 Piece_t parseMove(const Position_t *idToPos, char *move);
 void doMove(Context_t *context, char *move);
-void printMove(const Context_t *context, Piece_t move);
+void printMove(const Context_t *context, const Piece_t *move);
 
 void printInfo();
 void printGameString(const Context_t *context);

@@ -16,6 +16,10 @@ extern "C" {
 #include <torch/torch.h>
 #include "fstream"
 
+typedef struct ProcessorArgs {
+    torch::Tensor x;
+    const Position_t *positions;
+} ProcessorArgs_t;
 
 enum class Result : int8_t
 {
@@ -62,6 +66,7 @@ class Processor {
     static void multipleSaveToFile(const std::string &fileName, const std::vector<std::vector<Position_t> > &allPositions, const std::vector<Result> &results);
     static void multipleSaveToFile(const std::string &fileName, const std::vector<std::vector<Position_t> > &allPositions, const Result &result);
     static void boardToTensor(const Position_t *positions, torch::Tensor &tensor);
+    static void *boardToTensor_mt(void* args);
 
     explicit Processor(std::string &fileName);
     void newGame();

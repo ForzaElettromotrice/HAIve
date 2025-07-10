@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "heuristics.hpp"
+#include "tree.hpp"
 
 // HiveNet
 HiveNet::HiveNet()
@@ -64,23 +65,24 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &opt
 torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
 {
     torch::Tensor x;
-    torch::Tensor y = torch::zeros(paramSize);
+    //torch::Tensor y = torch::zeros(paramSize);
     Processor::boardToTensor(context->idToPos, x);
-    setHeuristicParams(context, y);
+    // setHeuristicParams(context, y);
+
 
     x = x.clone().set_requires_grad(true);
     x = x.to(torch::kFloat);
     if (torch::cuda::is_available())
         x = x.to(torch::kCUDA);
     x = x.unsqueeze(0);
-    y = y.unsqueeze(0);
+    // y = y.unsqueeze(0);
 
     pthread_mutex_lock(&this->mutex);
     x = conv_layers->forward(x);
     x = x.mean({2, 3});
     x = x.view({1, -1});
 
-    x = torch::cat({x, y}, 1);
+    // x = torch::cat({x, y}, 1);
     x = fc_layers->forward(x);
     pthread_mutex_unlock(&this->mutex);
     // Optional activation:
@@ -88,6 +90,44 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
 
     return x;
 }
+
+void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext)
+{
+    const auto options = torch::TensorOptions().dtype(torch::kFloat32);
+    torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
+    pthread_t threads[batchContext->count];
+    ProcessorArgs_t args[batchContext->count];
+    for (uint8_t i = 0; i < batchContext->count; i++)
+    {
+        args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
+        pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args);
+    }
+
+    for (uint8_t i = 0; i < batchContext->count; i++)
+    {
+        pthread_join(threads[i], nullptr);
+    }
+
+    x = x.clone().set_requires_grad(true);
+    x = x.to(torch::kFloat);
+    if (torch::cuda::is_available())
+        x = x.to(torch::kCUDA);
+
+    pthread_mutex_lock(&this->mutex);
+
+    x = conv_layers->forward(x);
+    x = x.mean({2, 3});
+    x = x.view({1, -1});
+    x = fc_layers->forward(x);
+
+    pthread_mutex_unlock(&this->mutex);
+
+    for (uint8_t i = 0; i < batchContext->count; i++)
+    {
+        batchContext->result[i] = x[i].item<float>();
+    }
+}
+
 
 void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer) const
 {
@@ -285,7 +325,7 @@ float negamax_heuristic_ab(
 
     if (depth >= maxDepth)
     {
-        const uint64_t hash = hashAll(context->board, context->idToPos);
+        const uint64_t hash = hashAll(context->board, context->idToPos, context->curColor);
         if (const auto result = static_cast<float *>(getByHash(hash, hashtable)); result != nullptr)
         {
             return *result;
@@ -471,47 +511,49 @@ void bestMove(const Context_t *originalContext)
 {
     //TODO: prendi il figlio con valore maggiore dall'albero
 
-    const int MAX_TIME_MS = 4900;
-    auto startTime = std::chrono::high_resolution_clock::now();
+    // const int MAX_TIME_MS = 4900;
+    // auto startTime = std::chrono::high_resolution_clock::now();
+    //
+    // Piece_t finalBestMove = pass;
+    //
+    // Context_t ourContext;
+    // copyContext(originalContext, &ourContext);
+    // Hashmap_t hashtable;
+    // initHashmap(&hashtable, 8192);
+    //
+    // for (int depth = 1; depth <= 100; ++depth)
+    // {
+    //     auto now = std::chrono::high_resolution_clock::now();
+    //     long int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
+    //     if (elapsed >= MAX_TIME_MS)
+    //         break;
+    //
+    //     Piece_t currentBestMove = pass;
+    //
+    //     float res = negamax_heuristic_ab(
+    //         &ourContext,
+    //         0, // current depth
+    //         depth, // maxDepth
+    //         ourContext.curColor == WHITE,
+    //         &currentBestMove,
+    //         mzingaHeuristic, // Your heuristic lambda or function
+    //         -2, 2, // alpha-beta initial bounds
+    //         startTime, MAX_TIME_MS,
+    //         &hashtable
+    //     );
+    //
+    //     // If we finished cleanly before timeout, update final best
+    //     auto after = std::chrono::high_resolution_clock::now();
+    //     long int elapsedAfter = std::chrono::duration_cast<std::chrono::milliseconds>(after - startTime).count();
+    //     if (res == -9999.0f)
+    //         break;
+    //     if (elapsedAfter < MAX_TIME_MS)
+    //     {
+    //         finalBestMove = currentBestMove;
+    //     }
+    // }
 
-    Piece_t finalBestMove = pass;
+    const Piece_t *move = getBestChild();
 
-    Context_t ourContext;
-    copyContext(originalContext, &ourContext);
-    Hashmap_t hashtable;
-    initHashmap(&hashtable, 8192);
-
-    for (int depth = 1; depth <= 100; ++depth)
-    {
-        auto now = std::chrono::high_resolution_clock::now();
-        long int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
-        if (elapsed >= MAX_TIME_MS)
-            break;
-
-        Piece_t currentBestMove = pass;
-
-        float res = negamax_heuristic_ab(
-            &ourContext,
-            0, // current depth
-            depth, // maxDepth
-            ourContext.curColor == WHITE,
-            &currentBestMove,
-            mzingaHeuristic, // Your heuristic lambda or function
-            -2, 2, // alpha-beta initial bounds
-            startTime, MAX_TIME_MS,
-            &hashtable
-        );
-
-        // If we finished cleanly before timeout, update final best
-        auto after = std::chrono::high_resolution_clock::now();
-        long int elapsedAfter = std::chrono::duration_cast<std::chrono::milliseconds>(after - startTime).count();
-        if (res == -9999.0f)
-            break;
-        if (elapsedAfter < MAX_TIME_MS)
-        {
-            finalBestMove = currentBestMove;
-        }
-    }
-
-    printMove(originalContext, finalBestMove);
+    printMove(originalContext, move);
 }
