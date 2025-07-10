@@ -275,7 +275,7 @@ void *evaluateNodes(void *args)
             bContext.nodes[bContext.count++] = node;
         }
 
-        //TODO: chiamare il forward della rete
+        model->batchForward(&bContext);
 
         for (uint8_t i = 0; i < bContext.count; ++i)
         {
