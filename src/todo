@@ -12,7 +12,7 @@
 
 - [X] Mettere il std::mutex nella forward
 - [X] Servizio per batching dei contesti
-- [X con riserva] Servizio subscribe per mandare nodi alla rete in blocco
+- [X] Servizio subscribe per mandare nodi alla rete in blocco
 - [X] Parallelizzare boardToTensor
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
