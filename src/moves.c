@@ -19,31 +19,33 @@ typedef struct ThreadArgs
     Piece_t *moves;
 } ThreadArgs_t;
 
-void alertMoves(const uint16_t idx)
+void alertMoves(const Pieces_t piece, const uint16_t idx)
 {
+    if (piece == -1 || piece == 17 || piece == 3)
+        return;
     if (idx > 140)
     {
-        logE(stderr, "idx > 140!\n");
+        logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
         return;
     }
     if (idx > 120)
     {
-        logE(stderr, "idx > 120!\n");
+        logE(stderr, "Piece %d idx > 120!\n", piece);
         return;
     }
     if (idx > 100)
     {
-        logE(stderr, "idx > 100!\n");
+        logE(stderr, "Piece %d idx > 100!\n", piece);
         return;
     }
     if (idx > 80)
     {
-        logE(stderr, "idx > 80!\n");
+        logE(stderr, "Piece %d idx > 80!\n", piece);
         return;
     }
     if (idx > 70)
     {
-        logE(stderr, "idx > 70!\n");
+        logE(stderr, "Piece %d idx > 70!\n", piece);
     }
 }
 Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
@@ -214,7 +216,7 @@ void *addMoves(void *arguments)
 
             for (uint8_t k = 0; k < addSize; ++k)
             {
-                alertMoves(idx);
+                alertMoves(NULLPIECE, idx);
                 moves[idx++] = (Piece_t)
                 {
                     toAdd[k],
@@ -249,7 +251,7 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
         if (!hasNeighbor(&move, board))
             continue;
 
-        alertMoves(*idx);
+        alertMoves(id, *idx);
         moves[(*idx)++] = move;
     }
 }
@@ -312,7 +314,7 @@ void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
         if (!hasNeighbor(&move, board))
             continue;
 
-        alertMoves(*idx);
+        alertMoves(id, *idx);
         moves[(*idx)++] = move;
     }
 }
@@ -373,7 +375,7 @@ void grasshopperMoves(const Pieces_t id, const Position_t *position, const Piece
 
         const Piece_t move = {id, {0, newY, newX}};
 
-        alertMoves(*idx);
+        alertMoves(id, *idx);
         moves[(*idx)++] = move;
     }
 }
@@ -453,7 +455,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
             if (!hasNeighbor(&move, board))
                 continue;
 
-            alertMoves(*idx);
+            alertMoves(id, *idx);
             moves[(*idx)++] = move;
         }
     } else
@@ -496,7 +498,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
             }
             visited[neighbor] = false;
 
-            alertMoves(*idx);
+            alertMoves(id, *idx);
             moves[(*idx)++] = move;
         }
     }
@@ -605,7 +607,7 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
                 int ignoreMe = 1;
                 setByStr(key, &ignoreMe, sizeof(int), &hashmap);
 
-                alertMoves(*idx);
+                alertMoves(id, *idx);
                 moves[(*idx)++] = (Piece_t){id, {0, newY3, newX3}};
             }
         }
@@ -697,7 +699,7 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
                 int ignoreMe = 1;
                 setByStr(key, &ignoreMe, sizeof(int), &hashmap);
 
-                alertMoves(*idx);
+                alertMoves(id, *idx);
                 moves[(*idx)++] = move;
             }
         }
@@ -737,7 +739,7 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
     if (!visited)
     {
         first = true;
-        initHashmap(&hashmap, 512);
+        initHashmap(&hashmap, 4096);
         visited = &hashmap;
     }
 
@@ -766,7 +768,11 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
         if (!hasNeighbor(&move, board))
             continue;
 
-        alertMoves(*idx);
+        alertMoves(id, *idx);
+        if (*idx == 255)
+        {
+            logE(stderr, "Too many moves for ant %d!\n", id);
+        }
         moves[(*idx)++] = move;
 
         antMoves(id, &move.position, board, moves, idx, visited);

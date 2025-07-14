@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+#define NUM_CONTEXTS 48890
 
 void testMoves();
 
