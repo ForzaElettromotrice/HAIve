@@ -10,6 +10,7 @@
 #include <trainings.hpp>
 
 #include "tree.hpp"
+#include "test.h"
 
 int main()
 {
@@ -17,6 +18,9 @@ int main()
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
 
+    testMoves();
+
+    return EXIT_SUCCESS;
     //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
 
     size_t buf_size = 128;

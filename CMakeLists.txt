@@ -9,6 +9,7 @@ add_compile_options(-Wall)
 add_compile_definitions(Debug)
 
 add_definitions(-DMODEL_PATH="${CMAKE_CURRENT_SOURCE_DIR}/model_checkpoint_HE")
+add_definitions(-DTEST_PATH="${CMAKE_CURRENT_SOURCE_DIR}/test.txt")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
 set(Torch_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libtorch/share/cmake/Torch)
@@ -29,6 +30,7 @@ add_executable(HAIve
         src/tree.cpp
         src/minmanager.cpp
         src/HQueue.c
+        src/test.c
 )
 
 target_include_directories(
