@@ -21,3 +21,6 @@
 - [ ] Allenare rete su tutto (crock)
 - [ ] Capire come usare GPU con Dockerfile
 - [X] Benchmark sulla getMoves per vedere se accorpare qualche funzione
+- [ ] Scegliere figlio dell'albero data una mossa MZinga
+- [ ] Separare il contesto di MZinga e il nostro!!
+- [ ] Fix HiveCNN.cpp
