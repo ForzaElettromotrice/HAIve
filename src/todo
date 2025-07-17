@@ -14,8 +14,10 @@
 - [X] Servizio per batching dei contesti
 - [X] Servizio subscribe per mandare nodi alla rete in blocco
 - [X] Parallelizzare boardToTensor
+- [ ] Modificare le hashmap per le moves
+- [ ] Vedere se usare le hasmap di c++ in tree.cpp
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
 - [ ] Allenare rete su tutto (crock)
 - [ ] Capire come usare GPU con Dockerfile
-- [ ] Benchmark sulla getMoves per vedere se accorpare qualche funzione
+- [X] Benchmark sulla getMoves per vedere se accorpare qualche funzione

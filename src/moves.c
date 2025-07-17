@@ -227,6 +227,7 @@ void *addMoves(void *arguments)
             }
         }
     }
+    freeHashmap(&visited);
     return NULL;
 }
 
@@ -612,6 +613,7 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
             }
         }
     }
+    freeHashmap(&hashmap);
 }
 void *ladybug1Moves(void *arguments)
 {
@@ -704,6 +706,7 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
             }
         }
     }
+    freeHashmap(&hashmap);
 }
 void *spider1Moves(void *arguments)
 {
@@ -734,7 +737,7 @@ void *spider2Moves(void *arguments)
 
 void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx, Hashmap_t *visited)
 {
-    Hashmap_t hashmap;
+    Hashmap_t hashmap = {};
     bool first = false;
     if (!visited)
     {
@@ -778,16 +781,31 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
         antMoves(id, &move.position, board, moves, idx, visited);
     }
     if (first)
-        freeHashmap(visited);
+        freeHashmap(&hashmap);
 }
 void *ant1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
+    const Position_t *positions = context->idToPos;
+    const Colors_t color = context->curColor;
+
     Piece_t *moves = &args->moves[MMtA(B_ANT_1, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_ANT_1 : B_ANT_1;
-    Position_t position = context->idToPos[id];
+    const Pieces_t *board = context->board;
+    const Pieces_t id = context->curColor == WHITE ? W_ANT_1 : B_ANT_1;
+    const Position_t position = context->idToPos[id];
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+        return NULL;
+
+    if (position.z == -1)
+        return NULL;
+    bool visited[28] = {};
+    visited[id] = true;
+    const Pieces_t startingPoint = chooseStartingPoint(id, color, positions);
+    visited[startingPoint] = true;
+    if (!dfs(&positions[startingPoint], context, visited, true))
+        return NULL;
 
     uint_fast8_t idx = 0;
     antMoves(id, &position, board, moves, &idx, NULL);
@@ -797,10 +815,25 @@ void *ant2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
+    const Position_t *positions = context->idToPos;
+    const Colors_t color = context->curColor;
+
     Piece_t *moves = &args->moves[MMtA(B_ANT_2, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_ANT_2 : B_ANT_2;
-    Position_t position = context->idToPos[id];
+    const Pieces_t *board = context->board;
+    const Pieces_t id = context->curColor == WHITE ? W_ANT_2 : B_ANT_2;
+    const Position_t position = context->idToPos[id];
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+        return NULL;
+
+    if (position.z == -1)
+        return NULL;
+    bool visited[28] = {};
+    visited[id] = true;
+    const Pieces_t startingPoint = chooseStartingPoint(id, color, positions);
+    visited[startingPoint] = true;
+    if (!dfs(&positions[startingPoint], context, visited, true))
+        return NULL;
 
     uint_fast8_t idx = 0;
     antMoves(id, &position, board, moves, &idx, NULL);
@@ -810,13 +843,96 @@ void *ant3Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
     const Context_t *context = args->context;
+    const Position_t *positions = context->idToPos;
+    const Colors_t color = context->curColor;
+
     Piece_t *moves = &args->moves[MMtA(B_ANT_3, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_ANT_3 : B_ANT_3;
-    Position_t position = context->idToPos[id];
+    const Pieces_t *board = context->board;
+    const Pieces_t id = context->curColor == WHITE ? W_ANT_3 : B_ANT_3;
+    const Position_t position = context->idToPos[id];
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+        return NULL;
+
+    if (position.z == -1)
+        return NULL;
+    bool visited[28] = {};
+    visited[id] = true;
+    const Pieces_t startingPoint = chooseStartingPoint(id, color, positions);
+    visited[startingPoint] = true;
+    if (!dfs(&positions[startingPoint], context, visited, true))
+        return NULL;
 
     uint_fast8_t idx = 0;
     antMoves(id, &position, board, moves, &idx, NULL);
+    return NULL;
+}
+
+
+void *firstGroup(void *arguments)
+{
+    const Context_t *context = ((ThreadArgs_t *) arguments)->context;
+    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
+    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
+    void * (*funcs[])(void *) = {
+        queen1Moves,
+        pillbug1Moves,
+        ladybug1Moves,
+        mosquitoMoves
+    };
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+        return NULL;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (positions[color == WHITE ? i + 14 : i].z == -1)
+            continue;
+        bool visited[28] = {};
+        visited[color == WHITE ? i + 14 : i] = true;
+        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
+        visited[startingPoint] = true;
+        if (!dfs(&positions[startingPoint], context, visited, true))
+            continue;
+        funcs[i](arguments);
+    }
+    return NULL;
+}
+void *secondGroup(void *arguments)
+{
+    const Context_t *context = ((ThreadArgs_t *) arguments)->context;
+    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
+    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
+    void * (*funcs[])(void *) = {
+        grasshopper1Moves,
+        grasshopper2Moves,
+        grasshopper3Moves,
+        beetle1Moves,
+        beetle2Moves,
+        spider1Moves,
+        spider2Moves,
+    };
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+    {
+        addMoves(arguments);
+        return NULL;
+    }
+
+
+    for (int i = 7; i < 14; ++i)
+    {
+        if (positions[color == WHITE ? i + 14 : i].z == -1)
+            continue;
+        bool visited[28] = {};
+        visited[color == WHITE ? i + 14 : i] = true;
+        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
+        visited[startingPoint] = true;
+        if (!dfs(&positions[startingPoint], context, visited, true))
+            continue;
+        funcs[i](arguments);
+    }
+    addMoves(arguments);
     return NULL;
 }
 
@@ -1040,39 +1156,18 @@ void getMoves(const Context_t *context, Piece_t **moves)
     }
 
 
-    pthread_t threads[MOVES_ARRAYS];
-    bool created[MOVES_ARRAYS] = {false};
+    pthread_t threads[5];
 
     //add
     ThreadArgs_t args = {context, *moves};
-    pthread_create(&threads[14], NULL, addMoves, &args);
-    created[14] = true;
 
-    void * (*funcs[])(void *) = {queen1Moves, pillbug1Moves, ladybug1Moves, mosquitoMoves, ant1Moves, ant2Moves, ant3Moves, grasshopper1Moves, grasshopper2Moves, grasshopper3Moves, beetle1Moves, beetle2Moves, spider1Moves, spider2Moves};
-    //se la regina non c'è i pezzi non possono muoversi
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-    {
-        for (uint_fast8_t i = 0; i < 14; ++i)
-        {
-            if (positions[color == WHITE ? i + 14 : i].z == -1)
-                continue;
-            bool visited[28] = {};
-            visited[color == WHITE ? i + 14 : i] = true;
-            const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
-            visited[startingPoint] = true;
-            if (i != B_PILLBUG && !dfs(&positions[startingPoint], context, visited, true))
-                continue;
-            pthread_create(&threads[i], NULL, funcs[i], &args);
-            created[i] = true;
-        }
-    }
+    void * (*funcs[])(void *) = {firstGroup, ant1Moves, ant2Moves, ant3Moves, secondGroup};
+
+    for (uint_fast8_t i = 0; i < 5; ++i)
+        pthread_create(&threads[i], NULL, funcs[i], &args);
 
     //join
-    for (int i = 0; i < MOVES_ARRAYS; ++i)
-    {
-        //TODO: per il futuro, se vogliamo iniziare a creare i nodi dei thread che finiscono prima, tocca studia un altro metodo
-        if (created[i])
-            pthread_join(threads[i], NULL);
-    }
+    for (int i = 0; i < 5; ++i)
+        pthread_join(threads[i], NULL);
 }
 

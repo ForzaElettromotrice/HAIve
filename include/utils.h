@@ -13,13 +13,13 @@ extern "C" {
 #endif
 
 
-#define BOARD_SIZE (7 * 28 * 56)
-#define BOARD_Y 28
-#define BOARD_X 56
+#define BOARD_SIZE (7 * 56 * 112)
+#define BOARD_Y 56
+#define BOARD_X 112
 
-#define MtA(z,y,x) ((z) * 56 * 28 + ((y) + 14) * 56 + ((x) + 28))
-#define yOf(y) (y + 14)
-#define xOf(x) (x + 28)
+#define MtA(z,y,x) ((z) * 56 * 112 + ((y) + 28) * 112 + ((x) + 56))
+#define yOf(y) (y + 28)
+#define xOf(x) (x + 56)
 
 #define isBlack(x) (x < 14)
 #define isWhite(x) (x >= 14)
