@@ -19,7 +19,7 @@
 
 - [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
 - [ ] Allenare rete su tutto (crock)
-- [ ] Capire come usare GPU con Dockerfile
+- [X] Capire come usare GPU con Dockerfile
 - [X] Benchmark sulla getMoves per vedere se accorpare qualche funzione
 - [ ] Scegliere figlio dell'albero data una mossa MZinga
 - [ ] Separare il contesto di MZinga e il nostro!!

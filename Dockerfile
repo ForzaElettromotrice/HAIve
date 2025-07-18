@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM nvidia/cuda:12.1.1-devel-ubuntu20.04
 
 RUN apt-get update && apt-get install -y \
     wget \
@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y \
     mv cmake-3.29.2-linux-x86_64 /opt/cmake && \
     ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 
-RUN wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.3.0%2Bcpu.zip && \
-    unzip libtorch-shared-with-deps-2.3.0+cpu.zip -d /app && \
-    rm libtorch-shared-with-deps-2.3.0+cpu.zip && \
-    mv /app/libtorch-shared-with-deps-2.3.0+cpu /app/libtorch
+RUN wget wget https://download.pytorch.org/libtorch/cu121/libtorch-shared-with-deps-2.3.0%2Bcu121.zip && \
+    unzip libtorch-shared-with-deps-2.3.0+cu121.zip -d /app && \
+    rm libtorch-shared-with-deps-2.3.0+cu121.zip && \
+    mv /app/libtorch-shared-with-deps-2.3.0+cu121 /app/libtorch
 
 
 WORKDIR /app
