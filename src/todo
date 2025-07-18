@@ -16,11 +16,11 @@
 - [X] Parallelizzare boardToTensor
 - [ ] Modificare le hashmap per le moves
 - [ ] Vedere se usare le hasmap di c++ in tree.cpp
-
-- [ ] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
-- [ ] Allenare rete su tutto (crock)
-- [X] Capire come usare GPU con Dockerfile
-- [X] Benchmark sulla getMoves per vedere se accorpare qualche funzione
 - [ ] Scegliere figlio dell'albero data una mossa MZinga
 - [ ] Separare il contesto di MZinga e il nostro!!
-- [ ] Fix HiveCNN.cpp
+
+- [X] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
+- [X] Capire come usare GPU con Dockerfile
+- [X] Benchmark sulla getMoves per vedere se accorpare qualche funzione
+- [ ] Allenare rete su tutto (crock)
+- [ ] Fix HiveCNN.cpp (appena la rete funzia bene)

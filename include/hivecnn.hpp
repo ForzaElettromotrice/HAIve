@@ -21,6 +21,9 @@ struct HiveNet : torch::nn::Module
     {
     };
     virtual torch::Tensor forward(const Context_t *context) = 0;
+    virtual void batchForward(BatchContext_t *batchContext) = 0;
+    virtual void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const = 0;
+    virtual void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) = 0;
 };
 
 struct HiveCNNImpl : HiveNet
@@ -28,6 +31,7 @@ struct HiveCNNImpl : HiveNet
     std::string checkpoint_file;
     torch::nn::Sequential conv_layers{nullptr}, fc_layers{nullptr};
     torch::nn::MaxPool2d pool{nullptr};
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     explicit HiveCNNImpl(std::string checkpoint = "model_checkpoint.pt")
         : checkpoint_file(std::move(checkpoint)),
@@ -66,8 +70,9 @@ struct HiveCNNImpl : HiveNet
     }
 
     torch::Tensor forward(const Context_t *context) override;
-    void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const;
-    void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr);
+    void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const override;
+    void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) override;
+    void batchForward(BatchContext_t *batchContext) override;
 };
 
 TORCH_MODULE(HiveCNN);
@@ -124,10 +129,10 @@ struct HiveCNNEnhancedImpl : HiveNet
     }
 
     torch::Tensor forward(const Context_t *context) override;
-    void batchForward(BatchContext_t *batchContext);
-    void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const;
+    void batchForward(BatchContext_t *batchContext) override;
+    void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const override;
     void save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr, int part = 0) const;
-    void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr);
+    void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) override;
 };
 
 TORCH_MODULE(HiveCNNEnhanced);

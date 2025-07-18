@@ -11,7 +11,7 @@
 #include "utils.h"
 
 
-HiveCNNEnhanced model;
+HiveNet *model;
 HQueue_t *workQueue;
 HInnerQueue_t *batchQueue;
 HInnerQueue_t *garbageQueue;
@@ -306,7 +306,7 @@ void *changeRoot(void *args)
 int initTree()
 {
     //Init rete
-    model = HiveCNNEnhanced(MODEL_PATH);
+    model = HiveCNNEnhanced(MODEL_PATH).get();
     model->load_model();
 
     //Init work queue
