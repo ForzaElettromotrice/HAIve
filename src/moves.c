@@ -125,13 +125,22 @@ bool dfs(const Position_t *start, const HAIveContext_t *context, bool *visited, 
     }
     return true;
 }
-
-void *addMoves(void *arguments)
+bool canMove(const Pieces_t id, const HAIveContext_t *context)
 {
-    const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(14, 0)];
+    if (context->idToPos[context->curColor == WHITE ? id + 14 : id].z == -1)
+        return false;
+    bool visited[28] = {};
+    visited[context->curColor == WHITE ? id + 14 : id] = true;
+    const Pieces_t startingPoint = chooseStartingPoint(context->curColor == WHITE ? id + 14 : id, context->curColor, context->idToPos);
+    visited[startingPoint] = true;
+    if (!dfs(&context->idToPos[startingPoint], context, visited, true))
+        return false;
+    return true;
+}
 
+
+void *addMoves(const HAIveContext_t *context, Piece_t *moves)
+{
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
 
@@ -256,21 +265,6 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
         moves[(*idx)++] = move;
     }
 }
-void *queen1Moves(void *arguments)
-{
-    const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_QUEEN, 0)];
-
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    queenMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-
 void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
 {
     const int_fast8_t z = position->z;
@@ -319,33 +313,6 @@ void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
         moves[(*idx)++] = move;
     }
 }
-void *beetle1Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_BEETLE_1, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_BEETLE_1 : B_BEETLE_1;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    beetleMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-void *beetle2Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_BEETLE_2, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_BEETLE_2 : B_BEETLE_2;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    beetleMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-
 void grasshopperMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
 {
     const int_fast8_t y = position->y;
@@ -380,46 +347,6 @@ void grasshopperMoves(const Pieces_t id, const Position_t *position, const Piece
         moves[(*idx)++] = move;
     }
 }
-void *grasshopper1Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_1, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_1 : B_GRASSHOPPER_1;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    grasshopperMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-void *grasshopper2Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_2, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_2 : B_GRASSHOPPER_2;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    grasshopperMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-void *grasshopper3Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_3, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_3 : B_GRASSHOPPER_3;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    grasshopperMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-
 void pillbugMoves(const Pieces_t id, const Position_t *position, const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
 {
     const Pieces_t last = context->lastMovedPiece;
@@ -504,20 +431,6 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const HAIveCont
         }
     }
 }
-void *pillbug1Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_PILLBUG, 0)];
-    Pieces_t id = context->curColor == WHITE ? W_PILLBUG : B_PILLBUG;
-    Position_t *positions = context->idToPos;
-    Position_t position = positions[id];
-
-    uint_fast8_t idx = 0;
-    pillbugMoves(id, &position, context, moves, &idx);
-    return NULL;
-}
-
 void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
 {
     Hashmap_t hashmap;
@@ -615,21 +528,6 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
     }
     freeHashmap(&hashmap);
 }
-void *ladybug1Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_LADYBUG, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_LADYBUG : B_LADYBUG;
-    Position_t *positions = context->idToPos;
-    Position_t position = positions[id];
-
-    uint_fast8_t idx = 0;
-    ladybugMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-
 void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx)
 {
     const int_fast8_t y = position->y;
@@ -708,33 +606,6 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
     }
     freeHashmap(&hashmap);
 }
-void *spider1Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_SPIDER_1, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_SPIDER_1 : B_SPIDER_1;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    spiderMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-void *spider2Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_SPIDER_2, 0)];
-    Pieces_t *board = context->board;
-    Pieces_t id = context->curColor == WHITE ? W_SPIDER_2 : B_SPIDER_2;
-    Position_t position = context->idToPos[id];
-
-    uint_fast8_t idx = 0;
-    spiderMoves(id, &position, board, moves, &idx);
-    return NULL;
-}
-
 void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx, Hashmap_t *visited)
 {
     Hashmap_t hashmap = {};
@@ -783,100 +654,9 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
     if (first)
         freeHashmap(&hashmap);
 }
-void *ant1Moves(void *arguments)
+void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *moves)
 {
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    const Position_t *positions = context->idToPos;
-    const Colors_t color = context->curColor;
-
-    Piece_t *moves = &args->moves[MMtA(B_ANT_1, 0)];
-    const Pieces_t *board = context->board;
-    const Pieces_t id = context->curColor == WHITE ? W_ANT_1 : B_ANT_1;
     const Position_t position = context->idToPos[id];
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-        return NULL;
-
-    if (position.z == -1)
-        return NULL;
-    bool visited[28] = {};
-    visited[id] = true;
-    const Pieces_t startingPoint = chooseStartingPoint(id, color, positions);
-    visited[startingPoint] = true;
-    if (!dfs(&positions[startingPoint], context, visited, true))
-        return NULL;
-
-    uint_fast8_t idx = 0;
-    antMoves(id, &position, board, moves, &idx, NULL);
-    return NULL;
-}
-void *ant2Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    const Position_t *positions = context->idToPos;
-    const Colors_t color = context->curColor;
-
-    Piece_t *moves = &args->moves[MMtA(B_ANT_2, 0)];
-    const Pieces_t *board = context->board;
-    const Pieces_t id = context->curColor == WHITE ? W_ANT_2 : B_ANT_2;
-    const Position_t position = context->idToPos[id];
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-        return NULL;
-
-    if (position.z == -1)
-        return NULL;
-    bool visited[28] = {};
-    visited[id] = true;
-    const Pieces_t startingPoint = chooseStartingPoint(id, color, positions);
-    visited[startingPoint] = true;
-    if (!dfs(&positions[startingPoint], context, visited, true))
-        return NULL;
-
-    uint_fast8_t idx = 0;
-    antMoves(id, &position, board, moves, &idx, NULL);
-    return NULL;
-}
-void *ant3Moves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    const Position_t *positions = context->idToPos;
-    const Colors_t color = context->curColor;
-
-    Piece_t *moves = &args->moves[MMtA(B_ANT_3, 0)];
-    const Pieces_t *board = context->board;
-    const Pieces_t id = context->curColor == WHITE ? W_ANT_3 : B_ANT_3;
-    const Position_t position = context->idToPos[id];
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-        return NULL;
-
-    if (position.z == -1)
-        return NULL;
-    bool visited[28] = {};
-    visited[id] = true;
-    const Pieces_t startingPoint = chooseStartingPoint(id, color, positions);
-    visited[startingPoint] = true;
-    if (!dfs(&positions[startingPoint], context, visited, true))
-        return NULL;
-
-    uint_fast8_t idx = 0;
-    antMoves(id, &position, board, moves, &idx, NULL);
-    return NULL;
-}
-
-void *mosquitoMoves(void *arguments)
-{
-    const ThreadArgs_t *args = arguments;
-    const HAIveContext_t *context = args->context;
-    Piece_t *moves = &args->moves[MMtA(B_MOSQUITO, 0)];
-    const Pieces_t *board = context->board;
-    const Pieces_t id = context->curColor == WHITE ? W_MOSQUITO : B_MOSQUITO;
-    const Position_t *positions = context->idToPos;
-    const Position_t position = positions[id];
     uint_fast8_t idx = 0;
 
     const int_fast8_t z = position.z;
@@ -885,8 +665,8 @@ void *mosquitoMoves(void *arguments)
 
     if (z > 0)
     {
-        beetleMoves(id, &position, board, moves, &idx);
-        return NULL;
+        beetleMoves(id, &position, context->board, moves, &idx);
+        return;
     }
 
     for (int_fast8_t i = 0; i < 6; ++i)
@@ -894,12 +674,12 @@ void *mosquitoMoves(void *arguments)
         const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
         const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
 
-        const Pieces_t neighbor = board[MtA(0, newY, newX)];
+        const Pieces_t neighbor = context->board[MtA(0, newY, newX)];
         switch (neighbor)
         {
             case B_QUEEN:
             case W_QUEEN:
-                queenMoves(id, &position, board, moves, &idx);
+                queenMoves(id, &position, context->board, moves, &idx);
                 break;
             case B_PILLBUG:
             case W_PILLBUG:
@@ -907,7 +687,7 @@ void *mosquitoMoves(void *arguments)
                 break;
             case B_LADYBUG:
             case W_LADYBUG:
-                ladybugMoves(id, &position, board, moves, &idx);
+                ladybugMoves(id, &position, context->board, moves, &idx);
                 break;
             case B_MOSQUITO:
             case W_MOSQUITO:
@@ -918,7 +698,7 @@ void *mosquitoMoves(void *arguments)
             case W_ANT_1:
             case W_ANT_2:
             case W_ANT_3:
-                antMoves(id, &position, board, moves, &idx, NULL);
+                antMoves(id, &position, context->board, moves, &idx, NULL);
                 break;
             case B_GRASSHOPPER_1:
             case B_GRASSHOPPER_2:
@@ -926,92 +706,24 @@ void *mosquitoMoves(void *arguments)
             case W_GRASSHOPPER_1:
             case W_GRASSHOPPER_2:
             case W_GRASSHOPPER_3:
-                grasshopperMoves(id, &position, board, moves, &idx);
+                grasshopperMoves(id, &position, context->board, moves, &idx);
                 break;
             case B_BEETLE_1:
             case B_BEETLE_2:
             case W_BEETLE_1:
             case W_BEETLE_2:
-                beetleMoves(id, &position, board, moves, &idx);
+                beetleMoves(id, &position, context->board, moves, &idx);
                 break;
             case B_SPIDER_1:
             case B_SPIDER_2:
             case W_SPIDER_1:
             case W_SPIDER_2:
-                spiderMoves(id, &position, board, moves, &idx);
+                spiderMoves(id, &position, context->board, moves, &idx);
                 break;
             case NULLPIECE:
                 break;
         }
     }
-    return NULL;
-}
-
-void *firstGroup(void *arguments)
-{
-    const HAIveContext_t *context = ((ThreadArgs_t *) arguments)->context;
-    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
-    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
-    void * (*funcs[])(void *) = {
-        queen1Moves,
-        pillbug1Moves,
-        ladybug1Moves,
-        mosquitoMoves
-    };
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-        return NULL;
-
-    for (int i = 0; i < 4; ++i)
-    {
-        if (positions[color == WHITE ? i + 14 : i].z == -1)
-            continue;
-        bool visited[28] = {};
-        visited[color == WHITE ? i + 14 : i] = true;
-        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
-        visited[startingPoint] = true;
-        if (!dfs(&positions[startingPoint], context, visited, true))
-            continue;
-        funcs[i](arguments);
-    }
-    return NULL;
-}
-void *secondGroup(void *arguments)
-{
-    const HAIveContext_t *context = ((ThreadArgs_t *) arguments)->context;
-    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
-    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
-    void * (*funcs[])(void *) = {
-        grasshopper1Moves,
-        grasshopper2Moves,
-        grasshopper3Moves,
-        beetle1Moves,
-        beetle2Moves,
-        spider1Moves,
-        spider2Moves,
-    };
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-    {
-        addMoves(arguments);
-        return NULL;
-    }
-
-
-    for (int i = 7; i < 14; ++i)
-    {
-        if (positions[color == WHITE ? i + 14 : i].z == -1)
-            continue;
-        bool visited[28] = {};
-        visited[color == WHITE ? i + 14 : i] = true;
-        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
-        visited[startingPoint] = true;
-        if (!dfs(&positions[startingPoint], context, visited, true))
-            continue;
-        funcs[i](arguments);
-    }
-    addMoves(arguments);
-    return NULL;
 }
 
 
@@ -1155,19 +867,64 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
         return;
     }
 
+    addMoves(context, &(*moves)[MMtA(14, 0)]);
+    //Se la queen non c'è non si può muovere nulla
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+        return;
 
-    pthread_t threads[5];
+    const int8_t addId = color == WHITE ? 14 : 0;
+    uint_fast8_t idx = 0;
+    if (canMove(B_QUEEN + addId, context))
+        queenMoves(B_QUEEN + addId, &positions[B_QUEEN + addId], board, &(*moves)[MMtA(B_QUEEN, 0)], &idx);
+    idx = 0;
+    if (canMove(B_PILLBUG + addId, context))
+        pillbugMoves(B_PILLBUG + addId, &positions[B_PILLBUG + addId], context, &(*moves)[MMtA(B_PILLBUG, 0)], &idx);
 
-    //add
-    ThreadArgs_t args = {context, *moves};
+    idx = 0;
+    if (canMove(B_LADYBUG + addId, context))
+        ladybugMoves(B_LADYBUG + addId, &positions[B_LADYBUG + addId], board, &(*moves)[MMtA(B_LADYBUG, 0)], &idx);
 
-    void * (*funcs[])(void *) = {firstGroup, ant1Moves, ant2Moves, ant3Moves, secondGroup};
+    if (canMove(B_MOSQUITO + addId, context))
+        mosquitoMoves(B_MOSQUITO + addId, context, &(*moves)[MMtA(B_MOSQUITO, 0)]);
 
-    for (uint_fast8_t i = 0; i < 5; ++i)
-        pthread_create(&threads[i], NULL, funcs[i], &args);
+    idx = 0;
+    if (canMove(B_ANT_1 + addId, context))
+        antMoves(B_ANT_1 + addId, &positions[B_ANT_1 + addId], board, &(*moves)[MMtA(B_ANT_1, 0)], &idx, NULL);
 
-    //join
-    for (int i = 0; i < 5; ++i)
-        pthread_join(threads[i], NULL);
+    idx = 0;
+    if (canMove(B_ANT_2 + addId, context))
+        antMoves(B_ANT_2 + addId, &positions[B_ANT_2 + addId], board, &(*moves)[MMtA(B_ANT_2, 0)], &idx, NULL);
+
+    idx = 0;
+    if (canMove(B_ANT_3 + addId, context))
+        antMoves(B_ANT_3 + addId, &positions[B_ANT_3 + addId], board, &(*moves)[MMtA(B_ANT_3, 0)], &idx, NULL);
+
+    idx = 0;
+    if (canMove(B_GRASSHOPPER_1 + addId, context))
+        grasshopperMoves(B_GRASSHOPPER_1 + addId, &positions[B_GRASSHOPPER_1 + addId], board, &(*moves)[MMtA(B_GRASSHOPPER_1, 0)], &idx);
+
+    idx = 0;
+    if (canMove(B_GRASSHOPPER_2 + addId, context))
+        grasshopperMoves(B_GRASSHOPPER_2 + addId, &positions[B_GRASSHOPPER_2 + addId], board, &(*moves)[MMtA(B_GRASSHOPPER_2, 0)], &idx);
+
+    idx = 0;
+    if (canMove(B_GRASSHOPPER_3 + addId, context))
+        grasshopperMoves(B_GRASSHOPPER_3 + addId, &positions[B_GRASSHOPPER_3 + addId], board, &(*moves)[MMtA(B_GRASSHOPPER_3, 0)], &idx);
+
+    idx = 0;
+    if (canMove(B_BEETLE_1 + addId, context))
+        beetleMoves(B_BEETLE_1 + addId, &positions[B_BEETLE_1 + addId], board, &(*moves)[MMtA(B_BEETLE_1, 0)], &idx);
+
+    idx = 0;
+    if (canMove(B_BEETLE_2 + addId, context))
+        beetleMoves(B_BEETLE_2 + addId, &positions[B_BEETLE_2 + addId], board, &(*moves)[MMtA(B_BEETLE_2, 0)], &idx);
+
+    idx = 0;
+    if (canMove(B_SPIDER_1 + addId, context))
+        spiderMoves(B_SPIDER_1 + addId, &positions[B_SPIDER_1 + addId], board, &(*moves)[MMtA(B_SPIDER_1, 0)], &idx);
+
+    idx = 0;
+    if (canMove(B_SPIDER_2 + addId, context))
+        spiderMoves(B_SPIDER_2 + addId, &positions[B_SPIDER_2 + addId], board, &(*moves)[MMtA(B_SPIDER_2, 0)], &idx);
 }
 
