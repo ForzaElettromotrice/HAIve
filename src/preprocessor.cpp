@@ -4,8 +4,10 @@
 
 #include "preprocessor.hpp"
 
-uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z) {
-    switch (pieceId) {
+uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z)
+{
+    switch (pieceId)
+    {
         case W_QUEEN:
         case B_QUEEN:
             return static_cast<uint8_t>(Layer::QUEEN);
@@ -49,8 +51,10 @@ uint8_t pieceToLayer(const Pieces_t pieceId, const uint8_t z) {
 }
 
 
-void Processor::saveToFile(std::ofstream &os, const Position_t *positions, const Result &result) {
-    for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
+void Processor::saveToFile(std::ofstream &os, const Position_t *positions, const Result &result)
+{
+    for (uint_fast8_t i = 0; i < NUM_PIECES; i++)
+    {
         const int z = positions[i].z;
         if (z == -1)
             continue;
@@ -62,12 +66,14 @@ void Processor::saveToFile(std::ofstream &os, const Position_t *positions, const
     os << static_cast<uint8_t>(result) << std::endl;
 }
 
-void Processor::loadFromFile(std::ifstream &is, Result &result) {
+void Processor::loadFromFile(std::ifstream &is, Result &result)
+{
     auto positions = std::vector<Position_t>(NUM_PIECES);
     for (uint_fast8_t j = 0; j < NUM_PIECES; j++)
         positions[j].z = -1;
     int_fast8_t x, y, z, pieceId;
-    while (is.peek() != '\n') {
+    while (is.peek() != '\n')
+    {
         is >> pieceId;
         if (is.get() != ':' && is.get() != '(')
             throw std::runtime_error("Could not parse piece id\n");
@@ -91,21 +97,25 @@ void Processor::loadFromFile(std::ifstream &is, Result &result) {
 
 void Processor::multipleSaveToFile(const std::string &fileName,
                                    const std::vector<std::vector<Position_t> > &allPositions,
-                                   const std::vector<Result> &results) {
+                                   const std::vector<Result> &results)
+{
     std::ofstream os(fileName);
     if (!os)
         throw std::runtime_error("Could not open file " + fileName);
-    for (uint_fast32_t boardStatus = 0; boardStatus < allPositions.size(); boardStatus++) {
+    for (uint_fast32_t boardStatus = 0; boardStatus < allPositions.size(); boardStatus++)
+    {
         saveToFile(os, allPositions[boardStatus].data(), results[boardStatus]);
     }
 }
 
 void Processor::multipleSaveToFile(const std::string &fileName,
-                                   const std::vector<std::vector<Position_t> > &allPositions, const Result &result) {
+                                   const std::vector<std::vector<Position_t> > &allPositions, const Result &result)
+{
     std::ofstream os(fileName, std::ios::binary);
     if (!os)
         throw std::runtime_error("Could not open file " + fileName);
-    for (const auto &allPosition: allPositions) {
+    for (const auto &allPosition: allPositions)
+    {
         saveToFile(os, allPosition.data(), result);
     }
 }
@@ -113,11 +123,13 @@ void Processor::multipleSaveToFile(const std::string &fileName,
 /*
 *  Tensor può essere passato anche inizializzato, verrà fillato.
 */
-void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor) {
+void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor)
+{
     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
     tensor = torch::zeros({sizeLayer, BOARD_Y / 2, BOARD_X}, options);
 
-    for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
+    for (uint_fast8_t i = 0; i < NUM_PIECES; i++)
+    {
         const int_fast8_t z = positions[i].z;
         if (z == -1)
             continue;
@@ -128,14 +140,14 @@ void Processor::boardToTensor(const Position_t *positions, torch::Tensor &tensor
         uint8_t layerValue = pieceToLayer(static_cast<const Pieces_t>(i), z);
         tensor.index_put_({layerValue, yOf(y) / 2, xOf(x)}, i <= 13 ? -1 : 1);
     }
-
 }
 
-void * Processor::boardToTensor_mt(void* args) {
-
+void *Processor::boardToTensor_mt(void *args)
+{
     const auto arguments = static_cast<ProcessorArgs_t *>(args);
 
-    for (uint_fast8_t i = 0; i < NUM_PIECES; i++) {
+    for (uint_fast8_t i = 0; i < NUM_PIECES; i++)
+    {
         const int_fast8_t z = arguments->positions[i].z;
         if (z == -1)
             continue;
@@ -146,14 +158,15 @@ void * Processor::boardToTensor_mt(void* args) {
     }
 
     return nullptr;
-
 }
 
-Processor::Processor(std::string &fileName) : fileName_(fileName) {
+Processor::Processor(std::string &fileName) : fileName_(fileName)
+{
     gameStatus_ = NOT_STARTED;
 }
 
-void Processor::newGame() {
+void Processor::newGame()
+{
     gameStatus_ = NOT_STARTED;
     positionSequence_.clear();
 }
@@ -161,7 +174,8 @@ void Processor::newGame() {
 /*
  *  Pass the context with the new move.
  */
-void Processor::playMove(const Context_t *context) {
+void Processor::playMove(const HAIveContext_t *context)
+{
     gameStatus_ = IN_PROGRESS;
     Position_t *positions = context->idToPos;
     positionSequence_.emplace_back(positions, positions + NUM_PIECES);
@@ -170,8 +184,10 @@ void Processor::playMove(const Context_t *context) {
 /*
  *  End the game. The context must have the last move done.
  */
-void Processor::endGame(const Context_t *context, const Result &result) {
-    if (gameStatus_ != IN_PROGRESS) {
+void Processor::endGame(const HAIveContext_t *context, const Result &result)
+{
+    if (gameStatus_ != IN_PROGRESS)
+    {
         throw std::runtime_error("Game should be in progress\n");
     }
     gameStatus_ = NOT_STARTED;
@@ -180,7 +196,8 @@ void Processor::endGame(const Context_t *context, const Result &result) {
     multipleSaveToFile(fileName_, positionSequence_, result);
 }
 
-torch::Tensor &Processor::getTensor() {
+torch::Tensor &Processor::getTensor()
+{
     boardToTensor(positionSequence_.back().data(), currentTensor_);
     return currentTensor_;
 }

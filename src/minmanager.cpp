@@ -4,10 +4,12 @@
 
 #include "minmanager.hpp"
 
-std::string rstrip(const std::string& s) {
+std::string rstrip(const std::string &s)
+{
     std::string result = s;
     result.erase(std::find_if(result.rbegin(), result.rend(),
-                              [](unsigned char ch) {
+                              [](unsigned char ch)
+                              {
                                   return !std::isspace(ch);
                               }).base(),
                  result.end());
@@ -15,11 +17,11 @@ std::string rstrip(const std::string& s) {
 }
 
 
-void MinManager::initMinManager() {
+void MinManager::initMinManager()
+{
     {
-
         moves_ = std::vector<Piece_t>();
-        initContext(&context_);
+        initHAIveContext(&context_);
 
         std::ifstream is(filename_, std::ios::binary);
         if (!is)
@@ -34,9 +36,10 @@ void MinManager::initMinManager() {
             throw std::runtime_error("Invalid play result\n");
 
         // other line
-        while (std::getline(is, line)) {
+        while (std::getline(is, line))
+        {
             line = rstrip(line);
-            char* mutable_line = new char[line.size() + 1];  // +1 for null terminator
+            char *mutable_line = new char[line.size() + 1]; // +1 for null terminator
             std::strcpy(mutable_line, line.c_str());
 
             Piece_t p = parseMove(context_.idToPos, mutable_line);
@@ -47,16 +50,14 @@ void MinManager::initMinManager() {
             addOurMove(&context_, &p);
         }
 
-        resetContext(&context_);
-
+        resetHAIveContext(&context_);
     }
 }
 
-Context_t *MinManager::getNext() {
-
+HAIveContext_t *MinManager::getNext()
+{
     addOurMove(&context_, &moves_[0]);
     moves_.erase(moves_.begin());
     return &context_;
-
 }
 

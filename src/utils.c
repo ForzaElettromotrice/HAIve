@@ -168,12 +168,29 @@ void initHAIveContext(HAIveContext_t *context)
     context->gameStatus = IN_PROGRESS;
     context->lastMovedPiece = NULLPIECE;
 }
+void resetHAIveContext(HAIveContext_t *context)
+{
+    memset(context->board, 0xff, BOARD_SIZE * sizeof(Pieces_t));
+    memset(context->idToPos, 0xff, NUM_PIECES * sizeof(Position_t));
+    context->turn = 1;
+    context->curColor = WHITE;
+    context->gameStatus = IN_PROGRESS;
+    context->lastMovedPiece = NULLPIECE;
+}
+void copyHAIveContext(const HAIveContext_t *src, HAIveContext_t *dst)
+{
+    memcpy(dst->board, src->board, BOARD_SIZE * sizeof(Pieces_t));
+    memcpy(dst->idToPos, src->idToPos, NUM_PIECES * sizeof(Position_t));
+    dst->turn = src->turn;
+    dst->curColor = src->curColor;
+    dst->gameStatus = src->gameStatus;
+    dst->lastMovedPiece = src->lastMovedPiece;
+}
 void cleanHAIveContext(const HAIveContext_t *context)
 {
     free(context->board);
     free(context->idToPos);
 }
-
 
 
 Command_t parseCommand(const char *command)

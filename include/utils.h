@@ -33,6 +33,8 @@ void resetMzingaContext(MzingaContext_t *context);
 void cleanMzingaContext(const MzingaContext_t *context);
 
 void initHAIveContext(HAIveContext_t *context);
+void resetHAIveContext(HAIveContext_t *context);
+void copyHAIveContext(const HAIveContext_t *src, HAIveContext_t *dst);
 void cleanHAIveContext(const HAIveContext_t *context);
 
 Command_t parseCommand(const char *command);

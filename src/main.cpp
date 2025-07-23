@@ -64,9 +64,11 @@ int main()
                 break;
             }
             case BESTMOVE:
+            {
                 const Node_t *bestChild = getBestChild();
                 printMove(&bestChild->context, bestChild->move);
                 break;
+            }
             case INVALID:
                 printf("err Unknown command\n");
         }

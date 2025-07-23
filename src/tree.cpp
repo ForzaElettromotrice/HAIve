@@ -52,13 +52,13 @@ bool alreadySeen(Node_t *node)
 
     return true;
 }
-void initNode(Node_t *node, const Piece_t *move, const Context_t *context)
+void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context)
 {
     if (node == nullptr)
         return;
 
     node->move = move;
-    copyContext(context, &node->context);
+    copyHAIveContext(context, &node->context);
     addOurMove(&node->context, move);
     node->childs = static_cast<Node_t **>(malloc(300 * sizeof(Node_t *)));
     node->score = -2;
@@ -70,11 +70,11 @@ void initNode(Node_t *node, const Piece_t *move, const Context_t *context)
 void freeNode(Node_t *node)
 {
     free(node->moves);
-    cleanContext(&node->context);
+    cleanHAIveContext(&node->context);
     free(node->childs);
     free(node);
 }
-Node_t *getNewNode(const Piece_t *move, const Context_t *context)
+Node_t *getNewNode(const Piece_t *move, const HAIveContext_t *context)
 {
     auto *node = static_cast<Node_t *>(simplehpop(garbageQueue));
     if (node == nullptr)
@@ -88,7 +88,7 @@ Node_t *getNewNode(const Piece_t *move, const Context_t *context)
     free(node->moves);
     node->moves = nullptr;
     node->score = -2;
-    copyContext(context, &node->context);
+    copyHAIveContext(context, &node->context);
     addOurMove(&node->context, move);
     node->cCount = 0;
     node->bestChoice = nullptr;
@@ -323,8 +323,8 @@ int initTree()
 
     //Init root
     const auto node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-    Context_t context;
-    initContext(&context);
+    HAIveContext_t context;
+    initHAIveContext(&context);
     initNode(node, nullptr, &context);
     node->score = 0; //Pareggio, nessuno ha mosso
     hpush(workQueue, 0, node);

@@ -20,7 +20,7 @@ struct HiveNet : torch::nn::Module
     virtual ~HiveNet()
     {
     };
-    virtual torch::Tensor forward(const Context_t *context) = 0;
+    virtual torch::Tensor forward(const HAIveContext_t *context) = 0;
     virtual void batchForward(BatchContext_t *batchContext) = 0;
     virtual void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const = 0;
     virtual void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) = 0;
@@ -53,15 +53,15 @@ struct HiveCNNImpl : HiveNet
                                           torch::nn::LeakyReLU(),
                                           torch::nn::Dropout(0.2),
 
-                                            torch::nn::Conv2d(torch::nn::Conv2dOptions(128, 256, /*kernel_size=*/3).stride(2).padding(1).bias(false)),
-                                            torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(256)),
-                                            torch::nn::LeakyReLU(),
-                                            torch::nn::Dropout(0.3),
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(128, 256, /*kernel_size=*/3).stride(2).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(256)),
+                                          torch::nn::LeakyReLU(),
+                                          torch::nn::Dropout(0.3),
 
-                                            torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 512, /*kernel_size=*/2).stride(1).padding(1).bias(false)),
-                                            torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(512)),
-                                            torch::nn::ReLU(),
-                                            torch::nn::Dropout(0.3)
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 512, /*kernel_size=*/2).stride(1).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(512)),
+                                          torch::nn::ReLU(),
+                                          torch::nn::Dropout(0.3)
                                       ));
 
         // Fully connected layers
@@ -75,7 +75,7 @@ struct HiveCNNImpl : HiveNet
                                     ));
     }
 
-    torch::Tensor forward(const Context_t *context) override;
+    torch::Tensor forward(const HAIveContext_t *context) override;
     void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const override;
     void load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) override;
     void batchForward(BatchContext_t *batchContext) override;
@@ -94,48 +94,48 @@ struct HiveCNNEnhancedImpl : HiveNet
         : checkpoint_file(std::move(checkpoint))
     {
         conv_layers = register_module("conv_layers", torch::nn::Sequential(
-            // First conv block (18 -> 32)
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(18, 32, 3).stride(1).padding(1).bias(false)),
-            torch::nn::BatchNorm2d(32),
-            torch::nn::LeakyReLU(),
+                                          // First conv block (18 -> 32)
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(18, 32, 3).stride(1).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(32),
+                                          torch::nn::LeakyReLU(),
 
-            // Second conv block (32 -> 64)
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 64, 3).stride(1).padding(1).bias(false)),
-            torch::nn::BatchNorm2d(64),
-            torch::nn::LeakyReLU(),
-            torch::nn::Dropout(0.2),
+                                          // Second conv block (32 -> 64)
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 64, 3).stride(1).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(64),
+                                          torch::nn::LeakyReLU(),
+                                          torch::nn::Dropout(0.2),
 
-            // Third conv block (64 -> 128)
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 128, 3).stride(1).padding(1).bias(false)),
-            torch::nn::BatchNorm2d(128),
-            torch::nn::LeakyReLU(),
-            torch::nn::Dropout(0.2),
+                                          // Third conv block (64 -> 128)
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 128, 3).stride(1).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(128),
+                                          torch::nn::LeakyReLU(),
+                                          torch::nn::Dropout(0.2),
 
-            // Fourth conv block (128 -> 256)
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(128, 256, 3).stride(2).padding(1).bias(false)),
-            torch::nn::BatchNorm2d(256),
-            torch::nn::LeakyReLU(),
-            torch::nn::Dropout(0.3),
+                                          // Fourth conv block (128 -> 256)
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(128, 256, 3).stride(2).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(256),
+                                          torch::nn::LeakyReLU(),
+                                          torch::nn::Dropout(0.3),
 
-            // Fifth conv block (256 -> 512)
-            torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 512, 2).stride(1).padding(1).bias(false)),
-            torch::nn::BatchNorm2d(512),
-            torch::nn::ReLU(),
-            torch::nn::Dropout(0.3)
-        ));
+                                          // Fifth conv block (256 -> 512)
+                                          torch::nn::Conv2d(torch::nn::Conv2dOptions(256, 512, 2).stride(1).padding(1).bias(false)),
+                                          torch::nn::BatchNorm2d(512),
+                                          torch::nn::ReLU(),
+                                          torch::nn::Dropout(0.3)
+                                      ));
 
         // Fully connected layers
         fc_layers = register_module("fc1", torch::nn::Sequential(
-            torch::nn::Linear(torch::nn::LinearOptions(512, 32).bias(false)),
-            torch::nn::LeakyReLU(),
-            torch::nn::Dropout(0.2),
-            torch::nn::Linear(torch::nn::LinearOptions(32, 1).bias(false))
-        ));
+                                        torch::nn::Linear(torch::nn::LinearOptions(512, 32).bias(false)),
+                                        torch::nn::LeakyReLU(),
+                                        torch::nn::Dropout(0.2),
+                                        torch::nn::Linear(torch::nn::LinearOptions(32, 1).bias(false))
+                                    ));
 
         // TODO: Add an action-prob layer?
     }
 
-    torch::Tensor forward(const Context_t *context) override;
+    torch::Tensor forward(const HAIveContext_t *context) override;
     void batchForward(BatchContext_t *batchContext) override;
     void save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr) const override;
     void save_partial(const std::shared_ptr<torch::optim::Optimizer> &optimizer = nullptr, int part = 0) const;
@@ -144,8 +144,8 @@ struct HiveCNNEnhancedImpl : HiveNet
 
 TORCH_MODULE(HiveCNNEnhanced);
 
-Result resultOf(const Context *context);
-float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net);
+Result resultOf(const HAIveContext_t *context);
+float negamax_net(const HAIveContext_t *context, int depth, int maxDepth, bool isWhiteTurn, Piece_t *bestMove, HiveNet &net);
 void testAgainstRandom();
 
 #endif //HIVECNN_H

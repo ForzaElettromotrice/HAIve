@@ -15,44 +15,55 @@ extern "C" {
 
 #define paramSize 2*NUM_PIECES+2*NUM_PIECES
 
-class HeuristicMetrics {
+class HeuristicMetrics
+{
     std::array<double, 7> values_;
 
 public:
-    explicit HeuristicMetrics(const std::array<double, 7> &values) : values_(values) {
+    explicit HeuristicMetrics(const std::array<double, 7> &values) : values_(values)
+    {
     }
 
-    double inPlayWeight() const {
+    double inPlayWeight() const
+    {
         return values_[0];
     }
 
-    double isPinnedWeight() const {
+    double isPinnedWeight() const
+    {
         return values_[1];
     }
 
-    double isCoveredWeight() const {
+    double isCoveredWeight() const
+    {
         return values_[2];
     }
 
-    double noisyMoveWeight() const {
+    double noisyMoveWeight() const
+    {
         return values_[3];
     }
 
-    double quietMoveWeight() const {
+    double quietMoveWeight() const
+    {
         return values_[4];
     }
 
-    double friendlyNeighborWeight() const {
+    double friendlyNeighborWeight() const
+    {
         return values_[5];
     }
 
-    double enemyNeighborWeight() const {
+    double enemyNeighborWeight() const
+    {
         return values_[6];
     }
 
-    HeuristicMetrics enemy() const {
+    HeuristicMetrics enemy() const
+    {
         auto new_values_ = std::array<double, 7>();
-        for (uint8_t i = 0; i < 7; i++) {
+        for (uint8_t i = 0; i < 7; i++)
+        {
             new_values_[i] = -values_[i];
         }
         return HeuristicMetrics(new_values_);
@@ -139,8 +150,10 @@ inline HeuristicMetrics ladybugMetrics({
     -4767.602134795075 // EnemyNeighborWeight
 });
 
-inline HeuristicMetrics getMetrics(const Pieces_t piece) {
-    switch (piece) {
+inline HeuristicMetrics getMetrics(const Pieces_t piece)
+{
+    switch (piece)
+    {
         case W_QUEEN:
         case B_QUEEN:
             return queenMetrics;
@@ -177,7 +190,7 @@ inline HeuristicMetrics getMetrics(const Pieces_t piece) {
         case B_SPIDER_1:
         case B_SPIDER_2:
             return spiderMetrics;
-        // case NULLPIECE:
+            // case NULLPIECE:
             // printf("ERROR: Non-existing metrics for nullpiece\n");
     }
 
@@ -186,8 +199,8 @@ inline HeuristicMetrics getMetrics(const Pieces_t piece) {
     return HeuristicMetrics({0});;
 }
 
-double mzingaHeuristic(Context_t* context);
+double mzingaHeuristic(HAIveContext_t *context);
 uint_fast8_t getMovesSize(const Piece_t *moves);
-void setHeuristicParams(const Context_t *context, torch::Tensor &x);
+void setHeuristicParams(const HAIveContext_t *context, torch::Tensor &x);
 
 #endif //HEURISTICS_H

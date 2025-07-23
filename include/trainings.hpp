@@ -36,7 +36,7 @@ public:
     {
     }
 
-    virtual double heuristic(Context_t *context) = 0; // Values must be saturated from -1 to 1
+    virtual double heuristic(HAIveContext_t *context) = 0; // Values must be saturated from -1 to 1
     void train(bool toLoad) override;
 };
 
@@ -72,7 +72,7 @@ public:
     {
     }
 
-    double heuristic(Context_t *context) override;
+    double heuristic(HAIveContext_t *context) override;
 };
 
 inline void trainHeur()

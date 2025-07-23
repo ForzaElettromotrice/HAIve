@@ -15,7 +15,7 @@ HiveNet::HiveNet()
 }
 
 // HiveCNN
-torch::Tensor HiveCNNImpl::forward(const Context_t *context)
+torch::Tensor HiveCNNImpl::forward(const HAIveContext_t *context)
 {
     torch::Tensor x;
     Processor::boardToTensor(context->idToPos, x);
@@ -100,7 +100,7 @@ void HiveCNNImpl::batchForward(BatchContext_t *batchContext)
 
 // HiveCNNEnhanced
 
-torch::Tensor HiveCNNEnhancedImpl::forward(const Context_t *context)
+torch::Tensor HiveCNNEnhancedImpl::forward(const HAIveContext_t *context)
 {
     torch::Tensor x;
     //torch::Tensor y = torch::zeros(paramSize);
@@ -211,16 +211,16 @@ void HiveCNNEnhancedImpl::save_partial(const std::shared_ptr<torch::optim::Optim
 
 // Other stuff
 
-float evaluate(const Context_t *context, HiveNet &model, const bool isWhiteTurn)
+float evaluate(const HAIveContext_t *context, HiveNet &model, const bool isWhiteTurn)
 {
-    float y = model.forward(context).item<float>();
+    auto y = model.forward(context).item<float>();
     y *= !isWhiteTurn ? -1 : 1;
     if (y > 1) return 1;
     if (y < -1) return -1;
     return y;
 }
 
-float negamax_net(const Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net)
+float negamax_net(const HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net)
 {
     if (depth >= maxDepth)
     {
@@ -245,8 +245,8 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
     {
         for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
         {
-            Context_t newContext;
-            copyContext(context, &newContext);
+            HAIveContext_t newContext;
+            copyHAIveContext(context, &newContext);
 
             moved = true;
             addOurMove(&newContext, &moves[MMtA(piece, i)]);
@@ -256,19 +256,19 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
                 curBestMove = moves[MMtA(piece, i)];
             }
 
-            cleanContext(&newContext);
+            cleanHAIveContext(&newContext);
         }
     }
 
     if (!moved)
     {
-        Context_t newContext;
-        copyContext(context, &newContext);
+        HAIveContext_t newContext;
+        copyHAIveContext(context, &newContext);
 
         addOurMove(&newContext, &pass);
         maxVal = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net);
 
-        cleanContext(&newContext);
+        cleanHAIveContext(&newContext);
     }
 
     free(moves);
@@ -281,7 +281,7 @@ float negamax_net(const Context_t *context, const int depth, const int maxDepth,
     return -maxVal;
 }
 
-float negamax_heuristic(Context_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(Context_t *)> &heuristicFunc)
+float negamax_heuristic(HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc)
 {
     if (depth >= maxDepth)
     {
@@ -304,7 +304,7 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
     const uint_fast8_t end = start + 14;
     bool moved = false;
 
-    Context_t newContext;
+    HAIveContext_t newContext;
     for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
     {
         for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
@@ -313,7 +313,7 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
             {
                 logE(stderr, "Too many moves!\n");
             }
-            copyContext(context, &newContext);
+            copyHAIveContext(context, &newContext);
 
             moved = true;
             addOurMove(&newContext, &moves[MMtA(piece, i)]);
@@ -322,17 +322,17 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
                 maxVal = tmp;
                 curBestMove = moves[MMtA(piece, i)];
             }
-            cleanContext(&newContext);
+            cleanHAIveContext(&newContext);
         }
     }
 
     if (!moved)
     {
-        copyContext(context, &newContext);
+        copyHAIveContext(context, &newContext);
 
         addOurMove(&newContext, &pass);
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
-        cleanContext(&newContext);
+        cleanHAIveContext(&newContext);
     }
 
     free(moves);
@@ -346,9 +346,9 @@ float negamax_heuristic(Context_t *context, const int depth, const int maxDepth,
 }
 
 float negamax_heuristic_ab(
-    Context_t *context, const int depth, const int maxDepth,
+    HAIveContext_t *context, const int depth, const int maxDepth,
     const bool isWhiteTurn,
-    Piece_t *bestMove, const std::function<float(Context_t *)> &heuristicFunc,
+    Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc,
     float alpha, float beta,
     const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs,
     Hashmap_t *hashtable
@@ -389,7 +389,7 @@ float negamax_heuristic_ab(
     // const uint_fast8_t end = start + 14;
     bool moved = false;
 
-    Context_t newContext;
+    HAIveContext_t newContext;
     for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
     {
         for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
@@ -398,7 +398,7 @@ float negamax_heuristic_ab(
             {
                 logE(stderr, "Too many moves!\n");
             }
-            copyContext(context, &newContext);
+            copyHAIveContext(context, &newContext);
 
             auto check = std::chrono::high_resolution_clock::now();
             int elapsedLoop = std::chrono::duration_cast<std::chrono::milliseconds>(check - startTime).count();
@@ -411,7 +411,7 @@ float negamax_heuristic_ab(
             moved = true;
             addOurMove(&newContext, &moves[MMtA(piece, i)]);
             tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
-            cleanContext(&newContext);
+            cleanHAIveContext(&newContext);
 
             if (tmp == -9999.0f)
             {
@@ -433,12 +433,12 @@ float negamax_heuristic_ab(
 
     if (!moved)
     {
-        copyContext(context, &newContext);
+        copyHAIveContext(context, &newContext);
 
         addOurMove(&newContext, &pass);
         maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
 
-        cleanContext(&newContext);
+        cleanHAIveContext(&newContext);
     }
 
     free(moves);
@@ -452,7 +452,7 @@ float negamax_heuristic_ab(
 }
 
 
-Result resultOf(const Context *context)
+Result resultOf(const HAIveContext_t *context)
 {
     const GameStatus_t gameStat = context->gameStatus;
     if (gameStat == WHITE_WON)
@@ -474,10 +474,10 @@ bool isPass(Piece_t *moves)
 
 bool battleAgainstRandom(bool areWeWhite)
 {
-    Context_t context;
+    HAIveContext_t context;
     Piece_t bestMove;
     Piece_t *moves;
-    initContext(&context);
+    initHAIveContext(&context);
 
     Hashmap_t hashtable;
     initHashmap(&hashtable, 8192);
@@ -505,13 +505,11 @@ bool battleAgainstRandom(bool areWeWhite)
                     addOurMove(&context, &pass);
                     free(moves);
                     continue;
-                } else
-                {
-                    do
-                    {
-                        chosenPiece = rand() % MOVES_ARRAYS;
-                    } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
                 }
+                do
+                {
+                    chosenPiece = rand() % MOVES_ARRAYS;
+                } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
             }
             chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
             addOurMove(&context, &moves[MMtA(chosenPiece, chosenMove)]);
@@ -520,7 +518,7 @@ bool battleAgainstRandom(bool areWeWhite)
     }
 
     const GameStatus_t gameStat = getGameStatus(&context);
-    cleanContext(&context);
+    cleanHAIveContext(&context);
 
     if (areWeWhite && gameStat == WHITE_WON)
         return true;

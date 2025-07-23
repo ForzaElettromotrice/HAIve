@@ -12,7 +12,7 @@ uint_fast8_t getMovesSize(const Piece_t *moves)
     return size;
 }
 
-double mzingaHeuristic(Context_t *context)
+double mzingaHeuristic(HAIveContext_t *context)
 {
     if (context->gameStatus == WHITE_WON)
         return static_cast<double>(Result::RESULT_WHITE_WON);
@@ -116,7 +116,7 @@ double mzingaHeuristic(Context_t *context)
     Fills x with some useful statistics about the context.
 */
 
-void setHeuristicParams(const Context_t *context, torch::Tensor &x)
+void setHeuristicParams(const HAIveContext_t *context, torch::Tensor &x)
 {
     // n_neigh_friendly + enemy  // moves (quiet/noisy)
     const size_t size = 2 * NUM_PIECES + 2 * NUM_PIECES;

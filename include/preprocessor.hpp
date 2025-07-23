@@ -6,17 +6,19 @@
 #define PREPROCESSOR_H
 
 extern "C" {
-    #include "enums.h"
-    #include "utils.h"
-    #include "moves.h"
+#include "enums.h"
+#include "utils.h"
+#include "moves.h"
 #include "hashmap.h"
 }
+
 #include "string"
 #include <limits>
 #include <torch/torch.h>
 #include "fstream"
 
-typedef struct ProcessorArgs {
+typedef struct ProcessorArgs
+{
     torch::Tensor x;
     const Position_t *positions;
 } ProcessorArgs_t;
@@ -52,28 +54,26 @@ enum class Layer : uint8_t
 
 constexpr uint8_t sizeLayer = 18;
 
-class Processor {
-
+class Processor
+{
     std::string &fileName_;
     std::vector<std::vector<Position_t> > positionSequence_ = std::vector<std::vector<Position_t> >();
     GameStatus_t gameStatus_;
     torch::Tensor currentTensor_ = torch::Tensor();
 
-    public:
-
+public:
     static void saveToFile(std::ofstream &os, const Position_t *positions, const Result &result);
     static void loadFromFile(std::ifstream &is, Result &result);
     static void multipleSaveToFile(const std::string &fileName, const std::vector<std::vector<Position_t> > &allPositions, const std::vector<Result> &results);
     static void multipleSaveToFile(const std::string &fileName, const std::vector<std::vector<Position_t> > &allPositions, const Result &result);
     static void boardToTensor(const Position_t *positions, torch::Tensor &tensor);
-    static void *boardToTensor_mt(void* args);
+    static void *boardToTensor_mt(void *args);
 
     explicit Processor(std::string &fileName);
     void newGame();
-    void playMove(const Context_t *context);
-    void endGame(const Context_t *context, const Result &result);
+    void playMove(const HAIveContext_t *context);
+    void endGame(const HAIveContext_t *context, const Result &result);
     torch::Tensor &getTensor();
-
 };
 
 #endif //PREPROCESSOR_H
