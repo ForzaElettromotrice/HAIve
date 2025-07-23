@@ -30,7 +30,6 @@ add_executable(HAIve
         src/tree.cpp
         src/minmanager.cpp
         src/HQueue.c
-        src/test.c
 )
 
 target_include_directories(

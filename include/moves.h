@@ -17,26 +17,8 @@ extern "C" {
 #define MOVES_SIZE 140
 //Moves Matrix to Array
 #define MMtA(piece, idx) ((piece) * MOVES_SIZE + (idx))
-void *addMoves(void *arguments);
 
-void queenMoves(Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx);
-
-void beetleMoves(Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx);
-
-void grasshopperMoves(Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx);
-
-void pillbugMoves(Pieces_t id, const Position_t *position, const Context_t *context, Piece_t *moves, uint_fast8_t *idx);
-
-void ladybugMoves(Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx);
-
-void spiderMoves(Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx);
-
-void antMoves(Pieces_t id, const Position_t *position, const Pieces_t *board, Piece_t *moves, uint_fast8_t *idx, Hashmap_t *visited);
-
-void *mosquitoMoves(void *arguments);
-bool dfs(const Position_t *start, const Context_t *context, bool *visited, bool first);
-
-void getMoves(const Context_t *context, Piece_t **moves_ptr);
+void getMoves(const HAIveContext_t *context, Piece_t **moves_ptr);
 void freeMoves(Piece_t **moves);
 
 #ifdef __cplusplus

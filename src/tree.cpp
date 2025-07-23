@@ -291,7 +291,7 @@ void *evaluateNodes(void *args)
 }
 void *changeRoot(void *args)
 {
-    Node_t *newRoot = root->bestChoice;
+    const auto newRoot = static_cast<Node_t *>(args);
 
     markNodes(root, newRoot);
     swapPriority(workQueue);
@@ -387,13 +387,41 @@ void cleanTree()
     //TODO: Clean rete
 }
 
-const Piece_t *getBestChild()
+const Node_t *getBestChild()
 {
     pause = true;
     pthread_barrier_wait(&b); //Per essere sicuri tutti siano in pausa
-    pthread_create(&chrootThread, nullptr, changeRoot, nullptr);
+    pthread_create(&chrootThread, nullptr, changeRoot, root->bestChoice);
 
-    return root->bestChoice->move;
+    return root->bestChoice;
+}
+void adversaryMove(char *mzingaMove)
+{
+    const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
+
+    if (move.id == root->move->id && move.position.x == root->move->position.x && move.position.y == root->move->position.y && move.position.z == root->move->position.z)
+        return;
+
+    pause = true;
+    pthread_barrier_wait(&b); //Per essere sicuri tutti siano in pausa
+
+    Node_t *newRoot = nullptr;
+
+    for (int i = 0; i < root->cCount; ++i)
+    {
+        if (move.id == root->childs[i]->move->id && move.position.x == root->childs[i]->move->position.x && move.position.y == root->childs[i]->move->position.y && move.position.z == root->childs[i]->move->position.z)
+        {
+            newRoot = root->childs[i];
+            break;
+        }
+    }
+
+    if (newRoot == nullptr)
+    {
+        logE(stderr, "Non dovremmo essere qui\n");
+    }
+
+    pthread_create(&chrootThread, nullptr, changeRoot, newRoot);
 }
 
 

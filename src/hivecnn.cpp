@@ -60,7 +60,8 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &opt
     }
 }
 
-void HiveCNNImpl::batchForward(BatchContext_t *batchContext) {
+void HiveCNNImpl::batchForward(BatchContext_t *batchContext)
+{
     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
     torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
     pthread_t threads[batchContext->count];
@@ -544,53 +545,4 @@ void testAgainstRandom()
     }
 }
 
-void bestMove(const Context_t *originalContext)
-{
-    //TODO: prendi il figlio con valore maggiore dall'albero
 
-    // const int MAX_TIME_MS = 4900;
-    // auto startTime = std::chrono::high_resolution_clock::now();
-    //
-    // Piece_t finalBestMove = pass;
-    //
-    // Context_t ourContext;
-    // copyContext(originalContext, &ourContext);
-    // Hashmap_t hashtable;
-    // initHashmap(&hashtable, 8192);
-    //
-    // for (int depth = 1; depth <= 100; ++depth)
-    // {
-    //     auto now = std::chrono::high_resolution_clock::now();
-    //     long int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
-    //     if (elapsed >= MAX_TIME_MS)
-    //         break;
-    //
-    //     Piece_t currentBestMove = pass;
-    //
-    //     float res = negamax_heuristic_ab(
-    //         &ourContext,
-    //         0, // current depth
-    //         depth, // maxDepth
-    //         ourContext.curColor == WHITE,
-    //         &currentBestMove,
-    //         mzingaHeuristic, // Your heuristic lambda or function
-    //         -2, 2, // alpha-beta initial bounds
-    //         startTime, MAX_TIME_MS,
-    //         &hashtable
-    //     );
-    //
-    //     // If we finished cleanly before timeout, update final best
-    //     auto after = std::chrono::high_resolution_clock::now();
-    //     long int elapsedAfter = std::chrono::duration_cast<std::chrono::milliseconds>(after - startTime).count();
-    //     if (res == -9999.0f)
-    //         break;
-    //     if (elapsedAfter < MAX_TIME_MS)
-    //     {
-    //         finalBestMove = currentBestMove;
-    //     }
-    // }
-
-    const Piece_t *move = getBestChild();
-
-    printMove(originalContext, move);
-}

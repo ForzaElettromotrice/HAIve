@@ -15,7 +15,7 @@
 
 typedef struct ThreadArgs
 {
-    const Context_t *context;
+    const HAIveContext_t *context;
     Piece_t *moves;
 } ThreadArgs_t;
 
@@ -95,7 +95,7 @@ bool hasNeighbor(const Piece_t *piece, const Pieces_t *board)
     }
     return false;
 }
-bool dfs(const Position_t *start, const Context_t *context, bool *visited, const bool first)
+bool dfs(const Position_t *start, const HAIveContext_t *context, bool *visited, const bool first)
 {
     const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
@@ -129,7 +129,7 @@ bool dfs(const Position_t *start, const Context_t *context, bool *visited, const
 void *addMoves(void *arguments)
 {
     const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(14, 0)];
 
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
@@ -259,7 +259,7 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
 void *queen1Moves(void *arguments)
 {
     const ThreadArgs_t *args = (ThreadArgs_t *) arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_QUEEN, 0)];
 
     Pieces_t *board = context->board;
@@ -322,7 +322,7 @@ void beetleMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
 void *beetle1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_BEETLE_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_BEETLE_1 : B_BEETLE_1;
@@ -335,7 +335,7 @@ void *beetle1Moves(void *arguments)
 void *beetle2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_BEETLE_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_BEETLE_2 : B_BEETLE_2;
@@ -383,7 +383,7 @@ void grasshopperMoves(const Pieces_t id, const Position_t *position, const Piece
 void *grasshopper1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_1 : B_GRASSHOPPER_1;
@@ -396,7 +396,7 @@ void *grasshopper1Moves(void *arguments)
 void *grasshopper2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_2 : B_GRASSHOPPER_2;
@@ -409,7 +409,7 @@ void *grasshopper2Moves(void *arguments)
 void *grasshopper3Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_GRASSHOPPER_3, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_GRASSHOPPER_3 : B_GRASSHOPPER_3;
@@ -420,7 +420,7 @@ void *grasshopper3Moves(void *arguments)
     return NULL;
 }
 
-void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t *context, Piece_t *moves, uint_fast8_t *idx)
+void pillbugMoves(const Pieces_t id, const Position_t *position, const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
 {
     const Pieces_t last = context->lastMovedPiece;
     Position_t *positions = context->idToPos;
@@ -507,7 +507,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const Context_t
 void *pillbug1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_PILLBUG, 0)];
     Pieces_t id = context->curColor == WHITE ? W_PILLBUG : B_PILLBUG;
     Position_t *positions = context->idToPos;
@@ -618,7 +618,7 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
 void *ladybug1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_LADYBUG, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_LADYBUG : B_LADYBUG;
@@ -711,7 +711,7 @@ void spiderMoves(const Pieces_t id, const Position_t *position, const Pieces_t *
 void *spider1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_SPIDER_1, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_SPIDER_1 : B_SPIDER_1;
@@ -724,7 +724,7 @@ void *spider1Moves(void *arguments)
 void *spider2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_SPIDER_2, 0)];
     Pieces_t *board = context->board;
     Pieces_t id = context->curColor == WHITE ? W_SPIDER_2 : B_SPIDER_2;
@@ -786,7 +786,7 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
 void *ant1Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
 
@@ -814,7 +814,7 @@ void *ant1Moves(void *arguments)
 void *ant2Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
 
@@ -842,7 +842,7 @@ void *ant2Moves(void *arguments)
 void *ant3Moves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
 
@@ -868,78 +868,10 @@ void *ant3Moves(void *arguments)
     return NULL;
 }
 
-
-void *firstGroup(void *arguments)
-{
-    const Context_t *context = ((ThreadArgs_t *) arguments)->context;
-    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
-    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
-    void * (*funcs[])(void *) = {
-        queen1Moves,
-        pillbug1Moves,
-        ladybug1Moves,
-        mosquitoMoves
-    };
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-        return NULL;
-
-    for (int i = 0; i < 4; ++i)
-    {
-        if (positions[color == WHITE ? i + 14 : i].z == -1)
-            continue;
-        bool visited[28] = {};
-        visited[color == WHITE ? i + 14 : i] = true;
-        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
-        visited[startingPoint] = true;
-        if (!dfs(&positions[startingPoint], context, visited, true))
-            continue;
-        funcs[i](arguments);
-    }
-    return NULL;
-}
-void *secondGroup(void *arguments)
-{
-    const Context_t *context = ((ThreadArgs_t *) arguments)->context;
-    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
-    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
-    void * (*funcs[])(void *) = {
-        grasshopper1Moves,
-        grasshopper2Moves,
-        grasshopper3Moves,
-        beetle1Moves,
-        beetle2Moves,
-        spider1Moves,
-        spider2Moves,
-    };
-
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
-    {
-        addMoves(arguments);
-        return NULL;
-    }
-
-
-    for (int i = 7; i < 14; ++i)
-    {
-        if (positions[color == WHITE ? i + 14 : i].z == -1)
-            continue;
-        bool visited[28] = {};
-        visited[color == WHITE ? i + 14 : i] = true;
-        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
-        visited[startingPoint] = true;
-        if (!dfs(&positions[startingPoint], context, visited, true))
-            continue;
-        funcs[i](arguments);
-    }
-    addMoves(arguments);
-    return NULL;
-}
-
 void *mosquitoMoves(void *arguments)
 {
     const ThreadArgs_t *args = arguments;
-    const Context_t *context = args->context;
+    const HAIveContext_t *context = args->context;
     Piece_t *moves = &args->moves[MMtA(B_MOSQUITO, 0)];
     const Pieces_t *board = context->board;
     const Pieces_t id = context->curColor == WHITE ? W_MOSQUITO : B_MOSQUITO;
@@ -1015,7 +947,75 @@ void *mosquitoMoves(void *arguments)
     return NULL;
 }
 
-void getMoves(const Context_t *context, Piece_t **moves)
+void *firstGroup(void *arguments)
+{
+    const HAIveContext_t *context = ((ThreadArgs_t *) arguments)->context;
+    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
+    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
+    void * (*funcs[])(void *) = {
+        queen1Moves,
+        pillbug1Moves,
+        ladybug1Moves,
+        mosquitoMoves
+    };
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+        return NULL;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (positions[color == WHITE ? i + 14 : i].z == -1)
+            continue;
+        bool visited[28] = {};
+        visited[color == WHITE ? i + 14 : i] = true;
+        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
+        visited[startingPoint] = true;
+        if (!dfs(&positions[startingPoint], context, visited, true))
+            continue;
+        funcs[i](arguments);
+    }
+    return NULL;
+}
+void *secondGroup(void *arguments)
+{
+    const HAIveContext_t *context = ((ThreadArgs_t *) arguments)->context;
+    const Position_t *positions = ((ThreadArgs_t *) arguments)->context->idToPos;
+    const Colors_t color = ((ThreadArgs_t *) arguments)->context->curColor;
+    void * (*funcs[])(void *) = {
+        grasshopper1Moves,
+        grasshopper2Moves,
+        grasshopper3Moves,
+        beetle1Moves,
+        beetle2Moves,
+        spider1Moves,
+        spider2Moves,
+    };
+
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+    {
+        addMoves(arguments);
+        return NULL;
+    }
+
+
+    for (int i = 7; i < 14; ++i)
+    {
+        if (positions[color == WHITE ? i + 14 : i].z == -1)
+            continue;
+        bool visited[28] = {};
+        visited[color == WHITE ? i + 14 : i] = true;
+        const Pieces_t startingPoint = chooseStartingPoint(color == WHITE ? i + 14 : i, color, positions);
+        visited[startingPoint] = true;
+        if (!dfs(&positions[startingPoint], context, visited, true))
+            continue;
+        funcs[i](arguments);
+    }
+    addMoves(arguments);
+    return NULL;
+}
+
+
+void getMoves(const HAIveContext_t *context, Piece_t **moves)
 {
     const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;

@@ -91,18 +91,25 @@ typedef enum GameStatus
     IN_PROGRESS
 } __attribute__((__packed__)) GameStatus_t;
 
-typedef struct Context
+typedef struct MzingaContext
+{
+    char *moves;
+    size_t movesSize;
+    Colors_t curColor;
+    int16_t turn;
+    GameStatus_t gameStatus;
+} MzingaContext_t;
+
+typedef struct HAIveContext
 {
     Pieces_t *board;
-    char *moves;
     Position_t *idToPos;
-    size_t movesSize;
-
     int16_t turn;
     Colors_t curColor;
     GameStatus_t gameStatus;
     Pieces_t lastMovedPiece;
-} Context_t;
+} HAIveContext_t;
+
 
 #ifdef __cplusplus
 }

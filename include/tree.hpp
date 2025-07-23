@@ -6,7 +6,7 @@
 
 #include "enums.h"
 
-#define THREADS_NUM 16
+#define THREADS_NUM 4
 #define BATCH_NUM 64
 //TODO: da vedere, per ora ho messo 1 secondo
 #define MIN_T 1.0
@@ -18,7 +18,7 @@ typedef struct Node
     Node **childs;
     uint64_t hash;
     double score;
-    Context_t context;
+    HAIveContext_t context;
     int16_t cCount;
     Node *bestChoice;
     bool outOfTree;
@@ -41,5 +41,5 @@ int initTree();
 void cleanTree();
 
 
-const Piece_t *getBestChild();
-int setRoot(Piece_t *move);
+const Node_t *getBestChild();
+void adversaryMove(char *mzingaMove);

@@ -136,44 +136,44 @@ uint64_t hashAll(const Pieces_t *board, const Position_t *positions, const Color
 }
 
 
-void initContext(Context_t *context)
+void initMzingaContext(MzingaContext_t *context)
 {
-    context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
-    context->moves = calloc(1024, sizeof(char));
-    context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
     context->movesSize = 1024;
-
-    resetContext(context);
-}
-void resetContext(Context_t *context)
-{
-    memset(context->board, 0xff, BOARD_SIZE * sizeof(Pieces_t));
-    memset(context->idToPos, 0xff, NUM_PIECES * sizeof(Position_t));
-    memset(context->moves, 0x00, context->movesSize);
-
-    context->turn = 1;
+    context->moves = calloc(1024, sizeof(char));
     context->curColor = WHITE;
+    context->turn = 1;
     context->gameStatus = NOT_STARTED;
-    context->lastMovedPiece = NULLPIECE;
 }
-void copyContext(const Context_t *src, Context_t *dst)
+void resetMzingaContext(MzingaContext_t *context)
 {
-    memcpy(dst, src, sizeof(Context_t));
-
-    dst->moves = malloc(dst->movesSize * sizeof(char));
-    dst->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
-    dst->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
-
-    memcpy(dst->moves, src->moves, dst->movesSize * sizeof(char));
-    memcpy(dst->board, src->board, BOARD_SIZE * sizeof(Pieces_t));
-    memcpy(dst->idToPos, src->idToPos, NUM_PIECES * sizeof(Position_t));
+    memset(context->moves, 0, context->movesSize);
+    context->curColor = WHITE;
+    context->turn = 1;
+    context->gameStatus = IN_PROGRESS;
 }
-void cleanContext(const Context_t *context)
+void cleanMzingaContext(const MzingaContext_t *context)
 {
     free(context->moves);
+}
+
+
+void initHAIveContext(HAIveContext_t *context)
+{
+    context->board = malloc(BOARD_SIZE * sizeof(Pieces_t));
+    context->idToPos = malloc(NUM_PIECES * sizeof(Position_t));
+    memset(context->board, 0xff, BOARD_SIZE * sizeof(Pieces_t));
+    memset(context->idToPos, 0xff, NUM_PIECES * sizeof(Position_t));
+    context->turn = 1;
+    context->curColor = WHITE;
+    context->gameStatus = IN_PROGRESS;
+    context->lastMovedPiece = NULLPIECE;
+}
+void cleanHAIveContext(const HAIveContext_t *context)
+{
     free(context->board);
     free(context->idToPos);
 }
+
 
 
 Command_t parseCommand(const char *command)
@@ -292,7 +292,7 @@ Piece_t parseMove(const Position_t *idToPos, char *move)
 }
 
 
-bool isSurrounded(const Context_t *context, const Pieces_t id)
+bool isSurrounded(const HAIveContext_t *context, const Pieces_t id)
 {
     const int8_t z = context->idToPos[id].z;
     if (z == -1)
@@ -310,7 +310,7 @@ bool isSurrounded(const Context_t *context, const Pieces_t id)
     }
     return true;
 }
-GameStatus_t checkGameStatus(const Context_t *context)
+GameStatus_t checkGameStatus(const HAIveContext_t *context)
 {
     // TODO: Check draw
 
@@ -321,7 +321,7 @@ GameStatus_t checkGameStatus(const Context_t *context)
 
     return IN_PROGRESS;
 }
-int_fast8_t howManyAround(const Context_t *context, const Pieces_t id, bool friendly)
+int_fast8_t howManyAround(const HAIveContext_t *context, const Pieces_t id, bool friendly)
 {
     char nearAround = 0;
     const int8_t z = context->idToPos[id].z;
@@ -346,7 +346,7 @@ int_fast8_t howManyAround(const Context_t *context, const Pieces_t id, bool frie
     return nearAround;
 }
 
-void addMazingaMove(Context_t *context, const char *move)
+void addMazingaMove(MzingaContext_t *context, const char *move)
 {
     const size_t moveLen = strlen(move);
     const size_t currentLen = strlen(context->moves);
@@ -362,7 +362,7 @@ void addMazingaMove(Context_t *context, const char *move)
     strcat(context->moves, ";");
     strcat(context->moves, move);
 }
-void addOurMove(Context_t *context, const Piece_t *move)
+void addOurMove(HAIveContext_t *context, const Piece_t *move)
 {
     if (move == NULL)
         return;
@@ -386,14 +386,6 @@ void addOurMove(Context_t *context, const Piece_t *move)
 
     context->lastMovedPiece = move->id;
     context->gameStatus = checkGameStatus(context);
-}
-void doMove(Context_t *context, char *move)
-{
-    addMazingaMove(context, move);
-
-    //TODO: salva l'hash della board
-    const Piece_t piece = parseMove(context->idToPos, move);
-    addOurMove(context, &piece);
 }
 
 
@@ -454,7 +446,7 @@ void printInfo()
     printf("id hAIve v1.1\n");
     printf("Mosquito;Ladybug;Pillbug\n");
 }
-void printGameString(const Context_t *context)
+void printGameString(const MzingaContext_t *context)
 {
     // GameType
     printf("Base+MLP;");
@@ -497,7 +489,7 @@ void printGameString(const Context_t *context)
 }
 
 
-void printMove(const Context_t *context, const Piece_t *move)
+void printMove(const HAIveContext_t *context, const Piece_t *move)
 {
     const int8_t z = move->position.z;
     const int8_t y = move->position.y;
@@ -573,12 +565,12 @@ void printMove(const Context_t *context, const Piece_t *move)
     printf("%s\nok\n", out);
 }
 
-GameStatus_t getGameStatus(const Context_t *context)
+GameStatus_t getGameStatus(const HAIveContext_t *context)
 {
     return context->gameStatus;
 }
 
-bool isContextEnded(const Context_t *context)
+bool isContextEnded(const HAIveContext_t *context)
 {
     const GameStatus_t gameStatus = context->gameStatus;
     return gameStatus == WHITE_WON || gameStatus == BLACK_WON || gameStatus == DRAW;

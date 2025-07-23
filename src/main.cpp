@@ -6,11 +6,9 @@
 #include <cstring>
 #include <utils.h>
 #include <logger.h>
-
 #include <trainings.hpp>
+#include <tree.hpp>
 
-#include "tree.hpp"
-#include "test.h"
 
 int main()
 {
@@ -18,16 +16,15 @@ int main()
     logD(stdout, "Launched in Debug Mode!\n");
 #endif
 
-    testMoves();
-
-    return EXIT_SUCCESS;
-    //TODO: (PARALLELISMO) fai partire il thread che genera l'albero
+    bool firstTime = true;
+    initTree();
 
     size_t buf_size = 128;
     auto buffer = static_cast<char *>(malloc(sizeof(char) * buf_size));
 
-    Context_t context = {};
-    initContext(&context);
+    MzingaContext_t mzingaContext;
+    initMzingaContext(&mzingaContext);
+
 
     while (true)
     {
@@ -35,7 +32,7 @@ int main()
         printf("> ");
 #endif
 
-        const int32_t read = getline(&buffer, &buf_size, stdin);
+        const int64_t read = getline(&buffer, &buf_size, stdin);
         if (read == -1) // EOF
             break;
         if (read == 1) //Empty line
@@ -43,36 +40,41 @@ int main()
 
         buffer[read - 1] = '\0';
 
-        const Command_t command = parseCommand(buffer);
-        char *move;
-
-        switch (command)
+        switch (parseCommand(buffer))
         {
             case INFO:
                 printInfo();
                 break;
             case NEWGAME:
-                resetContext(&context);
-                printGameString(&context);
-                //TODO:(PARALLELISMO) fare si che il processo che gestisce l'albero si resetti
+                resetMzingaContext(&mzingaContext);
+                printGameString(&mzingaContext);
+                if (!firstTime)
+                {
+                    cleanTree();
+                    initTree();
+                }
+                firstTime = false;
                 break;
             case PLAY:
-                //TODO: ignora il play se è la nostra mossa
-                move = buffer + 5;
-                doMove(&context, move);
-                printGameString(&context);
+            {
+                char *move = buffer + 5;
+                addMazingaMove(&mzingaContext, move);
+                printGameString(&mzingaContext);
+                adversaryMove(move);
                 break;
+            }
             case BESTMOVE:
-                bestMove(&context);
+                const Node_t *bestChild = getBestChild();
+                printMove(&bestChild->context, bestChild->move);
                 break;
             case INVALID:
                 printf("err Unknown command\n");
         }
     }
 
-    //TODO: (PARALLELISMO) chiudi il thread che fa partire l'albero
-    cleanContext(&context);
+
     free(buffer);
+    cleanMzingaContext(&mzingaContext);
     cleanTree();
     return EXIT_SUCCESS;
 }

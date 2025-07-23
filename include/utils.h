@@ -28,26 +28,29 @@ extern const Piece_t pass;
 
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions, Colors_t color);
 
-void initContext(Context_t *context);
-void resetContext(Context_t *context);
-void copyContext(const Context_t *src, Context_t *dst);
-void cleanContext(const Context_t *context);
+void initMzingaContext(MzingaContext_t *context);
+void resetMzingaContext(MzingaContext_t *context);
+void cleanMzingaContext(const MzingaContext_t *context);
+
+void initHAIveContext(HAIveContext_t *context);
+void cleanHAIveContext(const HAIveContext_t *context);
 
 Command_t parseCommand(const char *command);
 
 Piece_t parseMove(const Position_t *idToPos, char *move);
-void doMove(Context_t *context, char *move);
-void printMove(const Context_t *context, const Piece_t *move);
+void printMove(const HAIveContext_t *context, const Piece_t *move);
 
 void printInfo();
-void printGameString(const Context_t *context);
+void printGameString(const MzingaContext_t *context);
 
-GameStatus_t getGameStatus(const Context_t *context);
-int_fast8_t howManyAround(const Context_t *context, Pieces_t id, bool friendly);
-void addOurMove(Context_t *context, const Piece_t *move);
+GameStatus_t getGameStatus(const HAIveContext_t *context);
+int_fast8_t howManyAround(const HAIveContext_t *context, Pieces_t id, bool friendly);
+void addMazingaMove(MzingaContext_t *context, const char *move);
+void addOurMove(HAIveContext_t *context, const Piece_t *move);
 
-bool isContextEnded(const Context_t *context);
+bool isContextEnded(const HAIveContext_t *context);
 void printPos(const Position_t *idToPos);
+
 
 #ifdef __cplusplus
 }
