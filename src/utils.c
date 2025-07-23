@@ -329,18 +329,21 @@ bool isSurrounded(const HAIveContext_t *context, const Pieces_t id)
 }
 GameStatus_t checkGameStatus(const HAIveContext_t *context)
 {
-    // TODO: Check draw
+    const bool wWon = isSurrounded(context, B_QUEEN);
+    const bool bWon = isSurrounded(context, W_QUEEN);
 
-    if (isSurrounded(context, B_QUEEN))
+    if (bWon && wWon)
+        return DRAW;
+    if (wWon)
         return WHITE_WON;
-    if (isSurrounded(context, W_QUEEN))
+    if (bWon)
         return BLACK_WON;
 
     return IN_PROGRESS;
 }
-int_fast8_t howManyAround(const HAIveContext_t *context, const Pieces_t id, bool friendly)
+int_fast8_t howManyAround(const HAIveContext_t *context, const Pieces_t id, const bool friendly)
 {
-    char nearAround = 0;
+    int8_t nearAround = 0;
     const int8_t z = context->idToPos[id].z;
     if (z == -1)
         return 0;
@@ -350,14 +353,14 @@ int_fast8_t howManyAround(const HAIveContext_t *context, const Pieces_t id, bool
     {
         const int_fast8_t newY = (int_fast8_t) (directions[i][0] + y);
         const int_fast8_t newX = (int_fast8_t) (directions[i][1] + x);
-        Pieces_t neighbor = context->board[MtA(z, newY, newX)];
+        const Pieces_t neighbor = context->board[MtA(z, newY, newX)];
 
         if (neighbor == NULLPIECE)
             continue;
 
-        if ((neighbor % 14 == id % 14) && friendly)
+        if (neighbor % 14 == id % 14 && friendly)
             nearAround++;
-        else if ((neighbor % 14 != id % 14) && !friendly)
+        else if (neighbor % 14 != id % 14 && !friendly)
             nearAround++;
     }
     return nearAround;
@@ -379,7 +382,7 @@ void addMazingaMove(MzingaContext_t *context, const char *move)
     strcat(context->moves, ";");
     strcat(context->moves, move);
 }
-void addOurMove(HAIveContext_t *context, const Piece_t *move)
+void addHAIveMove(HAIveContext_t *context, const Piece_t *move)
 {
     if (move == NULL)
         return;
@@ -460,7 +463,7 @@ void parsePieceToMazinga(const Pieces_t piece, char *dst)
 
 void printInfo()
 {
-    printf("id hAIve v1.1\n");
+    printf("id hAIve v1.2\n");
     printf("Mosquito;Ladybug;Pillbug\n");
 }
 void printGameString(const MzingaContext_t *context)
@@ -591,15 +594,4 @@ bool isContextEnded(const HAIveContext_t *context)
 {
     const GameStatus_t gameStatus = context->gameStatus;
     return gameStatus == WHITE_WON || gameStatus == BLACK_WON || gameStatus == DRAW;
-}
-void printPos(const Position_t *idToPos)
-{
-    for (int i = 0; i < NUM_PIECES; i++)
-    {
-        if (idToPos[i].z == -1)
-            continue;
-        char piece[4] = {};
-        parsePieceToMazinga(i % 14, piece);
-        printf("%s: %d %d %d\n", piece, idToPos[i].z, idToPos[i].y, idToPos[i].x);
-    }
 }

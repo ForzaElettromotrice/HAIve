@@ -35,7 +35,7 @@ void getRandomState(HAIveContext_t *toFill, const uint8_t minMoves, const uint8_
             chosenPiece = rand() % MOVES_ARRAYS;
         } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
         uint16_t chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
-        addOurMove(toFill, &moves[MMtA(chosenPiece, chosenMove)]);
+        addHAIveMove(toFill, &moves[MMtA(chosenPiece, chosenMove)]);
     }
 }
 
@@ -215,7 +215,7 @@ void SelfPlayTrainer::train(const bool toLoad)
                 negamax_net(&context, 0, 1, true, &bestMove, areWeWhite ? *ourModel : *enemyModel);
             else
                 negamax_net(&context, 0, 1, false, &bestMove, areWeWhite ? *enemyModel : *ourModel);
-            addOurMove(&context, &bestMove);
+            addHAIveMove(&context, &bestMove);
             if (context.gameStatus != DRAW && context.gameStatus != WHITE_WON && context.gameStatus != BLACK_WON)
                 processor.playMove(&context);
         }

@@ -47,7 +47,7 @@ void MinManager::initMinManager()
                 break;
             moves_.push_back(p);
 
-            addOurMove(&context_, &p);
+            addHAIveMove(&context_, &p);
         }
 
         resetHAIveContext(&context_);
@@ -56,7 +56,7 @@ void MinManager::initMinManager()
 
 HAIveContext_t *MinManager::getNext()
 {
-    addOurMove(&context_, &moves_[0]);
+    addHAIveMove(&context_, &moves_[0]);
     moves_.erase(moves_.begin());
     return &context_;
 }

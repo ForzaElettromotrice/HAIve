@@ -48,10 +48,9 @@ void printGameString(const MzingaContext_t *context);
 GameStatus_t getGameStatus(const HAIveContext_t *context);
 int_fast8_t howManyAround(const HAIveContext_t *context, Pieces_t id, bool friendly);
 void addMazingaMove(MzingaContext_t *context, const char *move);
-void addOurMove(HAIveContext_t *context, const Piece_t *move);
+void addHAIveMove(HAIveContext_t *context, const Piece_t *move);
 
 bool isContextEnded(const HAIveContext_t *context);
-void printPos(const Position_t *idToPos);
 
 
 #ifdef __cplusplus

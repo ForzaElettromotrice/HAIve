@@ -59,7 +59,7 @@ void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context)
 
     node->move = move;
     copyHAIveContext(context, &node->context);
-    addOurMove(&node->context, move);
+    addHAIveMove(&node->context, move);
     node->childs = static_cast<Node_t **>(malloc(300 * sizeof(Node_t *)));
     node->score = -2;
     node->cCount = 0;
@@ -89,7 +89,7 @@ Node_t *getNewNode(const Piece_t *move, const HAIveContext_t *context)
     node->moves = nullptr;
     node->score = -2;
     copyHAIveContext(context, &node->context);
-    addOurMove(&node->context, move);
+    addHAIveMove(&node->context, move);
     node->cCount = 0;
     node->bestChoice = nullptr;
     node->outOfTree = false;

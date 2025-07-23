@@ -17,7 +17,7 @@
 - [ ] Modificare le hashmap per le moves
 - [ ] Vedere se usare le hasmap di c++ in tree.cpp
 - [ ] Scegliere figlio dell'albero data una mossa MZinga
-- [ ] Separare il contesto di MZinga e il nostro!!
+- [X] Separare il contesto di MZinga e il nostro!!
 
 - [X] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
 - [X] Capire come usare GPU con Dockerfile

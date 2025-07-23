@@ -249,7 +249,7 @@ float negamax_net(const HAIveContext_t *context, const int depth, const int maxD
             copyHAIveContext(context, &newContext);
 
             moved = true;
-            addOurMove(&newContext, &moves[MMtA(piece, i)]);
+            addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
             if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal)
             {
                 maxVal = tmp;
@@ -265,7 +265,7 @@ float negamax_net(const HAIveContext_t *context, const int depth, const int maxD
         HAIveContext_t newContext;
         copyHAIveContext(context, &newContext);
 
-        addOurMove(&newContext, &pass);
+        addHAIveMove(&newContext, &pass);
         maxVal = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net);
 
         cleanHAIveContext(&newContext);
@@ -316,7 +316,7 @@ float negamax_heuristic(HAIveContext_t *context, const int depth, const int maxD
             copyHAIveContext(context, &newContext);
 
             moved = true;
-            addOurMove(&newContext, &moves[MMtA(piece, i)]);
+            addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
             if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal)
             {
                 maxVal = tmp;
@@ -330,7 +330,7 @@ float negamax_heuristic(HAIveContext_t *context, const int depth, const int maxD
     {
         copyHAIveContext(context, &newContext);
 
-        addOurMove(&newContext, &pass);
+        addHAIveMove(&newContext, &pass);
         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
         cleanHAIveContext(&newContext);
     }
@@ -409,7 +409,7 @@ float negamax_heuristic_ab(
             }
 
             moved = true;
-            addOurMove(&newContext, &moves[MMtA(piece, i)]);
+            addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
             tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
             cleanHAIveContext(&newContext);
 
@@ -435,7 +435,7 @@ float negamax_heuristic_ab(
     {
         copyHAIveContext(context, &newContext);
 
-        addOurMove(&newContext, &pass);
+        addHAIveMove(&newContext, &pass);
         maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
 
         cleanHAIveContext(&newContext);
@@ -489,7 +489,7 @@ bool battleAgainstRandom(bool areWeWhite)
         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
         {
             negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
-            addOurMove(&context, &bestMove);
+            addHAIveMove(&context, &bestMove);
         } else
         {
             getMoves(&context, &moves);
@@ -502,7 +502,7 @@ bool battleAgainstRandom(bool areWeWhite)
             {
                 if (isPass(moves))
                 {
-                    addOurMove(&context, &pass);
+                    addHAIveMove(&context, &pass);
                     free(moves);
                     continue;
                 }
@@ -512,7 +512,7 @@ bool battleAgainstRandom(bool areWeWhite)
                 } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
             }
             chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
-            addOurMove(&context, &moves[MMtA(chosenPiece, chosenMove)]);
+            addHAIveMove(&context, &moves[MMtA(chosenPiece, chosenMove)]);
             free(moves);
         }
     }
