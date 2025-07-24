@@ -16,7 +16,7 @@
 - [X] Parallelizzare boardToTensor
 - [ ] Modificare le hashmap per le moves
 - [ ] Vedere se usare le hasmap di c++ in tree.cpp
-- [ ] Scegliere figlio dell'albero data una mossa MZinga
+- [X] Scegliere figlio dell'albero data una mossa MZinga
 - [X] Separare il contesto di MZinga e il nostro!!
 
 - [X] Provare a far funzionare - in tree.cpp - HiveNet* model = HiveCNNEnhanced
