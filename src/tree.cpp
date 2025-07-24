@@ -399,7 +399,7 @@ void adversaryMove(char *mzingaMove)
 {
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
 
-    if (move.id == root->move->id && move.position.x == root->move->position.x && move.position.y == root->move->position.y && move.position.z == root->move->position.z)
+    if (equalsPiece(&move, root->move))
         return;
 
     pause = true;

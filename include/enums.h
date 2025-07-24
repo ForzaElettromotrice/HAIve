@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 
 #define NUM_PIECES 28
@@ -110,6 +111,8 @@ typedef struct HAIveContext
     Pieces_t lastMovedPiece;
 } HAIveContext_t;
 
+bool equalsPosition(const Position_t *p1, const Position_t *p2);
+bool equalsPiece(const Piece_t *p1, const Piece_t *p2);
 
 #ifdef __cplusplus
 }

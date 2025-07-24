@@ -5,6 +5,7 @@
 #pragma once
 
 #include "enums.h"
+#include "HQueue.h"
 
 #define THREADS_NUM 16
 #define BATCH_NUM 64
@@ -22,6 +23,7 @@ typedef struct Node
     int16_t cCount;
     Node *bestChoice;
     bool outOfTree;
+    uint64_t id;
 } Node_t;
 
 typedef struct HashValue
