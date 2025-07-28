@@ -4,6 +4,85 @@
 
 #include "heuristics.hpp"
 
+bool MetricsManager::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) return false;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.find("inline HeuristicMetrics") == std::string::npos)
+            continue;
+
+        size_t start = line.find("HeuristicMetrics") + std::string("HeuristicMetrics").length();
+        size_t end = line.find('(');
+        std::string name = line.substr(start, end - start);
+        name.erase(remove_if(name.begin(), name.end(), ::isspace), name.end());
+
+        std::vector<double> values;
+        std::getline(file, line);
+
+        while (std::getline(file, line)) {
+            if (line.find("});") != std::string::npos) break;
+
+            auto comment_pos = line.find("//");
+            if (comment_pos != std::string::npos)
+                line = line.substr(0, comment_pos);
+
+            line.erase(std::remove(line.begin(), line.end(), ','), line.end());
+            line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
+
+            if (!line.empty()) {
+                try {
+                    values.push_back(std::stod(line));
+                } catch (...) {
+                    std::cerr << "Warning: could not parse line: " << line << std::endl;
+                }
+            }
+        }
+
+        if (name == "queenMetrics") queenMetrics = HeuristicMetrics(values);
+        else if (name == "spiderMetrics") spiderMetrics = HeuristicMetrics(values);
+        else if (name == "beetleMetrics") beetleMetrics = HeuristicMetrics(values);
+        else if (name == "grasshopperMetrics") grasshopperMetrics = HeuristicMetrics(values);
+        else if (name == "antMetrics") antMetrics = HeuristicMetrics(values);
+        else if (name == "pillbugMetrics") pillbugMetrics = HeuristicMetrics(values);
+        else if (name == "mosquitoMetrics") mosquitoMetrics = HeuristicMetrics(values);
+        else if (name == "ladybugMetrics") ladybugMetrics = HeuristicMetrics(values);
+        else {
+            std::cerr << "Warning: Unknown metric name \"" << name << "\"\n";
+        }
+    }
+
+    return true;
+}
+
+bool MetricsManager::saveToFile(const std::string& filename) const {
+    std::ofstream out(filename);
+    if (!out.is_open()) return false;
+
+    auto writeMetric = [&out](const std::string& name, const HeuristicMetrics& metric) {
+        out << "inline HeuristicMetrics " << name << "({\n";
+        for (size_t i = 0; i < metric.weights.size(); ++i) {
+            out << "    " << metric.weights[i];
+            if (i != metric.weights.size() - 1)
+                out << ",";
+            out << "\n";
+        }
+        out << "});\n\n";
+    };
+
+    writeMetric("queenMetrics", queenMetrics);
+    writeMetric("spiderMetrics", spiderMetrics);
+    writeMetric("beetleMetrics", beetleMetrics);
+    writeMetric("grasshopperMetrics", grasshopperMetrics);
+    writeMetric("antMetrics", antMetrics);
+    writeMetric("pillbugMetrics", pillbugMetrics);
+    writeMetric("mosquitoMetrics", mosquitoMetrics);
+    writeMetric("ladybugMetrics", ladybugMetrics);
+
+    return true;
+}
+
 uint_fast8_t getMovesSize(const Piece_t *moves)
 {
     uint8_t size = 0;
