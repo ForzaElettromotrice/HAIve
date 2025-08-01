@@ -11,7 +11,7 @@
 #define BATCH_NUM 64
 //TODO: da vedere, per ora ho messo 1 secondo
 #define MIN_T 1.0
-#define K 200
+#define K 400
 
 typedef struct Node
 {

@@ -29,6 +29,34 @@ uint64_t changeRoots;
 
 Node_t *root;
 
+void alertK(const int16_t cCount)
+{
+    if (cCount > 140)
+    {
+        logE(stderr, "cCount > 140! cCount = %d\n", cCount);
+        return;
+    }
+    if (cCount > 120)
+    {
+        logE(stderr, "cCount > 120! cCount = %d\n", cCount);
+        return;
+    }
+    if (cCount > 100)
+    {
+        logE(stderr, "cCount > 100! cCount = %d\n", cCount);
+        return;
+    }
+    if (cCount > 80)
+    {
+        logE(stderr, "cCount > 80! cCount = %d\n", cCount);
+        return;
+    }
+    if (cCount > 70)
+    {
+        logE(stderr, "idx > 70! cCount = %d\n", cCount);
+    }
+}
+
 uint64_t normalizeId(const Node_t *father)
 {
     return static_cast<uint64_t>(father->id / pow(K, changeRoots - father->cRoots));
@@ -180,6 +208,7 @@ void *expandNode(void *args)
                 passBool = false;
                 auto *child = getNewNode(&node->moves[MMtA(i, j)], &node->context, node, level);
                 node->childs[node->cCount++] = child;
+                alertK(node->cCount);
                 switch (child->context.gameStatus)
                 {
                     case NOT_STARTED:
@@ -215,6 +244,7 @@ void *expandNode(void *args)
         {
             auto *child = getNewNode(&pass, &node->context, node, level);
             node->childs[node->cCount++] = child;
+            alertK(node->cCount);
             switch (child->context.gameStatus)
             {
                 case NOT_STARTED:
