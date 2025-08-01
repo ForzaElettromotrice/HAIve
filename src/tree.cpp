@@ -25,9 +25,18 @@ pthread_t chrootThread;
 volatile bool stop;
 pthread_barrier_t b;
 volatile bool pause;
+uint64_t changeRoots;
 
 Node_t *root;
 
+uint64_t normalizeId(const Node_t *father)
+{
+    return static_cast<uint64_t>(father->id / pow(K, changeRoots - father->cRoots));
+}
+bool isInTree(const Node_t *node)
+{
+    return node->id % K == normalizeId(root);
+}
 void checkPause()
 {
     if (pause)
@@ -52,7 +61,7 @@ bool alreadySeen(Node_t *node)
 
     return true;
 }
-void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context)
+void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context, Node_t *father, uint8_t level)
 {
     if (node == nullptr)
         return;
@@ -65,7 +74,11 @@ void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context)
     node->cCount = 0;
     node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
     node->bestChoice = nullptr;
-    node->outOfTree = false;
+    node->cRoots = changeRoots;
+    if (father == nullptr)
+        node->id = 1;
+    else
+        node->id = normalizeId(father) + (father->cCount + 1) * pow(K, level + 1);
 }
 void freeNode(Node_t *node)
 {
@@ -74,13 +87,13 @@ void freeNode(Node_t *node)
     free(node->childs);
     free(node);
 }
-Node_t *getNewNode(const Piece_t *move, const HAIveContext_t *context)
+Node_t *getNewNode(const Piece_t *move, const HAIveContext_t *context, Node_t *father, int16_t level)
 {
     auto *node = static_cast<Node_t *>(simplehpop(garbageQueue));
     if (node == nullptr)
     {
         node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-        initNode(node, move, context);
+        initNode(node, move, context, father, level);
         return node;
     }
 
@@ -92,8 +105,9 @@ Node_t *getNewNode(const Piece_t *move, const HAIveContext_t *context)
     addHAIveMove(&node->context, move);
     node->cCount = 0;
     node->bestChoice = nullptr;
-    node->outOfTree = false;
     node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
+    node->cRoots = changeRoots;
+    node->id = normalizeId(father) + (father->cCount + 1) * pow(K, level + 1);
     return node;
 }
 
@@ -131,17 +145,6 @@ void dfs(Node_t *node, const uint8_t depth)
         hashValue->score = node->score;
     pthread_mutex_unlock(&hLock);
 }
-void markNodes(Node_t *node, Node_t *skip)
-{
-    node->outOfTree = true;
-    for (int16_t i = 0; i < node->cCount; ++i)
-    {
-        Node_t *child = node->childs[i];
-        if (child == skip)
-            continue;
-        markNodes(child, skip);
-    }
-}
 
 
 void *expandNode(void *args)
@@ -156,18 +159,18 @@ void *expandNode(void *args)
             node = static_cast<Node_t *>(hpop(workQueue, &level));
         } while (node == nullptr);
 
-        if (node->outOfTree)
-        {
-            simplehpush(garbageQueue, node);
-            continue;
-        }
-
-
         if (level == 10)
         {
             hpush(workQueue, level, node);
             continue;
         }
+
+        if (!isInTree(node))
+        {
+            simplehpush(garbageQueue, node);
+            continue;
+        }
+
 
         bool passBool = true;
         for (int i = 0; i < 15; ++i)
@@ -175,7 +178,7 @@ void *expandNode(void *args)
             for (int j = 0; node->moves[MMtA(i, j)].id != NULLPIECE; ++j)
             {
                 passBool = false;
-                auto *child = getNewNode(&node->moves[MMtA(i, j)], &node->context);
+                auto *child = getNewNode(&node->moves[MMtA(i, j)], &node->context, node, level);
                 node->childs[node->cCount++] = child;
                 switch (child->context.gameStatus)
                 {
@@ -210,7 +213,7 @@ void *expandNode(void *args)
         }
         if (passBool)
         {
-            auto *child = getNewNode(&pass, &node->context);
+            auto *child = getNewNode(&pass, &node->context, node, level);
             node->childs[node->cCount++] = child;
             switch (child->context.gameStatus)
             {
@@ -293,10 +296,10 @@ void *changeRoot(void *args)
 {
     const auto newRoot = static_cast<Node_t *>(args);
 
-    markNodes(root, newRoot);
     swapPriority(workQueue);
 
     root = newRoot;
+    changeRoots++;
 
     pause = false;
     pthread_barrier_wait(&b); //Libero tutti
@@ -321,11 +324,14 @@ int initTree()
     //Init Hashmap
     initHashmap(&hashtable, 16384);
 
+    //Init changesRoot
+    changeRoots = 0;
+
     //Init root
     const auto node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
     HAIveContext_t context;
     initHAIveContext(&context);
-    initNode(node, nullptr, &context);
+    initNode(node, nullptr, &context, nullptr, 0);
     node->score = 0; //Pareggio, nessuno ha mosso
     hpush(workQueue, 0, node);
 

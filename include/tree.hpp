@@ -11,6 +11,7 @@
 #define BATCH_NUM 64
 //TODO: da vedere, per ora ho messo 1 secondo
 #define MIN_T 1.0
+#define K 200
 
 typedef struct Node
 {
@@ -22,7 +23,7 @@ typedef struct Node
     HAIveContext_t context;
     int16_t cCount;
     Node *bestChoice;
-    bool outOfTree;
+    uint8_t cRoots;
     uint64_t id;
 } Node_t;
 
