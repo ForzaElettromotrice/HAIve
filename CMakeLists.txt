@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall)
 add_compile_definitions(Debug)
 
-add_definitions(-DMODEL_PATH="${CMAKE_CURRENT_SOURCE_DIR}/model_checkpoint_HE")
+add_definitions(-DMODEL_PATH="${CMAKE_CURRENT_SOURCE_DIR}/checkpoint.jit")
 add_definitions(-DTEST_PATH="${CMAKE_CURRENT_SOURCE_DIR}/test.txt")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
