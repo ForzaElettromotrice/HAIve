@@ -233,7 +233,6 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
     
     try {
         if (std::filesystem::exists(jit_file)) {
-            std::cout << "Attempting to load JIT model from: " << jit_file << std::endl;
             jit_module = torch::jit::load(jit_file);
             use_jit_model = true;
             
@@ -241,8 +240,6 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
             if (torch::cuda::is_available()) {
                 jit_module.value().to(torch::kCUDA);
             }
-            
-            std::cout << "Successfully loaded JIT model from " << jit_file << std::endl;
             
             if (optimizer) {
                 std::cerr << "Warning: Optimizer state cannot be loaded from JIT model. Optimizer state will be reset." << std::endl;
