@@ -20,6 +20,11 @@ class HeuristicMetrics
     std::array<double, 7> values_;
 
 public:
+
+    HeuristicMetrics() {
+        values_ = std::array<double, 7>();
+    }
+
     explicit HeuristicMetrics(const std::array<double, 7> &values) : values_(values)
     {
     }
@@ -102,7 +107,7 @@ public:
         return *this;
     }
 
-    HeuristicMetrics& getMetrics(const Pieces_t piece) const {
+    HeuristicMetrics& getMetrics(const Pieces_t piece) {
         switch (piece)
         {
             case W_QUEEN:
@@ -141,9 +146,8 @@ public:
             case B_SPIDER_1:
             case B_SPIDER_2:
                 return spiderMetrics;
+            default: return queenMetrics;
         }
-
-        return HeuristicMetrics({0});
     };
     bool saveToFile(const std::string& filename) const;
 
