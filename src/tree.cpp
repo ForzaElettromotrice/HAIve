@@ -95,6 +95,7 @@ void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context, 
         return;
 
     node->move = move;
+    initHAIveContext(&node->context);
     copyHAIveContext(context, &node->context);
     addHAIveMove(&node->context, move);
     node->childs = static_cast<Node_t **>(malloc(300 * sizeof(Node_t *)));
