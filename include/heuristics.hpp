@@ -26,7 +26,13 @@ public:
     }
 
     explicit HeuristicMetrics(const std::array<double, 7> &values) : values_(values)
-    {
+    {}
+
+    explicit HeuristicMetrics(const std::vector<double>& values) {
+        values_ = std::array<double, 7>();
+        for (int i = 0; i < 7; i++) {
+            values_[i] = values[i];
+        }
     }
 
     double inPlayWeight() const
@@ -163,9 +169,6 @@ private:
     HeuristicMetrics mosquitoMetrics;
     HeuristicMetrics ladybugMetrics;
 };
-
-inline HeuristicMetrics getMetrics(const Pieces_t piece)
-
 
 double mzingaHeuristic(HAIveContext_t *context);
 uint_fast8_t getMovesSize(const Piece_t *moves);
