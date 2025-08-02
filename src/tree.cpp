@@ -339,7 +339,8 @@ void *changeRoot(void *args)
 int initTree()
 {
     //Init rete
-    model = HiveCNNEnhanced(MODEL_PATH).get();
+    HiveCNNEnhanced modelBase(MODEL_PATH);
+    model = modelBase.get();
     model->load_model();
 
     //Init work queue

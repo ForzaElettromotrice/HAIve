@@ -67,7 +67,7 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &opt
         auto this_it = this_params.begin();
         
         for (; loaded_it != loaded_params.end() && this_it != this_params.end(); ++loaded_it, ++this_it) {
-            this_it->data().copy_(loaded_it->data());
+            this_it->copy_(*loaded_it);
         }
         
         // Note: JIT models don't typically store optimizer state
@@ -296,7 +296,7 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
         auto this_it = this_params.begin();
         
         for (; loaded_it != loaded_params.end() && this_it != this_params.end(); ++loaded_it, ++this_it) {
-            this_it->data().copy_(loaded_it->data());
+            this_it->copy_(*loaded_it);
         }
         
         std::cout << "Successfully loaded model parameters via parameter copying" << std::endl;

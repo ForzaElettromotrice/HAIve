@@ -6,6 +6,7 @@
 #define HIVECNN_H
 
 #include <torch/torch.h>
+#include <torch/script.h>
 #include <preprocessor.hpp>
 #include <filesystem>
 #include <tree.hpp>

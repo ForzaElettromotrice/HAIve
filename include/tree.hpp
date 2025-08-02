@@ -7,7 +7,7 @@
 #include "enums.h"
 #include "HQueue.h"
 
-#define THREADS_NUM 16
+#define THREADS_NUM 1
 #define BATCH_NUM 64
 //TODO: da vedere, per ora ho messo 1 secondo
 #define MIN_T 1.0
