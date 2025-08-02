@@ -109,6 +109,8 @@ double mzingaHeuristic(HAIveContext_t *context)
         getMoves(context, &moves);
     }
 
+    MetricsManager metricManager;
+
     for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++)
     {
         if (i == W_QUEEN)
@@ -121,7 +123,7 @@ double mzingaHeuristic(HAIveContext_t *context)
         if (piecePos.z == -1)
             continue;
         const uint16_t mSize = getMovesSize(&moves[MMtA(i % 14, 0)]);
-        HeuristicMetrics pieceMetric = getMetrics(static_cast<Pieces_t>(i));
+        HeuristicMetrics pieceMetric = metricManager.getMetrics(static_cast<Pieces_t>(i));
         if ((whiteTurn && isBlack(i)) || (!whiteTurn && isWhite(i)))
             pieceMetric = pieceMetric.enemy();
 
@@ -198,7 +200,7 @@ double mzingaHeuristic(HAIveContext_t *context)
 void setHeuristicParams(const HAIveContext_t *context, torch::Tensor &x)
 {
     // n_neigh_friendly + enemy  // moves (quiet/noisy)
-    const size_t size = 2 * NUM_PIECES + 2 * NUM_PIECES;
+    const int64_t size = 2 * NUM_PIECES + 2 * NUM_PIECES;
     TORCH_CHECK(x.dim() == 1 && x.size(0) >= size, "Tensor x has incorrect shape");
 
     // For other tests: maybe adding positional+identitary embeddings of pieces.
