@@ -204,6 +204,11 @@ void *expandNode(void *args)
         }
 
 
+        // FIXME: Va bene fare così? Altrimenti a linea 218 crasha
+        if (node->moves == nullptr) {
+            getMoves(&node->context, &node->moves);
+        }
+        
         bool passBool = true;
         for (int i = 0; i < 15; ++i)
         {
