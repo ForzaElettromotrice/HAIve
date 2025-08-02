@@ -62,9 +62,9 @@ bool MetricsManager::saveToFile(const std::string& filename) const {
 
     auto writeMetric = [&out](const std::string& name, const HeuristicMetrics& metric) {
         out << "inline HeuristicMetrics " << name << "({\n";
-        for (size_t i = 0; i < metric.weights.size(); ++i) {
-            out << "    " << metric.weights[i];
-            if (i != metric.weights.size() - 1)
+        for (size_t i = 0; i < metric.weights().size(); ++i) {
+            out << "    " << metric.weights()[i];
+            if (i != metric.weights().size() - 1)
                 out << ",";
             out << "\n";
         }

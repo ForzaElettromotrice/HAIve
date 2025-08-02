@@ -79,6 +79,10 @@ public:
         }
         return HeuristicMetrics(new_values_);
     }
+
+    std::array<double, 7> weights() const {
+        return values_;
+    }
 };
 
 class MetricsManager {
