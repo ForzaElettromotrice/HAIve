@@ -51,12 +51,34 @@ void HiveCNNImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &opt
 
 void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer)
 {
-    torch::serialize::InputArchive archive;
-    archive.load_from(checkpoint_file);
-    this->load(archive);
-    if (optimizer)
-    {
-        optimizer->load(archive);
+    try {
+        // Load JIT traced/scripted model
+        torch::jit::script::Module module = torch::jit::load(checkpoint_file);
+        
+        // Copy the loaded model parameters to this model
+        auto loaded_params = module.parameters();
+        auto this_params = this->parameters();
+        
+        if (loaded_params.size() != this_params.size()) {
+            throw std::runtime_error("Parameter count mismatch between loaded JIT model and current model");
+        }
+        
+        auto loaded_it = loaded_params.begin();
+        auto this_it = this_params.begin();
+        
+        for (; loaded_it != loaded_params.end() && this_it != this_params.end(); ++loaded_it, ++this_it) {
+            this_it->data().copy_(loaded_it->data());
+        }
+        
+        // Note: JIT models don't typically store optimizer state
+        // If optimizer state loading is needed, it would require a separate file
+        if (optimizer) {
+            std::cerr << "Warning: Optimizer state cannot be loaded from JIT model. Optimizer state will be reset." << std::endl;
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading JIT model: " << e.what() << std::endl;
+        throw;
     }
 }
 
@@ -103,28 +125,35 @@ void HiveCNNImpl::batchForward(BatchContext_t *batchContext)
 torch::Tensor HiveCNNEnhancedImpl::forward(const HAIveContext_t *context)
 {
     torch::Tensor x;
-    //torch::Tensor y = torch::zeros(paramSize);
     Processor::boardToTensor(context->idToPos, x);
-    // setHeuristicParams(context, y);
-
 
     x = x.clone().set_requires_grad(true);
     x = x.to(torch::kFloat);
     if (torch::cuda::is_available())
         x = x.to(torch::kCUDA);
+    
+    // If we loaded a JIT model, use it directly
+    if (use_jit_model && jit_module.has_value()) {
+        pthread_mutex_lock(&this->mutex);
+        
+        std::vector<torch::jit::IValue> inputs;
+        inputs.push_back(x);
+        
+        auto result = jit_module.value().forward(inputs).toTensor();
+        
+        pthread_mutex_unlock(&this->mutex);
+        return result;
+    }
+    
+    // Original implementation for non-JIT models
     x = x.unsqueeze(0);
-    // y = y.unsqueeze(0);
 
     pthread_mutex_lock(&this->mutex);
     x = conv_layers->forward(x);
     x = x.mean({2, 3});
     x = x.view({1, -1});
-
-    // x = torch::cat({x, y}, 1);
     x = fc_layers->forward(x);
     pthread_mutex_unlock(&this->mutex);
-    // Optional activation:
-    // x = torch::tanh(x);
 
     return x;
 }
@@ -153,17 +182,29 @@ void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext)
 
     pthread_mutex_lock(&this->mutex);
 
-    x = conv_layers->forward(x);
-    x = x.mean({2, 3});
-    x = x.view({1, -1});
-    x = fc_layers->forward(x);
+    if (use_jit_model && jit_module.has_value()) {
+        // Process each sample individually with JIT model
+        for (uint8_t i = 0; i < batchContext->count; i++) {
+            std::vector<torch::jit::IValue> inputs;
+            inputs.push_back(x[i]);
+            
+            auto result = jit_module.value().forward(inputs).toTensor();
+            batchContext->result[i] = result.item<float>();
+        }
+    } else {
+        // Original batch processing
+        x = conv_layers->forward(x);
+        x = x.mean({2, 3});
+        x = x.view({1, -1});
+        x = fc_layers->forward(x);
+        
+        for (uint8_t i = 0; i < batchContext->count; i++)
+        {
+            batchContext->result[i] = x[i].item<float>();
+        }
+    }
 
     pthread_mutex_unlock(&this->mutex);
-
-    for (uint8_t i = 0; i < batchContext->count; i++)
-    {
-        batchContext->result[i] = x[i].item<float>();
-    }
 }
 
 
@@ -184,12 +225,90 @@ void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimiz
 
 void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer)
 {
-    torch::serialize::InputArchive archive;
-    archive.load_from(checkpoint_file);
-    this->load(archive);
-    if (optimizer)
-    {
-        optimizer->load(archive);
+    // First, try to load as JIT model (check for .jit extension or try anyway)
+    std::string jit_file = checkpoint_file;
+    if (jit_file.substr(jit_file.length() - 3) != ".jit") {
+        jit_file = checkpoint_file.substr(0, checkpoint_file.find_last_of('.')) + ".jit";
+    }
+    
+    try {
+        if (std::filesystem::exists(jit_file)) {
+            std::cout << "Attempting to load JIT model from: " << jit_file << std::endl;
+            jit_module = torch::jit::load(jit_file);
+            use_jit_model = true;
+            
+            // Move to GPU if available
+            if (torch::cuda::is_available()) {
+                jit_module.value().to(torch::kCUDA);
+            }
+            
+            std::cout << "Successfully loaded JIT model from " << jit_file << std::endl;
+            
+            if (optimizer) {
+                std::cerr << "Warning: Optimizer state cannot be loaded from JIT model. Optimizer state will be reset." << std::endl;
+            }
+            return;
+        }
+    } catch (const std::exception& e) {
+        std::cout << "Failed to load JIT model from " << jit_file << ": " << e.what() << std::endl;
+        use_jit_model = false;
+        jit_module.reset();
+    }
+    
+    // Fallback: try original checkpoint file as JIT
+    try {
+        std::cout << "Attempting to load original file as JIT model: " << checkpoint_file << std::endl;
+        jit_module = torch::jit::load(checkpoint_file);
+        use_jit_model = true;
+        
+        // Move to GPU if available
+        if (torch::cuda::is_available()) {
+            jit_module.value().to(torch::kCUDA);
+        }
+        
+        std::cout << "Successfully loaded JIT model from " << checkpoint_file << std::endl;
+        
+        if (optimizer) {
+            std::cerr << "Warning: Optimizer state cannot be loaded from JIT model. Optimizer state will be reset." << std::endl;
+        }
+        return;
+        
+    } catch (const std::exception& e) {
+        std::cout << "Failed to load as JIT model, trying parameter copy method: " << e.what() << std::endl;
+        use_jit_model = false;
+        jit_module.reset();
+    }
+    
+    // Final fallback: parameter copying method (original implementation)
+    try {
+        // Load JIT traced/scripted model for parameter extraction
+        torch::jit::script::Module module = torch::jit::load(checkpoint_file);
+        
+        // Copy the loaded model parameters to this model
+        auto loaded_params = module.parameters();
+        auto this_params = this->parameters();
+        
+        if (loaded_params.size() != this_params.size()) {
+            throw std::runtime_error("Parameter count mismatch between loaded JIT model and current model");
+        }
+        
+        auto loaded_it = loaded_params.begin();
+        auto this_it = this_params.begin();
+        
+        for (; loaded_it != loaded_params.end() && this_it != this_params.end(); ++loaded_it, ++this_it) {
+            this_it->data().copy_(loaded_it->data());
+        }
+        
+        std::cout << "Successfully loaded model parameters via parameter copying" << std::endl;
+        
+        // Note: JIT models don't typically store optimizer state
+        if (optimizer) {
+            std::cerr << "Warning: Optimizer state cannot be loaded from JIT model. Optimizer state will be reset." << std::endl;
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading model: " << e.what() << std::endl;
+        throw;
     }
 }
 
