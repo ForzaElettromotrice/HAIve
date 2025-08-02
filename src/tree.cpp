@@ -63,6 +63,9 @@ uint64_t normalizeId(const Node_t *father)
 }
 bool isInTree(const Node_t *node)
 {
+    // FIXME: Va bene sta roba? Altrimenti al primo ciclo crasha perchè poi prova ad accedere a father->id
+    if (root == nullptr)
+        return true;
     return node->id % K == normalizeId(root);
 }
 void checkPause()
