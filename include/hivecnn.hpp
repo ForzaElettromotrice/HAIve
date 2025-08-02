@@ -9,6 +9,7 @@
 #include <preprocessor.hpp>
 #include <filesystem>
 #include <tree.hpp>
+#include <optional>
 
 extern "C" {
 #include <logger.h>
@@ -89,6 +90,10 @@ struct HiveCNNEnhancedImpl : HiveNet
     torch::nn::Sequential conv_layers{nullptr};
     torch::nn::Sequential fc_layers{nullptr};
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    
+    // JIT model support
+    std::optional<torch::jit::script::Module> jit_module;
+    bool use_jit_model = false;
 
     explicit HiveCNNEnhancedImpl(std::string checkpoint = "model_enh_checkpoint.pt")
         : checkpoint_file(std::move(checkpoint))
