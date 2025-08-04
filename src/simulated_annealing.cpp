@@ -11,14 +11,18 @@
 extern "C" {
 #include "enums.h"
 #include "moves.h"
-#include "game.h"
+#include "utils.h"
 }
-#include "heuristics.hpp"
+#include "heuristics_minimal.hpp"
+#include "preprocessor_minimal.hpp"
+extern "C" {
+#include "CUtils/logger.h"
+}
 
 // Forward declarations for missing functions
 int games = 100; // Default number of games
 double evaluate(const MetricsManager& manager);
-int play_match(const std::vector<double>& w1, const std::vector<double>& w2, bool w1_white);
+double compare(const MetricsManager& manager1, const MetricsManager& manager2); // Fixed signature
 
 // Helper function to create a modified MetricsManager
 MetricsManager createModifiedMetricsManager(const MetricsManager& original, 
@@ -146,16 +150,8 @@ MetricsManager perturb(const MetricsManager& current, std::mt19937& rng, double 
     return neighbor;
 }
 
-double compare(const std::vector<double>& w1, const std::vector<double>& w2) {
-    int wins1 = 0, wins2 = 0;
-    for (int i = 0; i < games; ++i) {
-        bool w1_white = (i % 2 == 0);
-        int result = play_match(w1, w2, w1_white);
-        if (result == 1) wins1++;
-        else if (result == -1) wins2++;
-    }
-    return (wins1 - wins2) / static_cast<double>(games);
-}
+// Remove the broken compare function that expects std::vector<double>
+// The correct compare function is now in simulated_annealing_implementations.cpp
 
 MetricsManager simulated_annealing(
     const MetricsManager& initial_weights,
@@ -175,16 +171,23 @@ MetricsManager simulated_annealing(
     double T = initial_temp;
 
     for (int iter = 0; iter < max_iterations; ++iter) {
-        MetricsManager neighbor = perturb(current, rng);
+        MetricsManager neighbor = perturb(current, rng, T); // Pass temperature
         double neighbor_score = evaluate(neighbor);
 
-        double delta = compare(neighbor, current);
-        if (delta > 0 || uniform(rng) < std::exp(delta / T)) {
+        // FIXED: Use score difference instead of compare function
+        double delta = neighbor_score - current_score;
+        
+        // Acceptance criteria: accept if better, or with probability exp(delta/T) if worse
+        bool accept = (delta > 0) || (uniform(rng) < std::exp(delta / T));
+        
+        if (accept) {
             current = neighbor;
             current_score = neighbor_score;
-            if (delta > 0) {
-                best = current;
-                best_score = current_score;
+            
+            // Update best if this is better
+            if (neighbor_score > best_score) {
+                best = neighbor;
+                best_score = neighbor_score;
             }
         }
 
@@ -192,7 +195,8 @@ MetricsManager simulated_annealing(
 
         // Optional logging
         if (iter % 100 == 0 || iter == max_iterations - 1) {
-            std::cout << "Iter " << iter << " | Score: " << best_score << " | T: " << T << "\n";
+            std::cout << "Iter " << iter << " | Best Score: " << best_score 
+                      << " | Current Score: " << current_score << " | T: " << T << "\n";
         }
     }
 
@@ -201,23 +205,31 @@ MetricsManager simulated_annealing(
 
 float negamax_heuristic_dup(HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(HAIveContext_t *, MetricsManager&)> &heuristicFunc, MetricsManager& metricManagerWhite, MetricsManager& metricManagerBlack)
 {
+    std::cout << "[DEBUG] negamax_heuristic_dup called: depth=" << depth << ", maxDepth=" << maxDepth << ", isWhiteTurn=" << isWhiteTurn << std::endl;
+    
     if (depth >= maxDepth)
     {
+        std::cout << "[DEBUG] Reached max depth, calling heuristic function..." << std::endl;
         MetricsManager& metricManager = isWhiteTurn ? metricManagerWhite : metricManagerBlack;
-        return heuristicFunc(context, metricManager);
+        float result = heuristicFunc(context, metricManager);
+        std::cout << "[DEBUG] Heuristic function returned: " << result << std::endl;
+        return result;
     }
 
     const GameStatus_t gameStat = getGameStatus(context);
+    std::cout << "[DEBUG] Game status: " << gameStat << std::endl;
     if (gameStat == WHITE_WON)
         return isWhiteTurn ? 1 : -1;
     if (gameStat == BLACK_WON)
         return isWhiteTurn ? -1 : 1;
 
     // Trova i figli
+    std::cout << "[DEBUG] About to call getMoves..." << std::endl;
     Piece_t *moves;
     getMoves(context, &moves);
+    std::cout << "[DEBUG] getMoves completed successfully" << std::endl;
     float maxVal = -2, tmp;
-    Piece_t curBestMove;
+    Piece_t curBestMove = {NULLPIECE, {-1, -1, -1}}; // Initialize to null move
 
     const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
     const uint_fast8_t end = start + 14;
