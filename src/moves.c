@@ -869,7 +869,7 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
 
     addMoves(context, &(*moves)[MMtA(14, 0)]);
     //Se la queen non c'è non si può muovere nulla
-    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z != -1)
+    if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z == -1)
         return;
 
     const int8_t addId = color == WHITE ? 14 : 0;
