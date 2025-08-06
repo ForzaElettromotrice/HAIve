@@ -7,6 +7,9 @@
 
 #include "hivecnn.hpp"
 #include "tree.hpp"
+
+#include <cstring>
+
 #include "HQueue.h"
 #include "utils.h"
 
@@ -204,11 +207,6 @@ void *expandNode(void *args)
         }
 
 
-        // FIXME: Va bene fare così? Altrimenti a linea 218 crasha
-        if (node->moves == nullptr) {
-            getMoves(&node->context, &node->moves);
-        }
-        
         bool passBool = true;
         for (int i = 0; i < 15; ++i)
         {
@@ -239,9 +237,11 @@ void *expandNode(void *args)
                 if (!alreadySeen(child))
                 {
                     getMoves(&child->context, &child->moves);
-                    HashValue_t hashValue = {-2, node->moves};
+                    auto *copy = static_cast<Piece_t *>(malloc(15 * MOVES_SIZE * sizeof(Piece_t)));
+                    memcpy(copy, child->moves, 15 * MOVES_SIZE * sizeof(Piece_t));
+                    HashValue_t hashValue = {-2, copy};
                     pthread_mutex_lock(&hLock);
-                    setByHash(node->hash, &hashValue, sizeof(HashValue_t), &hashtable);
+                    setByHash(child->hash, &hashValue, sizeof(HashValue_t), &hashtable);
                     pthread_mutex_unlock(&hLock);
                     simplehpush(batchQueue, child);
                 }
@@ -275,9 +275,11 @@ void *expandNode(void *args)
             if (!alreadySeen(child))
             {
                 getMoves(&child->context, &child->moves);
-                HashValue_t hashValue = {-2, node->moves};
+                auto *copy = static_cast<Piece_t *>(malloc(15 * MOVES_SIZE * sizeof(Piece_t)));
+                memcpy(copy, child->moves, 15 * MOVES_SIZE * sizeof(Piece_t));
+                HashValue_t hashValue = {-2, copy};
                 pthread_mutex_lock(&hLock);
-                setByHash(node->hash, &hashValue, sizeof(HashValue_t), &hashtable);
+                setByHash(child->hash, &hashValue, sizeof(HashValue_t), &hashtable);
                 pthread_mutex_unlock(&hLock);
                 simplehpush(batchQueue, child);
             }
@@ -368,12 +370,12 @@ int initTree()
     changeRoots = 0;
 
     //Init root
-    const auto node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
+    root = static_cast<Node_t *>(malloc(sizeof(Node_t)));
     HAIveContext_t context;
     initHAIveContext(&context);
-    initNode(node, nullptr, &context, nullptr, 0);
-    node->score = 0; //Pareggio, nessuno ha mosso
-    hpush(workQueue, 0, node);
+    initNode(root, nullptr, &context, nullptr, 0);
+    root->score = 0; //Pareggio, nessuno ha mosso
+    hpush(workQueue, 0, root);
 
     //Init hashmap lock
     pthread_mutex_init(&hLock, nullptr);

@@ -29,10 +29,10 @@
 
 Cose da sistemare di *tree.cpp* che ho spottato/Chat ha spottato, che vorrei risolvere da solo ma ho paura di sbagliare quindi ti lascio qui e magari ci ragioniamo insieme (non voglio romperti mentre sei al mare):
 
-    1. rr. 237 & 273: `HashValue_t hashValue = {-2, node->moves};`... non dovrebbe essere l'hash delle mosse del figlio?
+    //CORRETTO 1. rr. 237 & 273: `HashValue_t hashValue = {-2, node->moves};`... non dovrebbe essere l'hash delle mosse del figlio?
 
-    2. r. 91: Ciò che facciamo è evitare di ricreare un nodo ex-novo. Ma non può capitare che le mosse del nodo puntato siano liberate e si perda il riferimento?
+    //CORRETTO (avremo dei memory leak per ora) 2. r. 91: Ciò che facciamo è evitare di ricreare un nodo ex-novo. Ma non può capitare che le mosse del nodo puntato siano liberate e si perda il riferimento?
 
-    3. r. 207: vd. il FIXME
+    //Crashava per il problema di sopra 3. r. 207: vd. il FIXME
 
-    4. r. 66: vd. il FIXME
+    //Crashava perché me so scordato de setta la prima root nell'init 4. r. 66: vd. il FIXME
