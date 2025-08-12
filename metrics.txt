@@ -59,21 +59,21 @@ inline HeuristicMetrics pillbugMetrics({
 });
 
 inline HeuristicMetrics mosquitoMetrics({
-    147014.737145555, // InPlayWeight
-    -2891.0586433755066, // IsPinnedWeight
-    274.477890120718, // IsCoveredWeight
-    7418.816073993939, // NoisyMoveWeight
-    -2217.07900807487, // QuietMoveWeight
-    5877.374514571279, // FriendlyNeighborWeight
-    12195.85956817655 // EnemyNeighborWeight
+    147014.737145555,
+    -2891.0586433755066,
+    274.477890120718,
+    7418.816073993939,
+    -2217.07900807487,
+    5877.374514571279,
+    12195.85956817655
 });
 
 inline HeuristicMetrics ladybugMetrics({
-    -4494.037180443046, // InPlayWeight
-    -5543.12988753058, // IsPinnedWeight
-    -567.9664126098779, // IsCoveredWeight
-    -95.67674761665349, // NoisyMoveWeight
-    1006.6760051760265, // QuietMoveWeight
-    1601.0593338368017, // FriendlyNeighborWeight
-    -4767.602134795075 // EnemyNeighborWeight
+    -4494.037180443046,
+    -5543.12988753058,
+    -567.9664126098779,
+    -95.67674761665349,
+    1006.6760051760265,
+    1601.0593338368017,
+    -4767.602134795075
 });
