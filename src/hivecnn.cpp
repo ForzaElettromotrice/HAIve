@@ -225,7 +225,6 @@ void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimiz
 
 void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer)
 {
-    // First, try to load as JIT model (check for .jit extension or try anyway)
     std::string jit_file = checkpoint_file;
     if (jit_file.substr(jit_file.length() - 3) != ".jit") {
         jit_file = checkpoint_file.substr(0, checkpoint_file.find_last_of('.')) + ".jit";
@@ -235,8 +234,7 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
         if (std::filesystem::exists(jit_file)) {
             jit_module = torch::jit::load(jit_file);
             use_jit_model = true;
-            
-            // Move to GPU if available
+
             if (torch::cuda::is_available()) {
                 jit_module.value().to(torch::kCUDA);
             }
@@ -251,14 +249,12 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
         use_jit_model = false;
         jit_module.reset();
     }
-    
-    // Fallback: try original checkpoint file as JIT
+
     try {
         std::cout << "Attempting to load original file as JIT model: " << checkpoint_file << std::endl;
         jit_module = torch::jit::load(checkpoint_file);
         use_jit_model = true;
-        
-        // Move to GPU if available
+
         if (torch::cuda::is_available()) {
             jit_module.value().to(torch::kCUDA);
         }
@@ -275,13 +271,10 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
         use_jit_model = false;
         jit_module.reset();
     }
-    
-    // Final fallback: parameter copying method (original implementation)
+
     try {
-        // Load JIT traced/scripted model for parameter extraction
         torch::jit::script::Module module = torch::jit::load(checkpoint_file);
-        
-        // Copy the loaded model parameters to this model
+
         auto loaded_params = module.parameters();
         auto this_params = this->parameters();
         
@@ -297,8 +290,7 @@ void HiveCNNEnhancedImpl::load_model(const std::shared_ptr<torch::optim::Optimiz
         }
         
         std::cout << "Successfully loaded model parameters via parameter copying" << std::endl;
-        
-        // Note: JIT models don't typically store optimizer state
+
         if (optimizer) {
             std::cerr << "Warning: Optimizer state cannot be loaded from JIT model. Optimizer state will be reset." << std::endl;
         }
