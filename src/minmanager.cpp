@@ -4,6 +4,7 @@
 
 #include "minmanager.hpp"
 
+/*
 std::string rstrip(const std::string &s)
 {
     std::string result = s;
@@ -61,3 +62,4 @@ HAIveContext_t *MinManager::getNext()
     return &context_;
 }
 
+*/

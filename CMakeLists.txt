@@ -23,12 +23,12 @@ add_executable(HAIve
         src/utils.c
         src/enums.c
         src/moves.c
-        src/trainings.cpp
+        # src/trainings.cpp
         src/hivecnn.cpp
         src/preprocessor.cpp
         src/heuristics.cpp
         src/tree.cpp
-        src/minmanager.cpp
+        # src/minmanager.cpp
         src/HQueue.c
 )
 

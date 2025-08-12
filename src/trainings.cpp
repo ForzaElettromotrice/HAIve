@@ -7,6 +7,7 @@
 #include <cfloat>
 #include "minmanager.hpp"
 
+/*
 namespace fs = std::filesystem;
 
 void getRandomState(HAIveContext_t *toFill, const uint8_t minMoves, const uint8_t maxMoves)
@@ -230,3 +231,4 @@ double MzingaHeuristicTrainer::heuristic(HAIveContext_t *context)
 {
     return mzingaHeuristic(context);
 }
+*/

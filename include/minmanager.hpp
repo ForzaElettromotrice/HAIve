@@ -5,6 +5,7 @@
 #ifndef MINMANAGER_H
 #define MINMANAGER_H
 
+/*
 #include <cstring>
 #include <string>
 #include <vector>
@@ -46,5 +47,6 @@ public:
         return result_;
     }
 };
+*/
 
 #endif //MINMANAGER_H

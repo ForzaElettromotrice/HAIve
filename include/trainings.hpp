@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <type_traits>
 
+/*
 class Trainer
 {
     std::string filename_;
@@ -93,4 +94,5 @@ inline void trainFromFiles(const bool toLoad)
     from_files_trainer.train(toLoad);
 }
 
+*/
 #endif //TRAININGS_H

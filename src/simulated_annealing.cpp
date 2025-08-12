@@ -19,6 +19,7 @@ extern "C" {
 #include "CUtils/logger.h"
 }
 
+/*
 // Forward declarations for missing functions
 int games = 100; // Default number of games
 double evaluate(const MetricsManager& manager);
@@ -375,3 +376,4 @@ double mzingaHeuristicVariable(HAIveContext_t *context, MetricsManager& metricMa
     }
     return result;
 }
+*/
