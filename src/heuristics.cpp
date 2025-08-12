@@ -19,7 +19,6 @@ bool MetricsManager::loadFromFile(const std::string& filename) {
         name.erase(remove_if(name.begin(), name.end(), ::isspace), name.end());
 
         std::vector<double> values;
-        std::getline(file, line);
 
         while (std::getline(file, line)) {
             if (line.find("});") != std::string::npos) break;
