@@ -467,6 +467,7 @@ void printInfo()
 {
     printf("id hAIve v1.2\n");
     printf("Mosquito;Ladybug;Pillbug\n");
+    printf("ok\n");
 }
 void printGameString(const MzingaContext_t *context)
 {
