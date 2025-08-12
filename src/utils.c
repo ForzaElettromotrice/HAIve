@@ -370,6 +370,8 @@ void addMazingaMove(MzingaContext_t *context, const char *move)
 {
     const size_t moveLen = strlen(move);
     const size_t currentLen = strlen(context->moves);
+    context->turn++;
+    context->curColor *= -1;
 
     if (currentLen + moveLen + 1 >= context->movesSize)
     {
