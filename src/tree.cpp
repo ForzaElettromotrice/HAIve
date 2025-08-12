@@ -207,6 +207,9 @@ void *expandNode(void *args)
         bool passBool = true;
         for (int i = 0; i < 15; ++i)
         {
+            // FIXME: Capita che node->moves sia NULL. Possibile? Dunque crasha. Anche qui ci metto un bello skip; forse andrebbero create le mosse?
+            if (node->moves == NULL)
+                return nullptr;
             for (int j = 0; node->moves[MMtA(i, j)].id != NULLPIECE; ++j)
             {
                 passBool = false;
@@ -444,6 +447,7 @@ void adversaryMove(char *mzingaMove)
 {
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
 
+    // FIXME: A volte root->move è NULL. Va bene? Io ho messo un fix in equalsPiece.
     if (equalsPiece(&move, root->move))
         return;
 

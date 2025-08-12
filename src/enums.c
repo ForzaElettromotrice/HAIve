@@ -21,5 +21,7 @@ bool equalsPosition(const Position_t *p1, const Position_t *p2)
 }
 bool equalsPiece(const Piece_t *p1, const Piece_t *p2)
 {
+    if (p1 == NULL || p2 == NULL)
+        return false;
     return p1->id == p2->id && equalsPosition(&p1->position, &p2->position);
 }

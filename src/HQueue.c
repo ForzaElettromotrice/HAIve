@@ -175,6 +175,10 @@ void *simplehpop(HInnerQueue_t *queue)
 {
     pthread_mutex_lock(&queue->mutex);
     HNode_t *node = queue->head;
+
+    // FIXME: A volte node è NULL. Può darsi? Ora come ora caccio uno skip
+    if (node == NULL)
+        return NULL;
     void *val = node->val;
 
     if (queue->head == queue->tail)
