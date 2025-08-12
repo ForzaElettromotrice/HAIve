@@ -448,6 +448,7 @@ void adversaryMove(char *mzingaMove)
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
 
     // FIXME: A volte root->move è NULL. Va bene? Io ho messo un fix in equalsPiece.
+    // Update: Forse il Fix che ho messo è una puttanata. Le cose non crashano ma si freeza tutto.
     if (equalsPiece(&move, root->move))
         return;
 
