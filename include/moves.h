@@ -15,7 +15,7 @@ extern "C" {
 //Moves Matrix to Array
 #define MMtA(piece, idx) ((piece) * MOVES_SIZE + (idx))
 
-void getMoves(const HAIveContext_t *context, Piece_t **moves);
+void getMoves(const HAIveContext_t *context, Piece_t *moves);
 
 #ifdef __cplusplus
 }
