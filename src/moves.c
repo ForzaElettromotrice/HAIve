@@ -723,14 +723,13 @@ void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *mo
 }
 
 
-void getMoves(const HAIveContext_t *context, Piece_t **moves)
+void getMoves(const HAIveContext_t *context, Piece_t *moves)
 {
     const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
 
-    *moves = malloc(MOVES_SIZE * sizeof(Piece_t));
-    memset(*moves, 0xff, MOVES_SIZE * sizeof(Piece_t));
+    memset(moves, 0xff, MOVES_SIZE * sizeof(Piece_t));
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
@@ -738,7 +737,7 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
         uint_fast8_t idx = 0;
         for (int i = W_PILLBUG; i < NUM_PIECES; ++i)
         {
-            *moves[idx++] = (Piece_t){i, {0, 0, 0}};
+            moves[idx++] = (Piece_t){i, {0, 0, 0}};
             switch (i)
             {
                 case W_ANT_1:
@@ -764,7 +763,7 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
         {
             for (uint_fast8_t j = 0; j < 6; ++j)
             {
-                *moves[idx++] = (Piece_t){i, {0, directions[j][0], directions[j][1]}};
+                moves[idx++] = (Piece_t){i, {0, directions[j][0], directions[j][1]}};
             }
             switch (i)
             {
@@ -838,7 +837,7 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
                 if (!ok)
                     continue;
 
-                *moves[idx++] = (Piece_t){color == WHITE ? W_QUEEN : B_QUEEN, {0, newY1, newX1}};
+                moves[idx++] = (Piece_t){color == WHITE ? W_QUEEN : B_QUEEN, {0, newY1, newX1}};
             }
         }
         return;
@@ -846,63 +845,63 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
 
     uint_fast8_t idx = 0;
 
-    addMoves(context, *moves, &idx);
+    addMoves(context, moves, &idx);
     //Se la queen non c'è non si può muovere nulla
     if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z == -1)
         return;
 
     const int8_t addId = color == WHITE ? 14 : 0;
     if (canMove(B_QUEEN + addId, context))
-        queenMoves(B_QUEEN + addId, &positions[B_QUEEN + addId], board, *moves, &idx);
+        queenMoves(B_QUEEN + addId, &positions[B_QUEEN + addId], board, moves, &idx);
     idx = 0;
     if (canMove(B_PILLBUG + addId, context))
-        pillbugMoves(B_PILLBUG + addId, &positions[B_PILLBUG + addId], context, *moves, &idx);
+        pillbugMoves(B_PILLBUG + addId, &positions[B_PILLBUG + addId], context, moves, &idx);
 
     idx = 0;
     if (canMove(B_LADYBUG + addId, context))
-        ladybugMoves(B_LADYBUG + addId, &positions[B_LADYBUG + addId], board, *moves, &idx);
+        ladybugMoves(B_LADYBUG + addId, &positions[B_LADYBUG + addId], board, moves, &idx);
 
     if (canMove(B_MOSQUITO + addId, context))
-        mosquitoMoves(B_MOSQUITO + addId, context, *moves, &idx);
+        mosquitoMoves(B_MOSQUITO + addId, context, moves, &idx);
 
     idx = 0;
     if (canMove(B_ANT_1 + addId, context))
-        antMoves(B_ANT_1 + addId, &positions[B_ANT_1 + addId], board, *moves, &idx, NULL);
+        antMoves(B_ANT_1 + addId, &positions[B_ANT_1 + addId], board, moves, &idx, NULL);
 
     idx = 0;
     if (canMove(B_ANT_2 + addId, context))
-        antMoves(B_ANT_2 + addId, &positions[B_ANT_2 + addId], board, *moves, &idx, NULL);
+        antMoves(B_ANT_2 + addId, &positions[B_ANT_2 + addId], board, moves, &idx, NULL);
 
     idx = 0;
     if (canMove(B_ANT_3 + addId, context))
-        antMoves(B_ANT_3 + addId, &positions[B_ANT_3 + addId], board, *moves, &idx, NULL);
+        antMoves(B_ANT_3 + addId, &positions[B_ANT_3 + addId], board, moves, &idx, NULL);
 
     idx = 0;
     if (canMove(B_GRASSHOPPER_1 + addId, context))
-        grasshopperMoves(B_GRASSHOPPER_1 + addId, &positions[B_GRASSHOPPER_1 + addId], board, *moves, &idx);
+        grasshopperMoves(B_GRASSHOPPER_1 + addId, &positions[B_GRASSHOPPER_1 + addId], board, moves, &idx);
 
     idx = 0;
     if (canMove(B_GRASSHOPPER_2 + addId, context))
-        grasshopperMoves(B_GRASSHOPPER_2 + addId, &positions[B_GRASSHOPPER_2 + addId], board, *moves, &idx);
+        grasshopperMoves(B_GRASSHOPPER_2 + addId, &positions[B_GRASSHOPPER_2 + addId], board, moves, &idx);
 
     idx = 0;
     if (canMove(B_GRASSHOPPER_3 + addId, context))
-        grasshopperMoves(B_GRASSHOPPER_3 + addId, &positions[B_GRASSHOPPER_3 + addId], board, *moves, &idx);
+        grasshopperMoves(B_GRASSHOPPER_3 + addId, &positions[B_GRASSHOPPER_3 + addId], board, moves, &idx);
 
     idx = 0;
     if (canMove(B_BEETLE_1 + addId, context))
-        beetleMoves(B_BEETLE_1 + addId, &positions[B_BEETLE_1 + addId], board, *moves, &idx);
+        beetleMoves(B_BEETLE_1 + addId, &positions[B_BEETLE_1 + addId], board, moves, &idx);
 
     idx = 0;
     if (canMove(B_BEETLE_2 + addId, context))
-        beetleMoves(B_BEETLE_2 + addId, &positions[B_BEETLE_2 + addId], board, *moves, &idx);
+        beetleMoves(B_BEETLE_2 + addId, &positions[B_BEETLE_2 + addId], board, moves, &idx);
 
     idx = 0;
     if (canMove(B_SPIDER_1 + addId, context))
-        spiderMoves(B_SPIDER_1 + addId, &positions[B_SPIDER_1 + addId], board, *moves, &idx);
+        spiderMoves(B_SPIDER_1 + addId, &positions[B_SPIDER_1 + addId], board, moves, &idx);
 
     idx = 0;
     if (canMove(B_SPIDER_2 + addId, context))
-        spiderMoves(B_SPIDER_2 + addId, &positions[B_SPIDER_2 + addId], board, *moves, &idx);
+        spiderMoves(B_SPIDER_2 + addId, &positions[B_SPIDER_2 + addId], board, moves, &idx);
 }
 
