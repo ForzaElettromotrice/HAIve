@@ -21,8 +21,6 @@ typedef struct ThreadArgs
 
 void alertMoves(const Pieces_t piece, const uint16_t idx)
 {
-    if (piece == -1 || piece == 17 || piece == 3)
-        return;
     if (idx > 140)
     {
         logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
@@ -139,7 +137,7 @@ bool canMove(const Pieces_t id, const HAIveContext_t *context)
 }
 
 
-void *addMoves(const HAIveContext_t *context, Piece_t *moves)
+void *addMoves(const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
 {
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
@@ -179,7 +177,6 @@ void *addMoves(const HAIveContext_t *context, Piece_t *moves)
             toCheck[checkSize++] = i;
     }
 
-    int idx = 0;
     Hashmap_t visited;
     initHashmap(&visited, 512);
     for (uint_fast8_t i = 0; i < checkSize; ++i)
@@ -225,8 +222,8 @@ void *addMoves(const HAIveContext_t *context, Piece_t *moves)
 
             for (uint8_t k = 0; k < addSize; ++k)
             {
-                alertMoves(NULLPIECE, idx);
-                moves[idx++] = (Piece_t)
+                alertMoves(NULLPIECE, *idx);
+                moves[(*idx)++] = (Piece_t)
                 {
                     toAdd[k],
                     {
@@ -350,7 +347,7 @@ void grasshopperMoves(const Pieces_t id, const Position_t *position, const Piece
 void pillbugMoves(const Pieces_t id, const Position_t *position, const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
 {
     const Pieces_t last = context->lastMovedPiece;
-    Position_t *positions = context->idToPos;
+    const Position_t *positions = context->idToPos;
     const Pieces_t *board = context->board;
 
     const int_fast8_t y = position->y;
@@ -359,7 +356,7 @@ void pillbugMoves(const Pieces_t id, const Position_t *position, const HAIveCont
     int_fast8_t sizeFree = 0;
     Position_t freeLocations[6];
 
-    Pieces_t startingPoint = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
+    const Pieces_t startingPoint = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
     bool visited[28] = {0};
     visited[id] = true;
     visited[startingPoint] = true;
@@ -654,10 +651,9 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
     if (first)
         freeHashmap(&hashmap);
 }
-void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *moves)
+void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
 {
     const Position_t position = context->idToPos[id];
-    uint_fast8_t idx = 0;
 
     const int_fast8_t z = position.z;
     const int_fast8_t y = position.y;
@@ -665,7 +661,7 @@ void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *mo
 
     if (z > 0)
     {
-        beetleMoves(id, &position, context->board, moves, &idx);
+        beetleMoves(id, &position, context->board, moves, idx);
         return;
     }
 
@@ -679,15 +675,15 @@ void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *mo
         {
             case B_QUEEN:
             case W_QUEEN:
-                queenMoves(id, &position, context->board, moves, &idx);
+                queenMoves(id, &position, context->board, moves, idx);
                 break;
             case B_PILLBUG:
             case W_PILLBUG:
-                pillbugMoves(id, &position, context, moves, &idx);
+                pillbugMoves(id, &position, context, moves, idx);
                 break;
             case B_LADYBUG:
             case W_LADYBUG:
-                ladybugMoves(id, &position, context->board, moves, &idx);
+                ladybugMoves(id, &position, context->board, moves, idx);
                 break;
             case B_MOSQUITO:
             case W_MOSQUITO:
@@ -698,7 +694,7 @@ void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *mo
             case W_ANT_1:
             case W_ANT_2:
             case W_ANT_3:
-                antMoves(id, &position, context->board, moves, &idx, NULL);
+                antMoves(id, &position, context->board, moves, idx, NULL);
                 break;
             case B_GRASSHOPPER_1:
             case B_GRASSHOPPER_2:
@@ -706,19 +702,19 @@ void mosquitoMoves(const Pieces_t id, const HAIveContext_t *context, Piece_t *mo
             case W_GRASSHOPPER_1:
             case W_GRASSHOPPER_2:
             case W_GRASSHOPPER_3:
-                grasshopperMoves(id, &position, context->board, moves, &idx);
+                grasshopperMoves(id, &position, context->board, moves, idx);
                 break;
             case B_BEETLE_1:
             case B_BEETLE_2:
             case W_BEETLE_1:
             case W_BEETLE_2:
-                beetleMoves(id, &position, context->board, moves, &idx);
+                beetleMoves(id, &position, context->board, moves, idx);
                 break;
             case B_SPIDER_1:
             case B_SPIDER_2:
             case W_SPIDER_1:
             case W_SPIDER_2:
-                spiderMoves(id, &position, context->board, moves, &idx);
+                spiderMoves(id, &position, context->board, moves, idx);
                 break;
             case NULLPIECE:
                 break;
@@ -732,10 +728,9 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
     const Pieces_t *board = context->board;
     const Position_t *positions = context->idToPos;
     const Colors_t color = context->curColor;
-    const Pieces_t last = context->lastMovedPiece;
 
-    *moves = malloc(MOVES_SIZE * 15 * sizeof(Piece_t));
-    memset(*moves, 0xff, MOVES_SIZE * 15 * sizeof(Piece_t));
+    *moves = malloc(MOVES_SIZE * sizeof(Piece_t));
+    memset(*moves, 0xff, MOVES_SIZE * sizeof(Piece_t));
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
@@ -743,13 +738,7 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
         uint_fast8_t idx = 0;
         for (int i = W_PILLBUG; i < NUM_PIECES; ++i)
         {
-            *moves[MMtA(14, idx++)] = (Piece_t)
-            {
-                i,
-                {
-                    0, 0, 0
-                }
-            };
+            *moves[idx++] = (Piece_t){i, {0, 0, 0}};
             switch (i)
             {
                 case W_ANT_1:
@@ -775,13 +764,7 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
         {
             for (uint_fast8_t j = 0; j < 6; ++j)
             {
-                *moves[MMtA(14, idx++)] = (Piece_t)
-                {
-                    i,
-                    {
-                        0, directions[j][0], directions[j][1]
-                    }
-                };
+                *moves[idx++] = (Piece_t){i, {0, directions[j][0], directions[j][1]}};
             }
             switch (i)
             {
@@ -855,76 +838,71 @@ void getMoves(const HAIveContext_t *context, Piece_t **moves)
                 if (!ok)
                     continue;
 
-                *moves[MMtA(14, idx++)] = (Piece_t)
-                {
-                    color == WHITE ? W_QUEEN : B_QUEEN,
-                    {
-                        0, newY1, newX1
-                    }
-                };
+                *moves[idx++] = (Piece_t){color == WHITE ? W_QUEEN : B_QUEEN, {0, newY1, newX1}};
             }
         }
         return;
     }
 
-    addMoves(context, &(*moves)[MMtA(14, 0)]);
+    uint_fast8_t idx = 0;
+
+    addMoves(context, *moves, &idx);
     //Se la queen non c'è non si può muovere nulla
     if (positions[color == WHITE ? W_QUEEN : B_QUEEN].z == -1)
         return;
 
     const int8_t addId = color == WHITE ? 14 : 0;
-    uint_fast8_t idx = 0;
     if (canMove(B_QUEEN + addId, context))
-        queenMoves(B_QUEEN + addId, &positions[B_QUEEN + addId], board, &(*moves)[MMtA(B_QUEEN, 0)], &idx);
+        queenMoves(B_QUEEN + addId, &positions[B_QUEEN + addId], board, *moves, &idx);
     idx = 0;
     if (canMove(B_PILLBUG + addId, context))
-        pillbugMoves(B_PILLBUG + addId, &positions[B_PILLBUG + addId], context, &(*moves)[MMtA(B_PILLBUG, 0)], &idx);
+        pillbugMoves(B_PILLBUG + addId, &positions[B_PILLBUG + addId], context, *moves, &idx);
 
     idx = 0;
     if (canMove(B_LADYBUG + addId, context))
-        ladybugMoves(B_LADYBUG + addId, &positions[B_LADYBUG + addId], board, &(*moves)[MMtA(B_LADYBUG, 0)], &idx);
+        ladybugMoves(B_LADYBUG + addId, &positions[B_LADYBUG + addId], board, *moves, &idx);
 
     if (canMove(B_MOSQUITO + addId, context))
-        mosquitoMoves(B_MOSQUITO + addId, context, &(*moves)[MMtA(B_MOSQUITO, 0)]);
+        mosquitoMoves(B_MOSQUITO + addId, context, *moves, &idx);
 
     idx = 0;
     if (canMove(B_ANT_1 + addId, context))
-        antMoves(B_ANT_1 + addId, &positions[B_ANT_1 + addId], board, &(*moves)[MMtA(B_ANT_1, 0)], &idx, NULL);
+        antMoves(B_ANT_1 + addId, &positions[B_ANT_1 + addId], board, *moves, &idx, NULL);
 
     idx = 0;
     if (canMove(B_ANT_2 + addId, context))
-        antMoves(B_ANT_2 + addId, &positions[B_ANT_2 + addId], board, &(*moves)[MMtA(B_ANT_2, 0)], &idx, NULL);
+        antMoves(B_ANT_2 + addId, &positions[B_ANT_2 + addId], board, *moves, &idx, NULL);
 
     idx = 0;
     if (canMove(B_ANT_3 + addId, context))
-        antMoves(B_ANT_3 + addId, &positions[B_ANT_3 + addId], board, &(*moves)[MMtA(B_ANT_3, 0)], &idx, NULL);
+        antMoves(B_ANT_3 + addId, &positions[B_ANT_3 + addId], board, *moves, &idx, NULL);
 
     idx = 0;
     if (canMove(B_GRASSHOPPER_1 + addId, context))
-        grasshopperMoves(B_GRASSHOPPER_1 + addId, &positions[B_GRASSHOPPER_1 + addId], board, &(*moves)[MMtA(B_GRASSHOPPER_1, 0)], &idx);
+        grasshopperMoves(B_GRASSHOPPER_1 + addId, &positions[B_GRASSHOPPER_1 + addId], board, *moves, &idx);
 
     idx = 0;
     if (canMove(B_GRASSHOPPER_2 + addId, context))
-        grasshopperMoves(B_GRASSHOPPER_2 + addId, &positions[B_GRASSHOPPER_2 + addId], board, &(*moves)[MMtA(B_GRASSHOPPER_2, 0)], &idx);
+        grasshopperMoves(B_GRASSHOPPER_2 + addId, &positions[B_GRASSHOPPER_2 + addId], board, *moves, &idx);
 
     idx = 0;
     if (canMove(B_GRASSHOPPER_3 + addId, context))
-        grasshopperMoves(B_GRASSHOPPER_3 + addId, &positions[B_GRASSHOPPER_3 + addId], board, &(*moves)[MMtA(B_GRASSHOPPER_3, 0)], &idx);
+        grasshopperMoves(B_GRASSHOPPER_3 + addId, &positions[B_GRASSHOPPER_3 + addId], board, *moves, &idx);
 
     idx = 0;
     if (canMove(B_BEETLE_1 + addId, context))
-        beetleMoves(B_BEETLE_1 + addId, &positions[B_BEETLE_1 + addId], board, &(*moves)[MMtA(B_BEETLE_1, 0)], &idx);
+        beetleMoves(B_BEETLE_1 + addId, &positions[B_BEETLE_1 + addId], board, *moves, &idx);
 
     idx = 0;
     if (canMove(B_BEETLE_2 + addId, context))
-        beetleMoves(B_BEETLE_2 + addId, &positions[B_BEETLE_2 + addId], board, &(*moves)[MMtA(B_BEETLE_2, 0)], &idx);
+        beetleMoves(B_BEETLE_2 + addId, &positions[B_BEETLE_2 + addId], board, *moves, &idx);
 
     idx = 0;
     if (canMove(B_SPIDER_1 + addId, context))
-        spiderMoves(B_SPIDER_1 + addId, &positions[B_SPIDER_1 + addId], board, &(*moves)[MMtA(B_SPIDER_1, 0)], &idx);
+        spiderMoves(B_SPIDER_1 + addId, &positions[B_SPIDER_1 + addId], board, *moves, &idx);
 
     idx = 0;
     if (canMove(B_SPIDER_2 + addId, context))
-        spiderMoves(B_SPIDER_2 + addId, &positions[B_SPIDER_2 + addId], board, &(*moves)[MMtA(B_SPIDER_2, 0)], &idx);
+        spiderMoves(B_SPIDER_2 + addId, &positions[B_SPIDER_2 + addId], board, *moves, &idx);
 }
 

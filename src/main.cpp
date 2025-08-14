@@ -25,7 +25,7 @@ int main()
     MzingaContext_t mzingaContext;
     initMzingaContext(&mzingaContext);
 
-    setvbuf(stdout, NULL, _IOLBF, 0);
+    setvbuf(stdout, nullptr, _IOLBF, 0);
 
     printInfo();
 
