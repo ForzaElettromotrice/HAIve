@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_C_FLAGS "-O3")
 
+
 add_compile_options(-Wall)
 add_compile_definitions(Debug)
 
@@ -44,12 +45,3 @@ set_target_properties(HAIve PROPERTIES
 target_link_libraries(
         HAIve PRIVATE Threads::Threads CUtils ${TORCH_LIBRARIES}
 )
-
-#if (MSVC)
-#    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-#    add_custom_command(TARGET HAIve
-#            POST_BUILD
-#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#            ${TORCH_DLLS}
-#            $<TARGET_FILE_DIR:HAIve>)
-#endif (MSVC)
