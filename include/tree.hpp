@@ -1,36 +1,44 @@
 //
-// Created by f3m on 23/06/25.
+// Created by f3m on 14/08/25.
 //
 
 #pragma once
 
-#include "enums.h"
-#include "HQueue.h"
+#include <enums.h>
+#include <cstdint>
+#include <moves.h>
+#include <phmap.h>
 
-#define THREADS_NUM 1
+#define THREADS_NUM 16
 #define BATCH_NUM 64
-//TODO: da vedere, per ora ho messo 1 secondo
+
+//TODO: da rivedere
 #define MIN_T 1.0
-#define K 400
+//TODO: da rivedere
+#define KK 400
+
 
 typedef struct Node
 {
-    const Piece_t *move;
-    Piece_t *moves;
-    Node **childs;
-    uint64_t hash;
-    double score;
-    HAIveContext_t context;
-    int16_t cCount;
-    Node *bestChoice;
-    uint8_t cRoots;
     uint64_t id;
+    uint64_t ccRootsCount; //creation change roots count
+
+    const Piece_t *move;
+    Piece_t moves[MOVES_SIZE];
+    HAIveContext_t context;
+
+    Node *childs[MOVES_SIZE];
+    uint16_t cCount;
+
+    double score;
+
+    uint64_t hash;
 } Node_t;
 
 typedef struct HashValue
 {
     double score;
-    Piece_t *moves;
+    Piece_t moves[MOVES_SIZE];
 } HashValue_t;
 
 typedef struct BatchContext
@@ -40,9 +48,23 @@ typedef struct BatchContext
     double result[BATCH_NUM];
 } BatchContext_t;
 
+struct IdentityHash
+{
+    size_t operator()(const uint64_t key) const { return key; }
+};
+
+using Map = phmap::parallel_flat_hash_map<
+    uint64_t, //tipo chiave
+    HashValue_t, //tipo valore
+    IdentityHash, //hash che usa
+    std::equal_to<>, //comparatore fra chiavi
+    std::allocator<std::pair<uint64_t, HashValue_t> >, //allocatore
+    6, //sub-map (2^6)
+    std::mutex //per la concorrenza
+>;
+
 int initTree();
 void cleanTree();
-
 
 const Node_t *getBestChild();
 void adversaryMove(char *mzingaMove);

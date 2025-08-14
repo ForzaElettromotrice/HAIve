@@ -348,237 +348,239 @@ float evaluate(const HAIveContext_t *context, HiveNet &model, const bool isWhite
     if (y < -1) return -1;
     return y;
 }
+//FIXME: la roba delle mosse
+// float negamax_net(const HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net)
+// {
+//     if (depth >= maxDepth)
+//     {
+//         return evaluate(context, net, true);
+//     }
+//
+//     const GameStatus_t gameStat = getGameStatus(context);
+//     if (gameStat == WHITE_WON)
+//         return isWhiteTurn ? 1 : -1;
+//     if (gameStat == BLACK_WON)
+//         return isWhiteTurn ? -1 : 1;
+//
+//     // Trova i figli
+//     Piece_t *moves;
+//     getMoves(context, &moves);
+//     float maxVal = -2, tmp;
+//     Piece_t curBestMove;
+//
+//     bool moved = false;
+//
+//     for (uint_fast8_t piece = B_QUEEN; piece < MOVES_ARRAYS; piece++)
+//     {
+//         for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
+//         {
+//             HAIveContext_t newContext;
+//             copyHAIveContext(context, &newContext);
+//
+//             moved = true;
+//             addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
+//             if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal)
+//             {
+//                 maxVal = tmp;
+//                 curBestMove = moves[MMtA(piece, i)];
+//             }
+//
+//             cleanHAIveContext(&newContext);
+//         }
+//     }
+//
+//     if (!moved)
+//     {
+//         HAIveContext_t newContext;
+//         copyHAIveContext(context, &newContext);
+//
+//         addHAIveMove(&newContext, &pass);
+//         maxVal = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net);
+//
+//         cleanHAIveContext(&newContext);
+//     }
+//
+//     free(moves);
+//
+//     if (depth == 0)
+//     {
+//         *bestMove = curBestMove;
+//         return 0;
+//     }
+//     return -maxVal;
+// }
 
-float negamax_net(const HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net)
-{
-    if (depth >= maxDepth)
-    {
-        return evaluate(context, net, true);
-    }
+//FIXME: la roba delle mosse
+// float negamax_heuristic(HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc)
+// {
+//     if (depth >= maxDepth)
+//     {
+//         return heuristicFunc(context);
+//     }
+//
+//     const GameStatus_t gameStat = getGameStatus(context);
+//     if (gameStat == WHITE_WON)
+//         return isWhiteTurn ? 1 : -1;
+//     if (gameStat == BLACK_WON)
+//         return isWhiteTurn ? -1 : 1;
+//
+//     // Trova i figli
+//     Piece_t *moves;
+//     getMoves(context, &moves);
+//     float maxVal = -2, tmp;
+//     Piece_t curBestMove;
+//
+//     // const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
+//     // const uint_fast8_t end = start + 14;
+//     bool moved = false;
+//
+//     HAIveContext_t newContext;
+//     for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
+//     {
+//         for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
+//         {
+//             if (i >= 120)
+//             {
+//                 logE(stderr, "Too many moves!\n");
+//             }
+//             copyHAIveContext(context, &newContext);
+//
+//             moved = true;
+//             addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
+//             if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal)
+//             {
+//                 maxVal = tmp;
+//                 curBestMove = moves[MMtA(piece, i)];
+//             }
+//             cleanHAIveContext(&newContext);
+//         }
+//     }
+//
+//     if (!moved)
+//     {
+//         copyHAIveContext(context, &newContext);
+//
+//         addHAIveMove(&newContext, &pass);
+//         maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
+//         cleanHAIveContext(&newContext);
+//     }
+//
+//     free(moves);
+//
+//     if (depth == 0)
+//     {
+//         *bestMove = curBestMove;
+//         return 0;
+//     }
+//     return -maxVal;
+// }
 
-    const GameStatus_t gameStat = getGameStatus(context);
-    if (gameStat == WHITE_WON)
-        return isWhiteTurn ? 1 : -1;
-    if (gameStat == BLACK_WON)
-        return isWhiteTurn ? -1 : 1;
-
-    // Trova i figli
-    Piece_t *moves;
-    getMoves(context, &moves);
-    float maxVal = -2, tmp;
-    Piece_t curBestMove;
-
-    bool moved = false;
-
-    for (uint_fast8_t piece = B_QUEEN; piece < MOVES_ARRAYS; piece++)
-    {
-        for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
-        {
-            HAIveContext_t newContext;
-            copyHAIveContext(context, &newContext);
-
-            moved = true;
-            addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
-            if ((tmp = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net)) > maxVal)
-            {
-                maxVal = tmp;
-                curBestMove = moves[MMtA(piece, i)];
-            }
-
-            cleanHAIveContext(&newContext);
-        }
-    }
-
-    if (!moved)
-    {
-        HAIveContext_t newContext;
-        copyHAIveContext(context, &newContext);
-
-        addHAIveMove(&newContext, &pass);
-        maxVal = negamax_net(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, net);
-
-        cleanHAIveContext(&newContext);
-    }
-
-    free(moves);
-
-    if (depth == 0)
-    {
-        *bestMove = curBestMove;
-        return 0;
-    }
-    return -maxVal;
-}
-
-float negamax_heuristic(HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc)
-{
-    if (depth >= maxDepth)
-    {
-        return heuristicFunc(context);
-    }
-
-    const GameStatus_t gameStat = getGameStatus(context);
-    if (gameStat == WHITE_WON)
-        return isWhiteTurn ? 1 : -1;
-    if (gameStat == BLACK_WON)
-        return isWhiteTurn ? -1 : 1;
-
-    // Trova i figli
-    Piece_t *moves;
-    getMoves(context, &moves);
-    float maxVal = -2, tmp;
-    Piece_t curBestMove;
-
-    // const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
-    // const uint_fast8_t end = start + 14;
-    bool moved = false;
-
-    HAIveContext_t newContext;
-    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
-    {
-        for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
-        {
-            if (i >= 120)
-            {
-                logE(stderr, "Too many moves!\n");
-            }
-            copyHAIveContext(context, &newContext);
-
-            moved = true;
-            addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
-            if ((tmp = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc)) > maxVal)
-            {
-                maxVal = tmp;
-                curBestMove = moves[MMtA(piece, i)];
-            }
-            cleanHAIveContext(&newContext);
-        }
-    }
-
-    if (!moved)
-    {
-        copyHAIveContext(context, &newContext);
-
-        addHAIveMove(&newContext, &pass);
-        maxVal = negamax_heuristic(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc);
-        cleanHAIveContext(&newContext);
-    }
-
-    free(moves);
-
-    if (depth == 0)
-    {
-        *bestMove = curBestMove;
-        return 0;
-    }
-    return -maxVal;
-}
-
-float negamax_heuristic_ab(
-    HAIveContext_t *context, const int depth, const int maxDepth,
-    const bool isWhiteTurn,
-    Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc,
-    float alpha, float beta,
-    const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs,
-    Hashmap_t *hashtable
-)
-{
-    auto now = std::chrono::high_resolution_clock::now();
-    int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
-    if (elapsed >= maxDurationMs)
-    {
-        return -9999.0f;
-    }
-
-    if (depth >= maxDepth)
-    {
-        const uint64_t hash = hashAll(context->board, context->idToPos, context->curColor);
-        if (const auto result = static_cast<float *>(getByHash(hash, hashtable)); result != nullptr)
-        {
-            return *result;
-        }
-        const float res = heuristicFunc(context);
-        setByHash(hash, &res, sizeof(float), hashtable);
-        return res;
-    }
-
-    const GameStatus_t gameStat = getGameStatus(context);
-    if (gameStat == WHITE_WON)
-        return isWhiteTurn ? 1 : -1;
-    if (gameStat == BLACK_WON)
-        return isWhiteTurn ? -1 : 1;
-
-    // Trova i figli
-    Piece_t *moves;
-    getMoves(context, &moves);
-    float maxVal = -2, tmp;
-    Piece_t curBestMove;
-
-    // const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
-    // const uint_fast8_t end = start + 14;
-    bool moved = false;
-
-    HAIveContext_t newContext;
-    for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
-    {
-        for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
-        {
-            if (i >= 120)
-            {
-                logE(stderr, "Too many moves!\n");
-            }
-            copyHAIveContext(context, &newContext);
-
-            auto check = std::chrono::high_resolution_clock::now();
-            int elapsedLoop = std::chrono::duration_cast<std::chrono::milliseconds>(check - startTime).count();
-            if (elapsedLoop >= maxDurationMs)
-            {
-                free(moves);
-                return -9999.0f; // Early abort
-            }
-
-            moved = true;
-            addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
-            tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
-            cleanHAIveContext(&newContext);
-
-            if (tmp == -9999.0f)
-            {
-                free(moves);
-                return -9999.0f; // propagate timeout
-            }
-
-            if (tmp > maxVal)
-            {
-                maxVal = tmp;
-                curBestMove = moves[MMtA(piece, i)];
-            }
-            if (maxVal > alpha)
-                alpha = maxVal;
-            if (alpha >= beta)
-                break;
-        }
-    }
-
-    if (!moved)
-    {
-        copyHAIveContext(context, &newContext);
-
-        addHAIveMove(&newContext, &pass);
-        maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
-
-        cleanHAIveContext(&newContext);
-    }
-
-    free(moves);
-
-    if (depth == 0)
-    {
-        *bestMove = curBestMove;
-        return 0;
-    }
-    return maxVal;
-}
+//FIXME: la roba delle mosse
+// float negamax_heuristic_ab(
+//     HAIveContext_t *context, const int depth, const int maxDepth,
+//     const bool isWhiteTurn,
+//     Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc,
+//     float alpha, float beta,
+//     const std::chrono::high_resolution_clock::time_point &startTime, int maxDurationMs,
+//     Hashmap_t *hashtable
+// )
+// {
+//     auto now = std::chrono::high_resolution_clock::now();
+//     int elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count();
+//     if (elapsed >= maxDurationMs)
+//     {
+//         return -9999.0f;
+//     }
+//
+//     if (depth >= maxDepth)
+//     {
+//         const uint64_t hash = hashAll(context->board, context->idToPos, context->curColor);
+//         if (const auto result = static_cast<float *>(getByHash(hash, hashtable)); result != nullptr)
+//         {
+//             return *result;
+//         }
+//         const float res = heuristicFunc(context);
+//         setByHash(hash, &res, sizeof(float), hashtable);
+//         return res;
+//     }
+//
+//     const GameStatus_t gameStat = getGameStatus(context);
+//     if (gameStat == WHITE_WON)
+//         return isWhiteTurn ? 1 : -1;
+//     if (gameStat == BLACK_WON)
+//         return isWhiteTurn ? -1 : 1;
+//
+//     // Trova i figli
+//     Piece_t *moves;
+//     getMoves(context, &moves);
+//     float maxVal = -2, tmp;
+//     Piece_t curBestMove;
+//
+//     // const uint_fast8_t start = context->curColor == WHITE ? W_QUEEN : B_QUEEN;
+//     // const uint_fast8_t end = start + 14;
+//     bool moved = false;
+//
+//     HAIveContext_t newContext;
+//     for (uint_fast8_t piece = 0; piece < MOVES_ARRAYS; piece++)
+//     {
+//         for (uint16_t i = 0; moves[MMtA(piece, i)].id != NULLPIECE; i++)
+//         {
+//             if (i >= 120)
+//             {
+//                 logE(stderr, "Too many moves!\n");
+//             }
+//             copyHAIveContext(context, &newContext);
+//
+//             auto check = std::chrono::high_resolution_clock::now();
+//             int elapsedLoop = std::chrono::duration_cast<std::chrono::milliseconds>(check - startTime).count();
+//             if (elapsedLoop >= maxDurationMs)
+//             {
+//                 free(moves);
+//                 return -9999.0f; // Early abort
+//             }
+//
+//             moved = true;
+//             addHAIveMove(&newContext, &moves[MMtA(piece, i)]);
+//             tmp = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
+//             cleanHAIveContext(&newContext);
+//
+//             if (tmp == -9999.0f)
+//             {
+//                 free(moves);
+//                 return -9999.0f; // propagate timeout
+//             }
+//
+//             if (tmp > maxVal)
+//             {
+//                 maxVal = tmp;
+//                 curBestMove = moves[MMtA(piece, i)];
+//             }
+//             if (maxVal > alpha)
+//                 alpha = maxVal;
+//             if (alpha >= beta)
+//                 break;
+//         }
+//     }
+//
+//     if (!moved)
+//     {
+//         copyHAIveContext(context, &newContext);
+//
+//         addHAIveMove(&newContext, &pass);
+//         maxVal = -negamax_heuristic_ab(&newContext, depth + 1, maxDepth, !isWhiteTurn, bestMove, heuristicFunc, -beta, -alpha, startTime, maxDurationMs, hashtable);
+//
+//         cleanHAIveContext(&newContext);
+//     }
+//
+//     free(moves);
+//
+//     if (depth == 0)
+//     {
+//         *bestMove = curBestMove;
+//         return 0;
+//     }
+//     return maxVal;
+// }
 
 
 Result resultOf(const HAIveContext_t *context)
@@ -591,85 +593,88 @@ Result resultOf(const HAIveContext_t *context)
     return Result::RESULT_DRAW;
 }
 
-bool isPass(Piece_t *moves)
-{
-    for (uint8_t i = 0; i < MOVES_ARRAYS; i++)
-    {
-        if (moves[MMtA(i, 0)].id != NULLPIECE)
-            return false;
-    }
-    return true;
-}
+//FIXME: la roba delle mosse
+// bool isPass(Piece_t *moves)
+// {
+//     for (uint8_t i = 0; i < MOVES_ARRAYS; i++)
+//     {
+//         if (moves[MMtA(i, 0)].id != NULLPIECE)
+//             return false;
+//     }
+//     return true;
+// }
 
-bool battleAgainstRandom(bool areWeWhite)
-{
-    HAIveContext_t context;
-    Piece_t bestMove;
-    Piece_t *moves;
-    initHAIveContext(&context);
+//FIXME: correggere la roba delle mosse
+// bool battleAgainstRandom(bool areWeWhite)
+// {
+//     HAIveContext_t context;
+//     Piece_t bestMove;
+//     Piece_t *moves;
+//     initHAIveContext(&context);
+//
+//     Hashmap_t hashtable;
+//     initHashmap(&hashtable, 8192);
+//
+//     while (!isContextEnded(&context))
+//     {
+//         if (context.turn % 10 == 0)
+//             printf("Turn %d\n", context.turn);
+//         if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
+//         {
+//             negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
+//             addHAIveMove(&context, &bestMove);
+//         } else
+//         {
+//             getMoves(&context, &moves);
+//             uint_fast8_t chosenPiece;
+//             uint16_t chosenMove;
+//             if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1)
+//             {
+//                 chosenPiece = 14;
+//             } else
+//             {
+//                 if (isPass(moves))
+//                 {
+//                     addHAIveMove(&context, &pass);
+//                     free(moves);
+//                     continue;
+//                 }
+//                 do
+//                 {
+//                     chosenPiece = rand() % MOVES_ARRAYS;
+//                 } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
+//             }
+//             chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
+//             addHAIveMove(&context, &moves[MMtA(chosenPiece, chosenMove)]);
+//             free(moves);
+//         }
+//     }
+//
+//     const GameStatus_t gameStat = getGameStatus(&context);
+//     cleanHAIveContext(&context);
+//
+//     if (areWeWhite && gameStat == WHITE_WON)
+//         return true;
+//     if (!areWeWhite && gameStat == BLACK_WON)
+//         return true;
+//     return false;
+// }
 
-    Hashmap_t hashtable;
-    initHashmap(&hashtable, 8192);
-
-    while (!isContextEnded(&context))
-    {
-        if (context.turn % 10 == 0)
-            printf("Turn %d\n", context.turn);
-        if ((areWeWhite && context.curColor == WHITE) || (!areWeWhite && context.curColor == BLACK))
-        {
-            negamax_heuristic_ab(&context, 0, 2, context.curColor == WHITE, &bestMove, mzingaHeuristic, -2, 2, std::chrono::high_resolution_clock::now(), 1000000, &hashtable);
-            addHAIveMove(&context, &bestMove);
-        } else
-        {
-            getMoves(&context, &moves);
-            uint_fast8_t chosenPiece;
-            uint16_t chosenMove;
-            if (context.idToPos[context.curColor == WHITE ? W_QUEEN : B_QUEEN].z == -1)
-            {
-                chosenPiece = 14;
-            } else
-            {
-                if (isPass(moves))
-                {
-                    addHAIveMove(&context, &pass);
-                    free(moves);
-                    continue;
-                }
-                do
-                {
-                    chosenPiece = rand() % MOVES_ARRAYS;
-                } while (moves[MMtA(chosenPiece, 0)].id == NULLPIECE);
-            }
-            chosenMove = rand() % getMovesSize(&moves[MMtA(chosenPiece, 0)]);
-            addHAIveMove(&context, &moves[MMtA(chosenPiece, chosenMove)]);
-            free(moves);
-        }
-    }
-
-    const GameStatus_t gameStat = getGameStatus(&context);
-    cleanHAIveContext(&context);
-
-    if (areWeWhite && gameStat == WHITE_WON)
-        return true;
-    if (!areWeWhite && gameStat == BLACK_WON)
-        return true;
-    return false;
-}
-
-void testAgainstRandom()
-{
-    int played = 0;
-    int won = 0;
-    srand(time(NULL));
-
-    for (size_t i = 0; i < 100; i++)
-    {
-        if (battleAgainstRandom(i % 2 == 0))
-            won++;
-        played++;
-
-        printf("%d / %d\n", won, played);
-    }
-}
+//FIXME: correggere la roba delle mosse
+// void testAgainstRandom()
+// {
+//     int played = 0;
+//     int won = 0;
+//     srand(time(NULL));
+//
+//     for (size_t i = 0; i < 100; i++)
+//     {
+//         if (battleAgainstRandom(i % 2 == 0))
+//             won++;
+//         played++;
+//
+//         printf("%d / %d\n", won, played);
+//     }
+// }
 
 

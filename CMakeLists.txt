@@ -35,6 +35,7 @@ add_executable(HAIve
 
 target_include_directories(
         HAIve PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        HAIve PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/parallel_hashmap
 )
 
 set_target_properties(HAIve PROPERTIES

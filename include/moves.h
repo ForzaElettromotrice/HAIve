@@ -12,8 +12,6 @@ extern "C" {
 
 #define MOVES_ARRAYS 15
 #define MOVES_SIZE 800
-//Moves Matrix to Array
-#define MMtA(piece, idx) ((piece) * MOVES_SIZE + (idx))
 
 void getMoves(const HAIveContext_t *context, Piece_t *moves);
 

@@ -1,183 +1,116 @@
 //
-// Created by f3m on 23/06/25.
+// Created by f3m on 14/08/25.
 //
 
-#include <pthread.h>
-#include <hashmap.h>
-
-#include "hivecnn.hpp"
-#include "tree.hpp"
-
+#include <tree.hpp>
+#include <HQueue.h>
+#include <cmath>
 #include <cstring>
+#include <logger.h>
+#include <cerrno>
+#include <utils.h>
 
-#include "HQueue.h"
-#include "utils.h"
+#include "ATen/core/interned_strings.h"
 
-
-HiveNet *model;
 HQueue_t *workQueue;
-HInnerQueue_t *batchQueue;
 HInnerQueue_t *garbageQueue;
-Hashmap_t hashtable;
-pthread_mutex_t hLock;
+HInnerQueue_t *batchQueue;
 
-pthread_t threads[THREADS_NUM];
-pthread_t dfsThread;
-pthread_t batchThread;
-pthread_t chrootThread;
-volatile bool stop;
-pthread_barrier_t b;
+Map hashmap;
+
+
+volatile
+bool stop;
 volatile bool pause;
-uint64_t changeRoots;
+pthread_barrier_t pauseBarrier;
+
+uint64_t changeRootsCount;
 
 Node_t *root;
 
-void alertK(const int16_t cCount)
-{
-    if (cCount > 140)
-    {
-        logE(stderr, "cCount > 140! cCount = %d\n", cCount);
-        return;
-    }
-    if (cCount > 120)
-    {
-        logE(stderr, "cCount > 120! cCount = %d\n", cCount);
-        return;
-    }
-    if (cCount > 100)
-    {
-        logE(stderr, "cCount > 100! cCount = %d\n", cCount);
-        return;
-    }
-    if (cCount > 80)
-    {
-        logE(stderr, "cCount > 80! cCount = %d\n", cCount);
-        return;
-    }
-    if (cCount > 70)
-    {
-        logE(stderr, "idx > 70! cCount = %d\n", cCount);
-    }
-}
 
-uint64_t normalizeId(const Node_t *father)
-{
-    return static_cast<uint64_t>(father->id / pow(K, changeRoots - father->cRoots));
-}
-bool isInTree(const Node_t *node)
-{
-    return node->id % K == normalizeId(root);
-}
 void checkPause()
 {
     if (pause)
     {
-        pthread_barrier_wait(&b);
-        pthread_barrier_wait(&b);
+        pthread_barrier_wait(&pauseBarrier);
+        pthread_barrier_wait(&pauseBarrier);
     }
 }
+
+uint64_t normalizeId(const Node_t *node)
+{
+    return node->id / static_cast<uint64_t>(pow(KK, static_cast<double>(changeRootsCount - node->ccRootsCount)));
+}
+bool isInTree(const Node_t *node)
+{
+    return node->id % KK == normalizeId(root);
+}
+
 bool alreadySeen(Node_t *node)
 {
-    if (node == nullptr)
-    {
-        logE(stderr, "Node non dovrebbe essere nullptr\n");
-        return false;
-    }
-    const HashValue_t *val = static_cast<HashValue_t *>(getByHash(node->hash, &hashtable));
-    if (val == nullptr)
+    const auto it = hashmap.find(node->hash);
+    if (it == hashmap.end())
         return false;
 
-    node->score = val->score;
-    node->moves = val->moves;
-
+    auto [score, moves] = it->second;
+    node->score = score;
+    memcpy(node->moves, moves, sizeof(moves));
     return true;
 }
-void initNode(Node_t *node, const Piece_t *move, const HAIveContext_t *context, Node_t *father, uint8_t level)
+void insertIntoWorkQueue(Node_t *node, const uint8_t level)
 {
-    if (node == nullptr)
-        return;
+    //TODO: qui va la logica della priorità dell'albero
+    hpush(workQueue, level, node);
+}
+
+void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
+{
+    node->id = normalizeId(father) + (id + 1) * static_cast<uint64_t>(pow(KK, relativeDepth));
+    node->ccRootsCount = changeRootsCount;
 
     node->move = move;
+    memset(node->moves, 0xff, sizeof(node->moves));
     initHAIveContext(&node->context);
-    copyHAIveContext(context, &node->context);
+    copyHAIveContext(&father->context, &node->context);
     addHAIveMove(&node->context, move);
-    node->childs = static_cast<Node_t **>(malloc(300 * sizeof(Node_t *)));
-    node->score = -2;
+
     node->cCount = 0;
+
     node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
-    node->bestChoice = nullptr;
-    node->cRoots = changeRoots;
-    if (father == nullptr)
-        node->id = 1;
-    else
-        node->id = normalizeId(father) + (father->cCount + 1) * pow(K, level + 1);
 }
-void freeNode(Node_t *node)
+void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
 {
-    free(node->moves);
-    cleanHAIveContext(&node->context);
-    free(node->childs);
-    free(node);
+    node->id = normalizeId(father) + (id + 1) * static_cast<uint64_t>(pow(KK, relativeDepth));
+    node->ccRootsCount = changeRootsCount;
+
+    memset(node->moves, 0xff, sizeof(node->moves));
+    copyHAIveContext(&father->context, &node->context);
+    addHAIveMove(&node->context, move);
+
+    node->cCount = 0;
+
+    node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
 }
-Node_t *getNewNode(const Piece_t *move, const HAIveContext_t *context, Node_t *father, int16_t level)
+Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relativeDepth, Piece_t *move)
 {
-    auto *node = static_cast<Node_t *>(simplehpop(garbageQueue));
+    auto node = static_cast<Node_t *>(simplehpop(garbageQueue));
     if (node == nullptr)
     {
         node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-        initNode(node, move, context, father, level);
+        if (!node)
+        {
+            logE(stderr, "malloc: %s\n", strerror(errno));
+            return nullptr;
+        }
+
+        initNode(node, father, id, relativeDepth, move);
         return node;
     }
 
-    node->move = move;
-    free(node->moves);
-    node->moves = nullptr;
-    node->score = -2;
-    copyHAIveContext(context, &node->context);
-    addHAIveMove(&node->context, move);
-    node->cCount = 0;
-    node->bestChoice = nullptr;
-    node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
-    node->cRoots = changeRoots;
-    node->id = normalizeId(father) + (father->cCount + 1) * pow(K, level + 1);
+    resetNode(node, father, id, relativeDepth, move);
     return node;
 }
-
-
-void dfs(Node_t *node, const uint8_t depth)
-{
-    if (node->score == -2 || depth == LEVELS || stop || pause)
-        return;
-
-    double score = -2;
-    Node_t *bestChild = nullptr;
-    for (int16_t i = 0; i < node->cCount; ++i)
-    {
-        if (stop || pause)
-            break;
-        dfs(node->childs[i], depth + 1);
-
-        const double cScore = -node->childs[i]->score;
-        if (cScore == 2)
-            continue;
-
-        if (cScore > score)
-        {
-            score = cScore;
-            bestChild = node->childs[i];
-        }
-    }
-    if (stop || pause)
-        return;
-    node->score = score;
-    node->bestChoice = bestChild;
-    pthread_mutex_lock(&hLock);
-    const auto hashValue = static_cast<HashValue_t *>(getByHash(node->hash, &hashtable));
-    if (hashValue != nullptr)
-        hashValue->score = node->score;
-    pthread_mutex_unlock(&hLock);
-}
-
 
 void *expandNode(void *args)
 {
@@ -191,69 +124,31 @@ void *expandNode(void *args)
             node = static_cast<Node_t *>(hpop(workQueue, &level));
         } while (node == nullptr);
 
-        if (level == 10)
-        {
-            hpush(workQueue, level, node);
-            continue;
-        }
-
         if (!isInTree(node))
         {
             simplehpush(garbageQueue, node);
             continue;
         }
 
+        //Se al livello massimo non possiamo espandere di più
+        if (level == LEVELS)
+        {
+            hpush(workQueue, level, node);
+            continue;
+        }
 
         bool passBool = true;
-        for (int i = 0; i < 15; ++i)
+        for (int_fast16_t i = 0; node->moves[i].id != NULLPIECE; ++i)
         {
-            // FIXME: Capita che node->moves sia NULL. Possibile? Dunque crasha. Anche qui ci metto un bello skip; forse andrebbero create le mosse?
-            if (node->moves == NULL)
-                return nullptr;
-            for (int j = 0; node->moves[MMtA(i, j)].id != NULLPIECE; ++j)
+            passBool = false;
+            auto *child = getNewNode(node, i, level, &node->moves[i]);
+            if (!child)
             {
-                passBool = false;
-                auto *child = getNewNode(&node->moves[MMtA(i, j)], &node->context, node, level);
-                node->childs[node->cCount++] = child;
-                alertK(node->cCount);
-                switch (child->context.gameStatus)
-                {
-                    case NOT_STARTED:
-                        logE(stderr, "In teoria è impossibile arrivare qui\n");
-                        break;
-                    case WHITE_WON:
-                        node->score = 1;
-                        continue;
-                    case BLACK_WON:
-                        node->score = -1;
-                        continue;
-                    case DRAW:
-                        node->score = 0;
-                        continue;
-                    case IN_PROGRESS:
-                        break;
-                }
-
-                if (!alreadySeen(child))
-                {
-                    getMoves(&child->context, &child->moves);
-                    auto *copy = static_cast<Piece_t *>(malloc(15 * MOVES_SIZE * sizeof(Piece_t)));
-                    memcpy(copy, child->moves, 15 * MOVES_SIZE * sizeof(Piece_t));
-                    HashValue_t hashValue = {-2, copy};
-                    pthread_mutex_lock(&hLock);
-                    setByHash(child->hash, &hashValue, sizeof(HashValue_t), &hashtable);
-                    pthread_mutex_unlock(&hLock);
-                    simplehpush(batchQueue, child);
-                }
-
-                hpush(workQueue, level + 1, child);
+                logD(stderr, "Skipping Node %d\n", i);
+                continue;
             }
-        }
-        if (passBool)
-        {
-            auto *child = getNewNode(&pass, &node->context, node, level);
             node->childs[node->cCount++] = child;
-            alertK(node->cCount);
+
             switch (child->context.gameStatus)
             {
                 case NOT_STARTED:
@@ -274,204 +169,70 @@ void *expandNode(void *args)
 
             if (!alreadySeen(child))
             {
-                getMoves(&child->context, &child->moves);
-                auto *copy = static_cast<Piece_t *>(malloc(15 * MOVES_SIZE * sizeof(Piece_t)));
-                memcpy(copy, child->moves, 15 * MOVES_SIZE * sizeof(Piece_t));
-                HashValue_t hashValue = {-2, copy};
-                pthread_mutex_lock(&hLock);
-                setByHash(child->hash, &hashValue, sizeof(HashValue_t), &hashtable);
-                pthread_mutex_unlock(&hLock);
+                getMoves(&child->context, child->moves);
+                HashValue_t val;
+                val.score = -2; //TODO: calcolo valore con la rete
+                memcpy(&val.moves, child->moves, sizeof(child->moves));
+                hashmap[child->hash] = val;
+
                 simplehpush(batchQueue, child);
             }
 
-            hpush(workQueue, level + 1, child);
+            insertIntoWorkQueue(child, level + 1);
         }
-    }
-    return nullptr;
-}
-void *evaluateTree(void *args)
-{
-    while (!stop)
-    {
-        checkPause();
-        dfs(root, 0);
-    }
-    return nullptr;
-}
-void *evaluateNodes(void *args)
-{
-    BatchContext bContext{};
-    timespec t1{}, t2{};
-    while (!stop)
-    {
-        bContext.count = 0;
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        while (bContext.count < BATCH_NUM)
-        {
-            checkPause();
-            clock_gettime(CLOCK_MONOTONIC, &t2);
-            if (static_cast<double>(t2.tv_sec - t1.tv_sec) + static_cast<double>(t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
-                break;
 
-            const auto node = static_cast<Node_t *>(simplehpop(batchQueue));
-            if (node == nullptr)
+        if (passBool)
+        {
+            auto *child = getNewNode(node, 0, level, &node->moves[0]);
+            if (!child)
+            {
+                logD(stderr, "Skipping Node pass\n");
                 continue;
-            bContext.nodes[bContext.count++] = node;
-        }
+            }
+            node->childs[node->cCount++] = child;
 
-        model->batchForward(&bContext);
+            switch (child->context.gameStatus)
+            {
+                case NOT_STARTED:
+                    logE(stderr, "In teoria è impossibile arrivare qui\n");
+                    break;
+                case WHITE_WON:
+                    node->score = 1;
+                    continue;
+                case BLACK_WON:
+                    node->score = -1;
+                    continue;
+                case DRAW:
+                    node->score = 0;
+                    continue;
+                case IN_PROGRESS:
+                    break;
+            }
 
-        for (uint8_t i = 0; i < bContext.count; ++i)
-        {
-            Node_t *node = bContext.nodes[i];
-            node->score = bContext.result[i];
-            pthread_mutex_lock(&hLock);
-            const auto hashValue = static_cast<HashValue_t *>(getByHash(node->hash, &hashtable));
-            hashValue->score = node->score;
-            pthread_mutex_unlock(&hLock);
+            if (!alreadySeen(child))
+            {
+                getMoves(&child->context, child->moves);
+                HashValue_t val;
+                val.score = -2; //TODO: calcolo valore con la rete
+                memcpy(&val.moves, child->moves, sizeof(child->moves));
+                hashmap[child->hash] = val;
+
+                simplehpush(batchQueue, child);
+            }
+
+            insertIntoWorkQueue(child, level + 1);
         }
     }
-    return nullptr;
-}
-void *changeRoot(void *args)
-{
-    const auto newRoot = static_cast<Node_t *>(args);
 
-    swapPriority(workQueue);
-
-    root = newRoot;
-    changeRoots++;
-
-    pause = false;
-    pthread_barrier_wait(&b); //Libero tutti
     return nullptr;
 }
 
-int initTree()
-{
-    //Init rete
-    HiveCNNEnhanced modelBase(MODEL_PATH);
-    model = modelBase.get();
-    model->load_model();
-
-    //Init work queue
-    workQueue = initHQueue();
-
-    //Init batch queue
-    batchQueue = initSimpleHQueue();
-
-    //Init garbage queue
-    garbageQueue = initSimpleHQueue();
-
-    //Init Hashmap
-    initHashmap(&hashtable, 16384);
-
-    //Init changesRoot
-    changeRoots = 0;
-
-    //Init root
-    root = static_cast<Node_t *>(malloc(sizeof(Node_t)));
-    HAIveContext_t context;
-    initHAIveContext(&context);
-    initNode(root, nullptr, &context, nullptr, 0);
-    root->score = 0; //Pareggio, nessuno ha mosso
-    hpush(workQueue, 0, root);
-
-    //Init hashmap lock
-    pthread_mutex_init(&hLock, nullptr);
-
-    //Init barrier
-    pthread_barrier_init(&b, nullptr, THREADS_NUM + 3); //numero di thread + dfs + batch + chroot
-
-    //Init threads
-    stop = false;
-    pause = false;
-    for (int i = 0; i < THREADS_NUM; ++i)
-    {
-        pthread_create(&threads[i], nullptr, expandNode, nullptr);
-    }
-
-    //Init dfs
-    pthread_create(&dfsThread, nullptr, evaluateTree, nullptr);
-
-    //Init evaluation nodes
-    pthread_create(&batchThread, nullptr, evaluateNodes, nullptr);
-
-    return EXIT_SUCCESS;
-}
+int initTree() { return 0; }
 void cleanTree()
 {
-    //Clean threads
-    stop = true;
-    for (const unsigned long thread: threads)
-    {
-        pthread_join(thread, nullptr);
-    }
-    //Clean dfs
-    pthread_join(dfsThread, nullptr);
-
-    //Clean evaluation nodes
-    pthread_join(batchThread, nullptr);
-
-    //Clean barrier
-    pthread_barrier_destroy(&b);
-
-    //Clean hashmap lock
-    pthread_mutex_destroy(&hLock);
-
-    //Clean Hashmap
-    freeHashmap(&hashtable);
-
-    //Clean work queue
-    cleanHQueue(workQueue, true);
-
-    //Clean batch queue
-    cleanSimpleHQueue(batchQueue, false);
-
-    //Clean garbage queue
-    cleanSimpleHQueue(garbageQueue, true);
-
-
-    //TODO: Clean rete
 }
 
-const Node_t *getBestChild()
-{
-    pause = true;
-    pthread_barrier_wait(&b); //Per essere sicuri tutti siano in pausa
-    pthread_create(&chrootThread, nullptr, changeRoot, root->bestChoice);
-
-    return root->bestChoice;
-}
+const Node_t *getBestChild() { return nullptr; }
 void adversaryMove(char *mzingaMove)
 {
-    const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
-
-    // FIXME: A volte root->move è NULL. Va bene? Io ho messo un fix in equalsPiece.
-    // Update: Forse il Fix che ho messo è una puttanata. Le cose non crashano ma si freeza tutto.
-    if (equalsPiece(&move, root->move))
-        return;
-
-    pause = true;
-    pthread_barrier_wait(&b); //Per essere sicuri tutti siano in pausa
-
-    Node_t *newRoot = nullptr;
-
-    for (int i = 0; i < root->cCount; ++i)
-    {
-        if (move.id == root->childs[i]->move->id && move.position.x == root->childs[i]->move->position.x && move.position.y == root->childs[i]->move->position.y && move.position.z == root->childs[i]->move->position.z)
-        {
-            newRoot = root->childs[i];
-            break;
-        }
-    }
-
-    if (newRoot == nullptr)
-    {
-        logE(stderr, "Non dovremmo essere qui\n");
-    }
-
-    pthread_create(&chrootThread, nullptr, changeRoot, newRoot);
 }
-
-
