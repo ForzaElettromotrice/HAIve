@@ -22,11 +22,13 @@ typedef struct Node
 {
     uint64_t id;
     uint64_t ccRootsCount; //creation change roots count
+    bool isInWorkQueue;
 
     const Piece_t *move;
     Piece_t moves[MOVES_SIZE];
     HAIveContext_t context;
 
+    Node *bestChild;
     Node *childs[MOVES_SIZE];
     uint16_t cCount;
 
