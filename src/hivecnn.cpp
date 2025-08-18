@@ -348,7 +348,7 @@ float evaluate(const HAIveContext_t *context, HiveNet &model, const bool isWhite
     if (y < -1) return -1;
     return y;
 }
-//FIXME: la roba delle mosse
+
 // float negamax_net(const HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, HiveNet &net)
 // {
 //     if (depth >= maxDepth)
@@ -410,7 +410,6 @@ float evaluate(const HAIveContext_t *context, HiveNet &model, const bool isWhite
 //     return -maxVal;
 // }
 
-//FIXME: la roba delle mosse
 // float negamax_heuristic(HAIveContext_t *context, const int depth, const int maxDepth, const bool isWhiteTurn, Piece_t *bestMove, const std::function<float(HAIveContext_t *)> &heuristicFunc)
 // {
 //     if (depth >= maxDepth)
@@ -475,7 +474,6 @@ float evaluate(const HAIveContext_t *context, HiveNet &model, const bool isWhite
 //     return -maxVal;
 // }
 
-//FIXME: la roba delle mosse
 // float negamax_heuristic_ab(
 //     HAIveContext_t *context, const int depth, const int maxDepth,
 //     const bool isWhiteTurn,
@@ -593,7 +591,6 @@ Result resultOf(const HAIveContext_t *context)
     return Result::RESULT_DRAW;
 }
 
-//FIXME: la roba delle mosse
 // bool isPass(Piece_t *moves)
 // {
 //     for (uint8_t i = 0; i < MOVES_ARRAYS; i++)
@@ -604,7 +601,6 @@ Result resultOf(const HAIveContext_t *context)
 //     return true;
 // }
 
-//FIXME: correggere la roba delle mosse
 // bool battleAgainstRandom(bool areWeWhite)
 // {
 //     HAIveContext_t context;
@@ -660,7 +656,6 @@ Result resultOf(const HAIveContext_t *context)
 //     return false;
 // }
 
-//FIXME: correggere la roba delle mosse
 // void testAgainstRandom()
 // {
 //     int played = 0;
