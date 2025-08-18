@@ -73,6 +73,7 @@ void initRoot()
     root = static_cast<Node_t *>(malloc(sizeof(Node_t)));
     HAIveContext_t context;
     initHAIveContext(&context);
+    initHAIveContext(&root->context);
 
     root->id = 1;
     root->ccRootsCount = 0;
