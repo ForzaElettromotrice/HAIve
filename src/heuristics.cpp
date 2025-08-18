@@ -120,25 +120,14 @@ double mzingaHeuristic(HAIveContext_t *context)
 
     MetricsManager metricManager;
 
-    //FIXME: non funziona più così devi iterare sulle mosse e via
-    for (uint8_t i = B_QUEEN; i < NUM_PIECES; i++)
-    {
-        //FIXME: ora le devi ricalcolare semplicemente quando termini il for
-        if (i == W_QUEEN)
-        {
-            context->curColor = static_cast<Colors_t>(context->curColor * -1);
-            getMoves(context, moves);
-        }
-        const auto [z, y, x] = context->idToPos[i];
+    for (uint8_t piece = B_QUEEN; piece < NUM_PIECES; piece++) {
+        HeuristicMetrics pieceMetric = metricManager.getMetrics(static_cast<Pieces_t>(piece));
+        const auto [z, y, x] = context->idToPos[piece];
         if (z == -1)
             continue;
-        // const uint16_t mSize = getMovesSize(&moves[MMtA(i % 14, 0)]);
-        HeuristicMetrics pieceMetric = metricManager.getMetrics(static_cast<Pieces_t>(i));
-        if ((whiteTurn && isBlack(i)) || (!whiteTurn && isWhite(i)))
+        if ((whiteTurn && isBlack(piece)) || (!whiteTurn && isWhite(piece)))
             pieceMetric = pieceMetric.enemy();
-
         result += pieceMetric.inPlayWeight();
-
         if (z < 5 && context->board[MtA(z + 1, y, x)] != NULLPIECE)
             result += pieceMetric.isCoveredWeight();
 
@@ -151,44 +140,83 @@ double mzingaHeuristic(HAIveContext_t *context)
             if (neighbor == NULLPIECE)
                 continue;
 
-            if (isBlack(neighbor) && isBlack(i))
+            if (isBlack(neighbor) && isBlack(piece))
                 result += pieceMetric.friendlyNeighborWeight();
-            else if (isWhite(neighbor) && isWhite(i))
+            else if (isWhite(neighbor) && isWhite(piece))
                 result += pieceMetric.friendlyNeighborWeight();
             else
                 result += pieceMetric.enemyNeighborWeight();
         }
 
-        if (howManyAround(context, static_cast<Pieces_t>(i), true) + howManyAround(context, static_cast<Pieces_t>(i), false) > 2)
+        if (howManyAround(context, static_cast<Pieces_t>(piece), true) + howManyAround(context, static_cast<Pieces_t>(piece), false) > 2)
             result += pieceMetric.isPinnedWeight();
 
-        const Pieces_t enemyQueen = isBlack(i) ? W_QUEEN : B_QUEEN;
+    }
+
+    for (int_fast16_t i = 0; moves[i].id != NULLPIECE; ++i)
+    {
+        const Pieces_t id = moves[i].id;
+        const auto [z, y, x] = context->idToPos[id];
+        if (z == -1)
+            continue;
+        // const uint16_t mSize = getMovesSize(&moves[MMtA(i % 14, 0)]);
+        HeuristicMetrics pieceMetric = metricManager.getMetrics(id);
+        if ((whiteTurn && isBlack(id)) || (!whiteTurn && isWhite(id)))
+            pieceMetric = pieceMetric.enemy();
+
+        const Pieces_t enemyQueen = isBlack(id) ? W_QUEEN : B_QUEEN;
         if (context->idToPos[enemyQueen].z == -1)
         {
-            //FIXME: perché ti serve la size delle move? ora non ce l'hai piu, volendo sono semplicemente calcolabili (tranne per il PILLBUG)
-            // result += pieceMetric.quietMoveWeight() * mSize;
+            result += pieceMetric.quietMoveWeight();
             continue;
         }
+        const Position_t newPos = moves[i].position;
+        const Position_t enemyQueenPos = context->idToPos[enemyQueen];
+        if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2)
+        {
+            result += pieceMetric.quietMoveWeight();
+            continue;
+        }
+        if (abs(y - enemyQueenPos.y) + abs(x - enemyQueenPos.x) > 2)
+            result += pieceMetric.noisyMoveWeight();
+        else
+            result += pieceMetric.quietMoveWeight();
+    }
 
-        //FIXME: come ho scritto all'inizio, ora si iterna normalmente
-        // for (size_t j = 0; moves[MMtA(i % 14, j)].id != NULLPIECE; j++)
-        // {
-        //     const Position_t newPos = moves[MMtA(i % 14, j)].position;
-        //     const Position_t enemyQueenPos = context->idToPos[enemyQueen];
-        //     if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2)
-        //     {
-        //         result += pieceMetric.quietMoveWeight();
-        //         continue;
-        //     }
-        //     if (abs(y - enemyQueenPos.y) + abs(x - enemyQueenPos.x) > 2)
-        //         result += pieceMetric.noisyMoveWeight();
-        //     else
-        //         result += pieceMetric.quietMoveWeight();
-        // }
+    context->curColor = static_cast<Colors_t>(context->curColor * -1);
+    getMoves(context, moves);
+    // secondo for
+    for (int_fast16_t i = 0; moves[i].id != NULLPIECE; ++i)
+    {
+        const Pieces_t id = moves[i].id;
+        const auto [z, y, x] = context->idToPos[id];
+        if (z == -1)
+            continue;
+        // const uint16_t mSize = getMovesSize(&moves[MMtA(i % 14, 0)]);
+        HeuristicMetrics pieceMetric = metricManager.getMetrics(id);
+        if ((whiteTurn && isBlack(id)) || (!whiteTurn && isWhite(id)))
+            pieceMetric = pieceMetric.enemy();
+
+        const Pieces_t enemyQueen = isBlack(id) ? W_QUEEN : B_QUEEN;
+        if (context->idToPos[enemyQueen].z == -1)
+        {
+            result += pieceMetric.quietMoveWeight();
+            continue;
+        }
+        const Position_t newPos = moves[i].position;
+        const Position_t enemyQueenPos = context->idToPos[enemyQueen];
+        if (abs(newPos.y - enemyQueenPos.y) + abs(newPos.x - enemyQueenPos.x) > 2)
+        {
+            result += pieceMetric.quietMoveWeight();
+            continue;
+        }
+        if (abs(y - enemyQueenPos.y) + abs(x - enemyQueenPos.x) > 2)
+            result += pieceMetric.noisyMoveWeight();
+        else
+            result += pieceMetric.quietMoveWeight();
     }
 
     context->curColor = whiteTurn ? WHITE : BLACK;
-    free(moves);
 
     const Pieces_t enemyQueen = whiteTurn ? B_QUEEN : W_QUEEN;
 
