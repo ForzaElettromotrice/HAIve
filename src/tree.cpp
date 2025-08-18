@@ -158,6 +158,24 @@ void dfs(Node_t *node, const uint8_t depth)
 
     double maxScore = -2;
     Node_t *bestChild = nullptr;
+
+    //Prendiamo un valore approssimativo prima di andare in ricorsione per evitare di non fare in tempo
+    for (uint_fast16_t i = 0; i < node->cCount; ++i)
+    {
+        const double cScore = -node->childs[i]->score;
+        if (cScore == 2 || cScore <= maxScore)
+            continue;
+
+        maxScore = cScore;
+        bestChild = node->childs[i];
+    }
+
+    node->score = maxScore;
+    node->bestChild = bestChild;
+    if (const auto it = hashmap.find(node->hash); it != hashmap.end())
+        it->second.score = maxScore;
+
+    //andiamo in ricorsione
     for (uint_fast16_t i = 0; i < node->cCount; ++i)
     {
         if (stop || pause)
@@ -165,28 +183,23 @@ void dfs(Node_t *node, const uint8_t depth)
 
         dfs(node->childs[i], depth + 1);
 
-        if (const double cScore = -node->childs[i]->score; cScore != 2 && cScore > maxScore)
-        {
-            maxScore = cScore;
-            bestChild = node->childs[i];
-        }
+        const double cScore = -node->childs[i]->score;
+        if (cScore == 2 || cScore <= node->score)
+            continue;
+
+        //Aggiorniamo il valore dopo la ricorsione se troviamo un nodo migliore
+        node->score = cScore;
+        node->bestChild = node->childs[i];
+        if (const auto it = hashmap.find(node->hash); it != hashmap.end())
+            it->second.score = cScore;
     }
-
-    if (stop || pause)
-        return;
-
-    node->score = maxScore;
-    node->bestChild = bestChild;
-
-    if (const auto it = hashmap.find(node->hash); it != hashmap.end())
-        it->second.score = maxScore;
 }
 void garbageCollector(Node_t *node, const bool first)
 {
     if (!first && (node->isInWorkQueue || isInTree(node)))
         return;
 
-    for (uint_fast8_t i = 0; i < node->cCount; ++i)
+    for (uint16_t i = 0; i < node->cCount; ++i)
     {
         garbageCollector(node->childs[i], false);
     }
@@ -399,9 +412,9 @@ int initTree()
     //Init threads
     stop = false;
     pause = false;
-    for (uint_fast8_t i = 0; i < THREADS_NUM; ++i)
+    for (unsigned long &thread: threads)
     {
-        pthread_create(&threads[i], nullptr, expandNode, nullptr);
+        pthread_create(&thread, nullptr, expandNode, nullptr);
     }
     pthread_create(&dfsThread, nullptr, evaluateTree, nullptr);
     pthread_create(&batchThread, nullptr, evaluateNodes, nullptr);
@@ -414,9 +427,9 @@ void cleanTree()
 {
     //Clean threads
     stop = true;
-    for (uint_fast8_t i = 0; i < THREADS_NUM; ++i)
+    for (const unsigned long thread: threads)
     {
-        pthread_join(threads[i], nullptr);
+        pthread_join(thread, nullptr);
     }
     pthread_join(dfsThread, nullptr);
     pthread_join(batchThread, nullptr);
