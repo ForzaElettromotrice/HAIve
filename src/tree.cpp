@@ -108,7 +108,7 @@ void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8
     node->bestChild = nullptr;
     node->cCount = 0;
 
-    root->score = -2;
+    node->score = -2;
 
     node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
 }
@@ -126,7 +126,7 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
     node->bestChild = nullptr;
     node->cCount = 0;
 
-    root->score = -2;
+    node->score = -2;
 
     node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
 }
