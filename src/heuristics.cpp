@@ -208,7 +208,7 @@ double mzingaHeuristic(HAIveContext_t *context)
 /*
     Fills x with some useful statistics about the context.
 */
-//FIXME: sta funzione non viene mai chiamata
+//
 // void setHeuristicParams(const HAIveContext_t *context, torch::Tensor &x)
 // {
 //     // n_neigh_friendly + enemy  // moves (quiet/noisy)
