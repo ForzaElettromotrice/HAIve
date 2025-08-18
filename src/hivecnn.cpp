@@ -172,7 +172,7 @@ void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext)
     for (uint8_t i = 0; i < batchContext->count; i++)
     {
         args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
-        pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args);
+        pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args[i]);
     }
 
     for (uint8_t i = 0; i < batchContext->count; i++)

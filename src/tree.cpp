@@ -18,6 +18,7 @@ HInnerQueue_t *garbageQueue;
 
 Map hashmap;
 HiveNet *model;
+static HiveCNNEnhanced modelBase;
 
 pthread_t threads[THREADS_NUM];
 pthread_t dfsThread;
@@ -378,7 +379,7 @@ void *changeRoot(void *args)
 int initTree()
 {
     //Init rete
-    HiveCNNEnhanced modelBase(MODEL_PATH);
+    modelBase = HiveCNNEnhanced(MODEL_PATH);
     model = modelBase.get();
     model->load_model();
 
@@ -442,6 +443,8 @@ const Node_t *getBestChild()
     pthread_barrier_wait(&pauseBarrier);
     if (root->bestChild == nullptr)
     {
+        // FIXME: Momentaneo
+        return root->childs[0];
         logE(stderr, "Best child is null\nProbably not enough time to perform a dfs");
         return nullptr;
     }

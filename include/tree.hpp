@@ -9,7 +9,7 @@
 #include <moves.h>
 #include <phmap.h>
 
-#define THREADS_NUM 16
+#define THREADS_NUM 1
 #define BATCH_NUM 64
 
 //TODO: da rivedere

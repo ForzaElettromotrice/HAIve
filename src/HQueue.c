@@ -81,7 +81,7 @@ void *hpop(HQueue_t *queue, uint_fast8_t *level)
         if (!isHEmpty(queue, *level))
             break;
         pthread_mutex_unlock(&queue->level[*level].mutex);
-        level++;
+        (*level)++;
     }
 
     if (*level >= LEVELS)
@@ -176,9 +176,10 @@ void *simplehpop(HInnerQueue_t *queue)
     pthread_mutex_lock(&queue->mutex);
     HNode_t *node = queue->head;
 
-    // FIXME: A volte node è NULL. Può darsi? Ora come ora caccio uno skip
-    if (node == NULL)
+    if (node == NULL) {
+        pthread_mutex_unlock(&queue->mutex);
         return NULL;
+    }
     void *val = node->val;
 
     if (queue->head == queue->tail)
