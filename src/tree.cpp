@@ -117,6 +117,7 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
     node->id = normalizeId(father) + (id + 1) * static_cast<uint64_t>(pow(KK, relativeDepth));
     node->ccRootsCount = changeRootsCount;
     node->isInWorkQueue = false;
+    node->move = move;
 
     memset(node->moves, 0xff, sizeof(node->moves));
     copyHAIveContext(&father->context, &node->context);
@@ -269,6 +270,7 @@ void *expandNode(void *args)
         if (passBool)
         {
             //FIXME: se cambiamo il modo in cui i nodi sono messi nella queue allora tocca passa il relative depth in modo diverso
+            node->moves[0] = pass;
             auto *child = getNewNode(node, 0, level, &node->moves[0]);
             if (!child)
             {
