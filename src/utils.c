@@ -523,7 +523,7 @@ void printMove(const HAIveContext_t *context, const Piece_t *move)
     parsePieceToMazinga(move->id % 14, out);
     strcat(out, " ");
 
-    if (context->turn == 1)
+    if (context->turn == 2)
     {
         printf("%s\nok\n", out);
         return;
