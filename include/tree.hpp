@@ -25,6 +25,7 @@ typedef struct Node
     mutable uint64_t id;
     mutable uint64_t ccRootsCount; //creation change roots count
     bool isInWorkQueue;
+    uint16_t cCount;
 
     const Piece_t *move;
     Piece_t moves[MOVES_SIZE];
@@ -32,7 +33,6 @@ typedef struct Node
 
     Node *bestChild;
     Node *childs[MOVES_SIZE];
-    uint16_t cCount;
 
     double score;
 
