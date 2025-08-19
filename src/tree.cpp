@@ -45,7 +45,8 @@ void checkPause()
 
 uint64_t normalizeId(const Node_t *node)
 {
-    return node->id / static_cast<uint64_t>(pow(KK, static_cast<double>(changeRootsCount - node->ccRootsCount)));
+    const uint64_t delta = changeRootsCount - node->ccRootsCount;
+    return node->id / ipow(KK, delta);
 }
 bool isInTree(const Node_t *node)
 {
@@ -96,7 +97,7 @@ void initRoot()
 }
 void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
 {
-    node->id = normalizeId(father) + (id + 1) * static_cast<uint64_t>(pow(KK, relativeDepth));
+    node->id = normalizeId(father) + (id + 1) * (ipow(KK, relativeDepth));
     node->ccRootsCount = changeRootsCount;
     node->isInWorkQueue = false;
 
@@ -115,7 +116,7 @@ void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8
 }
 void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
 {
-    node->id = normalizeId(father) + (id + 1) * static_cast<uint64_t>(pow(KK, relativeDepth));
+    node->id = normalizeId(father) + (id + 1) * (ipow(KK, relativeDepth));
     node->ccRootsCount = changeRootsCount;
     node->isInWorkQueue = false;
     node->move = move;
