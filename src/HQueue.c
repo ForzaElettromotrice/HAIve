@@ -188,6 +188,7 @@ void *simplehpop(HInnerQueue_t *queue)
         queue->tail = NULL;
     } else
         queue->head = node->next;
+
     pthread_mutex_unlock(&queue->mutex);
     free(node);
     return val;

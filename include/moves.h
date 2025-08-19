@@ -14,6 +14,7 @@ extern "C" {
 #define MOVES_SIZE 400
 
 void getMoves(const HAIveContext_t *context, Piece_t *moves);
+bool hasNeighbor(const Piece_t *piece, const Pieces_t *board);
 
 #ifdef __cplusplus
 }

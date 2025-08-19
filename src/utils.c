@@ -9,10 +9,14 @@
 #include <enums.h>
 #include <xxhash.h>
 
+#include "moves.h"
+
 const Piece_t pass = {NULLPIECE, {0, 0, 0}};
 
 uint64_t ipow(const uint64_t base, uint64_t exp)
 {
+    if (exp == 0)
+        return 1;
     uint64_t r = 1;
     while (exp--) r *= base;
     return r;
@@ -534,6 +538,10 @@ void printMove(const HAIveContext_t *context, const Piece_t *move)
     char out[20];
     sprintf(out, "%s", move->id < 14 ? "b" : "w");
     parsePieceToMazinga(move->id % 14, out);
+
+    if (move->id == B_ANT_1) {
+        hasNeighbor(move, context->board);
+    }
 
     if (context->turn == 2)
     {

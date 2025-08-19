@@ -132,7 +132,6 @@ void *addMoves(const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
     const Pieces_t start = context->curColor == WHITE ? 14 : 0;
     const Pieces_t end = start + 14;
 
-
     uint8_t addSize = 0;
     uint8_t checkSize = 0;
     uint8_t toAdd[14];
@@ -173,7 +172,6 @@ void *addMoves(const HAIveContext_t *context, Piece_t *moves, uint_fast8_t *idx)
     {
         const int_fast8_t y = context->idToPos[toCheck[i]].y;
         const int_fast8_t x = context->idToPos[toCheck[i]].x;
-
 
         for (uint_fast8_t j = 0; j < 6; ++j)
         {
@@ -622,12 +620,12 @@ void antMoves(const Pieces_t id, const Position_t *position, const Pieces_t *boa
         if (getByStr(key, visited) != NULL)
             continue;
 
-        int ignoreMe = 1;
-        setByStr(key, &ignoreMe, sizeof(int), visited);
-
         const Piece_t move = {id, {0, newY, newX}};
         if (!hasNeighbor(&move, board))
             continue;
+
+        int ignoreMe = 1;
+        setByStr(key, &ignoreMe, sizeof(int), visited);
 
         alertMoves(id, *idx);
         if (*idx == 255)
