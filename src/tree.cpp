@@ -243,7 +243,7 @@ void *expandNode(void *args)
         for (int_fast16_t i = 0; node->moves[i].id != NULLPIECE; ++i)
         {
             passBool = false;
-            auto *child = getNewNode(node, i, level, &node->moves[i]);
+            auto *child = getNewNode(node, i, level + 1, &node->moves[i]);
             if (!child)
             {
                 logD(stderr, "Skipping Node %d\n", i);
@@ -288,7 +288,7 @@ void *expandNode(void *args)
         {
             //FIXME: se cambiamo il modo in cui i nodi sono messi nella queue allora tocca passa il relative depth in modo diverso
             node->moves[0] = pass;
-            auto *child = getNewNode(node, 0, level, &node->moves[0]);
+            auto *child = getNewNode(node, 0, level + 1, &node->moves[0]);
             if (!child)
             {
                 logD(stderr, "Skipping Node pass\n");
