@@ -125,11 +125,11 @@ bool dfs(const Position_t *start, const HAIveContext_t *context, bool *visited, 
 }
 bool canMove(const Pieces_t id, const HAIveContext_t *context)
 {
-    if (context->idToPos[context->curColor == WHITE ? id + 14 : id].z == -1)
+    if (context->idToPos[id].z == -1)
         return false;
     bool visited[28] = {};
-    visited[context->curColor == WHITE ? id + 14 : id] = true;
-    const Pieces_t startingPoint = chooseStartingPoint(context->curColor == WHITE ? id + 14 : id, context->curColor, context->idToPos);
+    visited[id] = true;
+    const Pieces_t startingPoint = chooseStartingPoint(id, context->curColor, context->idToPos);
     visited[startingPoint] = true;
     if (!dfs(&context->idToPos[startingPoint], context, visited, true))
         return false;
