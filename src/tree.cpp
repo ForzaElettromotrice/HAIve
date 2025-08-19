@@ -126,6 +126,7 @@ void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8
 
     node->move = move;
     memset(node->moves, 0xff, sizeof(node->moves));
+    memset(node->childs, 0x00, sizeof(node->childs));
     initHAIveContext(&node->context);
     copyHAIveContext(&father->context, &node->context);
     addHAIveMove(&node->context, move);
@@ -145,7 +146,7 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
     node->move = move;
 
     memset(node->moves, 0xff, sizeof(node->moves));
-    memset(node->childs, 0, sizeof(node->childs));
+    memset(node->childs, 0x00, sizeof(node->childs));
     copyHAIveContext(&father->context, &node->context);
     addHAIveMove(&node->context, move);
 
