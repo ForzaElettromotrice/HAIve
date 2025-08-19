@@ -11,7 +11,8 @@
 
 const Piece_t pass = {NULLPIECE, {0, 0, 0}};
 
-uint64_t ipow(const uint64_t base, uint64_t exp) {
+uint64_t ipow(const uint64_t base, uint64_t exp)
+{
     uint64_t r = 1;
     while (exp--) r *= base;
     return r;
@@ -136,7 +137,13 @@ uint64_t hashAll(const Pieces_t *board, const Position_t *positions, const Color
     uint64_t toHash[29];
 
     for (uint_fast8_t i = 0; i < 28; ++i)
-        toHash[i] = hashPiece(&positions[i], board);
+    {
+        if (positions[i].z == -1)
+            toHash[i] = -1;
+        else
+            toHash[i] = hashPiece(&positions[i], board);
+    }
+
     toHash[28] = color;
     return XXH3_64bits(toHash, 28 * sizeof(uint64_t));
 }
