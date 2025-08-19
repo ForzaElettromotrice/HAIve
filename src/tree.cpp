@@ -69,6 +69,10 @@ uint64_t normalizeId(const Node_t *node)
 }
 bool isInTree(const Node_t *node)
 {
+    if (changeRootsCount - node->ccRootsCount >= 1) {
+        node->id = normalizeId(node);
+        node->ccRootsCount = changeRootsCount;
+    }
     return node->id % KK == normalizeId(root);
 }
 
@@ -141,6 +145,7 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
     node->move = move;
 
     memset(node->moves, 0xff, sizeof(node->moves));
+    memset(node->childs, 0, sizeof(node->childs));
     copyHAIveContext(&father->context, &node->context);
     addHAIveMove(&node->context, move);
 
@@ -156,6 +161,9 @@ Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relati
     auto node = static_cast<Node_t *>(simplehpop(garbageQueue));
     if (node == nullptr)
     {
+        // allochiamo un nuovo nodo solo se possibile
+        if (get_free_mem_kb() <= MIN_MEM)
+            return nullptr;
         node = static_cast<Node_t *>(malloc(sizeof(Node_t)));
         if (!node)
         {
@@ -173,7 +181,8 @@ Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relati
 
 void dfs(Node_t *node, const uint8_t depth)
 {
-    if (depth == LEVELS || stop || pause)
+    // FIXME: Va bene che sia nullptr?
+    if (depth == LEVELS || stop || pause || node == nullptr)
         return;
 
     if (node->cCount == 0) {
@@ -247,8 +256,6 @@ void *expandNode(void *args)
         do
         {
             checkPause();
-            if (get_free_mem_kb() <= MIN_MEM)
-                continue;
             node = static_cast<Node_t *>(hpop(workQueue, &level));
         } while (node == nullptr);
 
@@ -279,7 +286,8 @@ void *expandNode(void *args)
                 logD(stderr, "Skipping Node %d\n", i);
                 continue;
             }
-            node->childs[node->cCount++] = child;
+            node->childs[node->cCount] = child;
+            node->cCount++;
 
             switch (child->context.gameStatus)
             {
@@ -495,9 +503,10 @@ const Node_t *getBestChild()
         logE(stderr, "Best child is null\nProbably not enough time to perform a dfs");
         return nullptr;
     }
+    const Node_t *bestChild = root->bestChild;
     pthread_create(&chrootThread, nullptr, changeRoot, root->bestChild);
 
-    return root->bestChild;
+    return bestChild;
 }
 void adversaryMove(char *mzingaMove)
 {
