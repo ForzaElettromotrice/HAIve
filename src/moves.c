@@ -90,6 +90,10 @@ bool dfs(const Position_t *start, const HAIveContext_t *context, bool *visited, 
 
     const int_fast8_t y = start->y;
     const int_fast8_t x = start->x;
+    // FIXME: Va bene?
+    const Pieces_t here = board[MtA(0, y, x)];
+    if (here != NULLPIECE && !visited[here])
+        visited[here] = true;
     for (uint_fast8_t i = 0; i < 6; ++i)
     {
         const int_fast8_t newY = (int_fast8_t) (y + directions[i][0]);
@@ -239,7 +243,6 @@ void queenMoves(const Pieces_t id, const Position_t *position, const Pieces_t *b
 
         if (!canSlide(position, i, board))
             continue;
-
 
         const Piece_t move = {id, {0, newY, newX}};
 
@@ -477,7 +480,8 @@ void ladybugMoves(const Pieces_t id, const Position_t *position, const Pieces_t 
                 const int_fast8_t newY3 = (int_fast8_t) (directions[k][0] + newY2);
                 const int_fast8_t newX3 = (int_fast8_t) (directions[k][1] + newX2);
 
-                if (newX3 == newX2 && newY3 == newY2 && newX3 == x && newY3 == y)
+                // Don't step back to previous or original tile
+                if ((newY3 == newY2 && newX3 == newX2) || (newY3 == y && newX3 == x))
                     continue;
 
                 if (board[MtA(n2, newY3, newX3)] != NULLPIECE)
@@ -841,54 +845,43 @@ void getMoves(const HAIveContext_t *context, Piece_t *moves)
     const int8_t addId = color == WHITE ? 14 : 0;
     if (canMove(B_QUEEN + addId, context))
         queenMoves(B_QUEEN + addId, &positions[B_QUEEN + addId], board, moves, &idx);
-    idx = 0;
+
     if (canMove(B_PILLBUG + addId, context))
         pillbugMoves(B_PILLBUG + addId, &positions[B_PILLBUG + addId], context, moves, &idx);
 
-    idx = 0;
     if (canMove(B_LADYBUG + addId, context))
         ladybugMoves(B_LADYBUG + addId, &positions[B_LADYBUG + addId], board, moves, &idx);
 
     if (canMove(B_MOSQUITO + addId, context))
         mosquitoMoves(B_MOSQUITO + addId, context, moves, &idx);
 
-    idx = 0;
     if (canMove(B_ANT_1 + addId, context))
         antMoves(B_ANT_1 + addId, &positions[B_ANT_1 + addId], board, moves, &idx, NULL);
 
-    idx = 0;
     if (canMove(B_ANT_2 + addId, context))
         antMoves(B_ANT_2 + addId, &positions[B_ANT_2 + addId], board, moves, &idx, NULL);
 
-    idx = 0;
     if (canMove(B_ANT_3 + addId, context))
         antMoves(B_ANT_3 + addId, &positions[B_ANT_3 + addId], board, moves, &idx, NULL);
 
-    idx = 0;
     if (canMove(B_GRASSHOPPER_1 + addId, context))
         grasshopperMoves(B_GRASSHOPPER_1 + addId, &positions[B_GRASSHOPPER_1 + addId], board, moves, &idx);
 
-    idx = 0;
     if (canMove(B_GRASSHOPPER_2 + addId, context))
         grasshopperMoves(B_GRASSHOPPER_2 + addId, &positions[B_GRASSHOPPER_2 + addId], board, moves, &idx);
 
-    idx = 0;
     if (canMove(B_GRASSHOPPER_3 + addId, context))
         grasshopperMoves(B_GRASSHOPPER_3 + addId, &positions[B_GRASSHOPPER_3 + addId], board, moves, &idx);
 
-    idx = 0;
     if (canMove(B_BEETLE_1 + addId, context))
         beetleMoves(B_BEETLE_1 + addId, &positions[B_BEETLE_1 + addId], board, moves, &idx);
 
-    idx = 0;
     if (canMove(B_BEETLE_2 + addId, context))
         beetleMoves(B_BEETLE_2 + addId, &positions[B_BEETLE_2 + addId], board, moves, &idx);
 
-    idx = 0;
     if (canMove(B_SPIDER_1 + addId, context))
         spiderMoves(B_SPIDER_1 + addId, &positions[B_SPIDER_1 + addId], board, moves, &idx);
 
-    idx = 0;
     if (canMove(B_SPIDER_2 + addId, context))
         spiderMoves(B_SPIDER_2 + addId, &positions[B_SPIDER_2 + addId], board, moves, &idx);
 }
