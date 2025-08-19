@@ -16,6 +16,8 @@
 #define MIN_T 1.0
 //TODO: da rivedere
 #define KK 400
+//TODO: da rivedere
+#define MIN_MEM 5000000L
 
 
 typedef struct Node

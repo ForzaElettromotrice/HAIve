@@ -35,7 +35,24 @@ uint64_t changeRootsCount;
 
 Node_t *root;
 
-
+long get_free_mem_kb()
+{
+    FILE *f = fopen("/proc/meminfo", "r");
+    if (!f) return -1;
+    char label[64];
+    long value;
+    char unit[32];
+    while (fscanf(f, "%63s %ld %31s\n", label, &value, unit) == 3)
+    {
+        if (strcmp(label, "MemAvailable:") == 0)
+        {
+            fclose(f);
+            return value; // in kB
+        }
+    }
+    fclose(f);
+    return -1;
+}
 void checkPause()
 {
     if (pause)
@@ -215,10 +232,12 @@ void *expandNode(void *args)
     while (!stop)
     {
         uint_fast8_t level;
-        Node_t *node;
+        Node_t *node = nullptr;
         do
         {
             checkPause();
+            if (get_free_mem_kb() <= MIN_MEM)
+                continue;
             node = static_cast<Node_t *>(hpop(workQueue, &level));
         } while (node == nullptr);
 
