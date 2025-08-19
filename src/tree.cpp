@@ -173,8 +173,12 @@ Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relati
 
 void dfs(Node_t *node, const uint8_t depth)
 {
-    if (node->score == -2 || depth == LEVELS || stop || pause)
+    if (depth == LEVELS || stop || pause)
         return;
+
+    if (node->cCount == 0) {
+        return;
+    }
 
     double maxScore = -2;
     Node_t *bestChild = nullptr;
@@ -183,7 +187,10 @@ void dfs(Node_t *node, const uint8_t depth)
     for (uint_fast16_t i = 0; i < node->cCount; ++i)
     {
         const double cScore = -node->childs[i]->score;
-        if (cScore == 2 || cScore <= maxScore)
+        if (node->childs[i]->score == -2)
+            continue;
+
+        if (cScore <= maxScore)
             continue;
 
         maxScore = cScore;
@@ -204,8 +211,12 @@ void dfs(Node_t *node, const uint8_t depth)
         dfs(node->childs[i], depth + 1);
 
         const double cScore = -node->childs[i]->score;
-        if (cScore == 2 || cScore <= node->score)
+        if (node->childs[i]->score == -2) // skip only unevaluated
             continue;
+
+        if (cScore <= maxScore)
+            continue;
+
 
         //Aggiorniamo il valore dopo la ricorsione se troviamo un nodo migliore
         node->score = cScore;
@@ -279,10 +290,10 @@ void *expandNode(void *args)
                     node->score = 1;
                     continue;
                 case BLACK_WON:
-                    node->score = -1;
+                    child->score = -1;
                     continue;
                 case DRAW:
-                    node->score = 0;
+                    child->score = 0;
                     continue;
                 case IN_PROGRESS:
                     break;
@@ -321,13 +332,13 @@ void *expandNode(void *args)
                     logE(stderr, "In teoria è impossibile arrivare qui\n");
                     break;
                 case WHITE_WON:
-                    node->score = 1;
+                    child->score = 1;
                     continue;
                 case BLACK_WON:
-                    node->score = -1;
+                    child->score = -1;
                     continue;
                 case DRAW:
-                    node->score = 0;
+                    child->score = 0;
                     continue;
                 case IN_PROGRESS:
                     break;
@@ -479,6 +490,7 @@ const Node_t *getBestChild()
     if (root->bestChild == nullptr)
     {
         // FIXME: Momentaneo
+        pthread_create(&chrootThread, nullptr, changeRoot, root->childs[0]);
         return root->childs[0];
         logE(stderr, "Best child is null\nProbably not enough time to perform a dfs");
         return nullptr;
@@ -490,6 +502,8 @@ const Node_t *getBestChild()
 void adversaryMove(char *mzingaMove)
 {
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
+    if (move.id == root->move->id && move.position.x == root->move->position.x && move.position.y == root->move->position.y && move.position.z == root->move->position.z)
+        return;
 
     pause = true;
     pthread_barrier_wait(&pauseBarrier);

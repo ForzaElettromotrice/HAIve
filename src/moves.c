@@ -725,7 +725,7 @@ void getMoves(const HAIveContext_t *context, Piece_t *moves)
     if (context->turn == 1)
     {
         uint_fast8_t idx = 0;
-        for (int i = W_PILLBUG + 1; i < NUM_PIECES; ++i)
+        for (int i = W_PILLBUG; i < NUM_PIECES; ++i)
         {
             moves[idx++] = (Piece_t){i, {0, 0, 0}};
             switch (i)
@@ -749,7 +749,7 @@ void getMoves(const HAIveContext_t *context, Piece_t *moves)
     if (context->turn == 2)
     {
         uint_fast8_t idx = 0;
-        for (int i = B_QUEEN; i < W_QUEEN; ++i)
+        for (int i = B_QUEEN + 1; i < W_QUEEN; ++i)
         {
             for (uint_fast8_t j = 0; j < 6; ++j)
             {

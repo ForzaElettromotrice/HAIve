@@ -534,13 +534,14 @@ void printMove(const HAIveContext_t *context, const Piece_t *move)
     char out[20];
     sprintf(out, "%s", move->id < 14 ? "b" : "w");
     parsePieceToMazinga(move->id % 14, out);
-    strcat(out, " ");
 
     if (context->turn == 2)
     {
         printf("%s\nok\n", out);
         return;
     }
+
+    strcat(out, " ");
 
     //TODO: potremmo semplicemente controllare se la z è != 0
     // e mettere direttamente che il pezzo è sopra qualcun altro
