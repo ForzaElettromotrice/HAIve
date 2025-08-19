@@ -11,7 +11,7 @@ extern "C" {
 #include <pthread.h>
 #include <stdbool.h>
 
-#define LEVELS 10
+#define LEVELS 5
 
 typedef struct HNode
 {

@@ -232,7 +232,7 @@ void *expandNode(void *args)
 
         //FIXME: se cambiamo il modo in cui vengono messi in priorità questo non serve più
         //Se al livello massimo non possiamo espandere di più
-        if (level == LEVELS)
+        if (level == LEVELS - 1)
         {
             node->isInWorkQueue = true;
             hpush(workQueue, level, node);

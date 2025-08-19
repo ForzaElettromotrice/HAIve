@@ -11,7 +11,7 @@ extern "C" {
 #include <enums.h>
 
 #define MOVES_ARRAYS 15
-#define MOVES_SIZE 800
+#define MOVES_SIZE 400
 
 void getMoves(const HAIveContext_t *context, Piece_t *moves);
 
