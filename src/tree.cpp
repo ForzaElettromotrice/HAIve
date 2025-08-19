@@ -11,6 +11,8 @@
 #include <utils.h>
 #include <hivecnn.hpp>
 
+#include "heuristics.hpp"
+
 
 HQueue_t *workQueue;
 HInnerQueue_t *batchQueue;
@@ -97,7 +99,7 @@ void initRoot()
 }
 void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
 {
-    node->id = normalizeId(father) + (id + 1) * (ipow(KK, relativeDepth));
+    node->id = normalizeId(father) + (id + 1) * ipow(KK, relativeDepth);
     node->ccRootsCount = changeRootsCount;
     node->isInWorkQueue = false;
 
@@ -132,7 +134,7 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
 
     node->hash = hashAll(node->context.board, node->context.idToPos, node->context.curColor);
 }
-Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relativeDepth, Piece_t *move)
+Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
 {
     auto node = static_cast<Node_t *>(simplehpop(garbageQueue));
     if (node == nullptr)
@@ -271,7 +273,7 @@ void *expandNode(void *args)
             {
                 getMoves(&child->context, child->moves);
                 HashValue_t val;
-                val.score = -2; //TODO: calcolo valore con la rete
+                val.score = mzingaHeuristic(&child->context);
                 memcpy(&val.moves, child->moves, sizeof(child->moves));
                 hashmap[child->hash] = val;
 
@@ -316,7 +318,7 @@ void *expandNode(void *args)
             {
                 getMoves(&child->context, child->moves);
                 HashValue_t val;
-                val.score = -2; //TODO: calcolo valore con la rete
+                val.score = mzingaHeuristic(&child->context);
                 memcpy(&val.moves, child->moves, sizeof(child->moves));
                 hashmap[child->hash] = val;
 
