@@ -11,6 +11,12 @@
 
 const Piece_t pass = {NULLPIECE, {0, 0, 0}};
 
+uint64_t ipow(const uint64_t base, uint64_t exp) {
+    uint64_t r = 1;
+    while (exp--) r *= base;
+    return r;
+}
+
 uint64_t hashPiece(const Position_t *pos, const Pieces_t *board)
 {
     const int_fast8_t z = pos->z;

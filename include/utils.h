@@ -26,6 +26,7 @@ extern "C" {
 
 extern const Piece_t pass;
 
+uint64_t ipow(uint64_t base, uint64_t exp);
 uint64_t hashAll(const Pieces_t *board, const Position_t *positions, Colors_t color);
 
 void initMzingaContext(MzingaContext_t *context);
