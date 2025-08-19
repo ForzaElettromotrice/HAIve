@@ -89,7 +89,7 @@ class MetricsManager {
 public:
 
     MetricsManager(){
-        loadFromFile("metrics.txt");
+        loadFromFile("../metrics.txt");
     }
 
     MetricsManager(const MetricsManager& toCopy){
