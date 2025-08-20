@@ -23,17 +23,12 @@ void alertMoves(const Pieces_t piece, const uint16_t idx)
 {
     if (idx > 200)
     {
-        logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
+        logE(stderr, "Piece %d idx > 200! idx = %d\n", piece, idx);
         return;
     }
     if (idx > 180)
     {
-        logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
-        return;
-    }
-    if (idx > 160)
-    {
-        logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
+        logE(stderr, "Piece %d idx > 180! idx = %d\n", piece, idx);
         return;
     }
 }
