@@ -7,7 +7,6 @@
 
 extern "C" {
 #include "enums.h"
-#include "moves.h"
 }
 
 #include "preprocessor.hpp"
@@ -89,7 +88,7 @@ class MetricsManager {
 public:
 
     MetricsManager(){
-        loadFromFile("../metrics.txt");
+        loadFromFile(METRICS_PATH);
     }
 
     MetricsManager(const MetricsManager& toCopy){

@@ -67,9 +67,10 @@ uint64_t normalizeId(const Node_t *node)
     const uint64_t delta = changeRootsCount - node->ccRootsCount;
     return node->id / ipow(KK, delta);
 }
-bool isInTree(const Node_t *node)
+bool isInTree(Node_t *node)
 {
-    if (changeRootsCount - node->ccRootsCount >= 1) {
+    if (changeRootsCount - node->ccRootsCount >= 1)
+    {
         node->id = normalizeId(node);
         node->ccRootsCount = changeRootsCount;
     }
@@ -186,7 +187,8 @@ void dfs(Node_t *node, const uint8_t depth)
     if (depth == LEVELS || stop || pause || node == nullptr)
         return;
 
-    if (node->cCount == 0) {
+    if (node->cCount == 0)
+    {
         return;
     }
 
@@ -296,7 +298,7 @@ void *expandNode(void *args)
                     logE(stderr, "In teoria è impossibile arrivare qui\n");
                     break;
                 case WHITE_WON:
-                    node->score = 1;
+                    child->score = 1;
                     continue;
                 case BLACK_WON:
                     child->score = -1;
@@ -512,7 +514,7 @@ const Node_t *getBestChild()
 void adversaryMove(char *mzingaMove)
 {
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
-    if (move.id == root->move->id && move.position.x == root->move->position.x && move.position.y == root->move->position.y && move.position.z == root->move->position.z)
+    if (equalsPiece(&move, root->move))
         return;
 
     pause = true;

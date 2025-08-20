@@ -11,6 +11,7 @@ add_compile_definitions(Debug)
 
 add_definitions(-DMODEL_PATH="${CMAKE_CURRENT_SOURCE_DIR}/checkpoint.jit")
 add_definitions(-DTEST_PATH="${CMAKE_CURRENT_SOURCE_DIR}/test.txt")
+add_definitions(-DMETRICS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/metrics.txt")
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/CUtils)
 set(Torch_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libtorch/share/cmake/Torch)

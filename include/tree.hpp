@@ -22,8 +22,8 @@
 
 typedef struct Node
 {
-    mutable uint64_t id;
-    mutable uint64_t ccRootsCount; //creation change roots count
+    uint64_t id;
+    uint64_t ccRootsCount; //creation change roots count
     bool isInWorkQueue;
     uint16_t cCount;
 
