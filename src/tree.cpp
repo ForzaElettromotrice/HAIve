@@ -282,11 +282,15 @@ void *expandNode(void *args)
         for (int_fast16_t i = 0; node->moves[i].id != NULLPIECE; ++i)
         {
             passBool = false;
+            //Se sto figlio è gia stato fatto precedentemente
+            if (i < node->cCount)
+                continue;
             auto *child = getNewNode(node, i, level + 1, &node->moves[i]);
             if (!child)
             {
-                logD(stderr, "Skipping Node %d\n", i);
-                continue;
+                logD(stderr, "nullptr on the child %d, probably not enough memory\n", i);
+                hpush(workQueue, level, node);
+                break;
             }
             node->childs[node->cCount] = child;
             node->cCount++;
