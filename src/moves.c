@@ -21,6 +21,11 @@ typedef struct ThreadArgs
 
 void alertMoves(const Pieces_t piece, const uint16_t idx)
 {
+    if (idx > 160)
+    {
+        logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
+        return;
+    }
     if (idx > 140)
     {
         logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
@@ -30,10 +35,6 @@ void alertMoves(const Pieces_t piece, const uint16_t idx)
     {
         logE(stderr, "Piece %d idx > 120!\n", piece);
         return;
-    }
-    if (idx > 100)
-    {
-        logE(stderr, "Piece %d idx > 100!\n", piece);
     }
 }
 Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
