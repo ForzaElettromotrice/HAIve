@@ -27,7 +27,7 @@ typedef struct Node
     bool isInWorkQueue;
     uint16_t cCount;
 
-    const Piece_t *move;
+    Piece_t move;
     Piece_t moves[MOVES_SIZE];
     HAIveContext_t context;
 

@@ -105,7 +105,7 @@ void initRoot()
     root->ccRootsCount = 0;
     root->isInWorkQueue = true;
 
-    root->move = nullptr;
+    root->move = {NULLPIECE, {-1, -1, -1}};
     memset(root->moves, 0xff, sizeof(root->moves));
     copyHAIveContext(&context, &root->context);
 
@@ -125,7 +125,7 @@ void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8
     node->ccRootsCount = changeRootsCount;
     node->isInWorkQueue = false;
 
-    node->move = move;
+    memcpy(&node->move, move, sizeof(Piece_t));
     memset(node->moves, 0xff, sizeof(node->moves));
     memset(node->childs, 0x00, sizeof(node->childs));
     initHAIveContext(&node->context);
@@ -144,8 +144,8 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
     node->id = normalizeId(father) + (id + 1) * (ipow(KK, relativeDepth));
     node->ccRootsCount = changeRootsCount;
     node->isInWorkQueue = false;
-    node->move = move;
 
+    memcpy(&node->move, move, sizeof(Piece_t));
     memset(node->moves, 0xff, sizeof(node->moves));
     memset(node->childs, 0x00, sizeof(node->childs));
     copyHAIveContext(&father->context, &node->context);
@@ -288,7 +288,6 @@ void *expandNode(void *args)
             auto *child = getNewNode(node, i, level + 1, &node->moves[i]);
             if (!child)
             {
-                logD(stderr, "nullptr on the child %d, probably not enough memory\n", i);
                 hpush(workQueue, level, node);
                 break;
             }
@@ -333,12 +332,14 @@ void *expandNode(void *args)
             //FIXME: se cambiamo il modo in cui i nodi sono messi nella queue allora tocca passa il relative depth in modo diverso
             node->moves[0] = pass;
             auto *child = getNewNode(node, 0, level + 1, &node->moves[0]);
+
             if (!child)
             {
-                logD(stderr, "Skipping Node pass\n");
+                hpush(workQueue, level, node);
                 continue;
             }
-            node->childs[node->cCount++] = child;
+            node->childs[0] = child;
+            node->cCount = 1;
 
             switch (child->context.gameStatus)
             {
@@ -526,7 +527,7 @@ void adversaryMove(char *mzingaMove)
     Node_t *newRoot = nullptr;
     for (uint_fast16_t i = 0; i < root->cCount; ++i)
     {
-        if (equalsPiece(&move, root->childs[i]->move))
+        if (equalsPiece(&move, &root->childs[i]->move))
         {
             newRoot = root->childs[i];
             break;
