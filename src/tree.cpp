@@ -182,8 +182,7 @@ Node_t *getNewNode(const Node_t *father, const uint64_t id, const uint8_t relati
 
 void dfs(Node_t *node, const uint8_t depth)
 {
-    // FIXME: Va bene che sia nullptr?
-    if (depth == LEVELS || stop || pause || node == nullptr)
+    if (depth == LEVELS || stop || pause)
         return;
 
     if (node->cCount == 0) {
