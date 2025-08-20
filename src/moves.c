@@ -720,6 +720,13 @@ void getMoves(const HAIveContext_t *context, Piece_t *moves)
 
     memset(moves, 0xff, MOVES_SIZE * sizeof(Piece_t));
 
+    if (
+        positions[W_MOSQUITO].x == 0 && positions[W_MOSQUITO].y == 0 &&
+        positions[B_MOSQUITO].y == 0 && positions[B_MOSQUITO].x == 2 &&
+        positions[W_ANT_1].x == -1 && positions[W_ANT_1].y == 1
+        )
+        printf("HERE!\n");
+
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
     {
