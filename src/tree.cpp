@@ -83,9 +83,8 @@ bool alreadySeen(Node_t *node)
     if (it == hashmap.end())
         return false;
 
-    auto [score, moves] = it->second;
+    const auto score = it->second;
     node->score = score;
-    memcpy(node->moves, moves, sizeof(moves));
     return true;
 }
 void insertIntoWorkQueue(Node_t *node, const uint8_t level)
@@ -211,7 +210,7 @@ void dfs(Node_t *node, const uint8_t depth)
     node->score = maxScore;
     node->bestChild = bestChild;
     if (const auto it = hashmap.find(node->hash); it != hashmap.end())
-        it->second.score = maxScore;
+        it->second = maxScore;
 
     //andiamo in ricorsione
     for (uint_fast16_t i = 0; i < node->cCount; ++i)
@@ -233,7 +232,7 @@ void dfs(Node_t *node, const uint8_t depth)
         node->score = cScore;
         node->bestChild = node->childs[i];
         if (const auto it = hashmap.find(node->hash); it != hashmap.end())
-            it->second.score = cScore;
+            it->second = cScore;
     }
 }
 void garbageCollector(Node_t *node, const bool first)
@@ -288,6 +287,7 @@ void *expandNode(void *args)
             auto *child = getNewNode(node, i, level + 1, &node->moves[i]);
             if (!child)
             {
+                node->isInWorkQueue = true;
                 hpush(workQueue, level, node);
                 break;
             }
@@ -315,9 +315,7 @@ void *expandNode(void *args)
             if (!alreadySeen(child))
             {
                 getMoves(&child->context, child->moves);
-                HashValue_t val;
-                val.score = mzingaHeuristic(&child->context);
-                memcpy(&val.moves, child->moves, sizeof(child->moves));
+                const double val = mzingaHeuristic(&child->context);
                 hashmap[child->hash] = val;
 
                 simplehpush(batchQueue, child);
@@ -335,6 +333,7 @@ void *expandNode(void *args)
 
             if (!child)
             {
+                node->isInWorkQueue = true;
                 hpush(workQueue, level, node);
                 continue;
             }
@@ -362,9 +361,7 @@ void *expandNode(void *args)
             if (!alreadySeen(child))
             {
                 getMoves(&child->context, child->moves);
-                HashValue_t val;
-                val.score = mzingaHeuristic(&child->context);
-                memcpy(&val.moves, child->moves, sizeof(child->moves));
+                const double val = mzingaHeuristic(&child->context);
                 hashmap[child->hash] = val;
 
                 simplehpush(batchQueue, child);
@@ -415,7 +412,7 @@ void *evaluateNodes(void *args)
             Node_t *node = bContext.nodes[i];
             node->score = bContext.result[i];
 
-            hashmap.find(node->hash)->second.score = node->score;
+            hashmap[node->hash] = node->score;
         }
     }
 
