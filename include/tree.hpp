@@ -28,7 +28,6 @@ typedef struct Node
     uint16_t cCount;
 
     Piece_t move;
-    Piece_t moves[MOVES_SIZE];
     HAIveContext_t context;
 
     Node *bestChild;

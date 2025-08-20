@@ -105,7 +105,6 @@ void initRoot()
     root->isInWorkQueue = true;
 
     root->move = {NULLPIECE, {-1, -1, -1}};
-    memset(root->moves, 0xff, sizeof(root->moves));
     copyHAIveContext(&context, &root->context);
 
     root->bestChild = nullptr;
@@ -115,7 +114,6 @@ void initRoot()
 
     root->hash = hashAll(root->context.board, root->context.idToPos, root->context.curColor);
 
-    getMoves(&root->context, root->moves);
     hpush(workQueue, 0, root);
 }
 void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8_t relativeDepth, const Piece_t *move)
@@ -125,7 +123,6 @@ void initNode(Node_t *node, const Node_t *father, const uint64_t id, const uint8
     node->isInWorkQueue = false;
 
     memcpy(&node->move, move, sizeof(Piece_t));
-    memset(node->moves, 0xff, sizeof(node->moves));
     memset(node->childs, 0x00, sizeof(node->childs));
     initHAIveContext(&node->context);
     copyHAIveContext(&father->context, &node->context);
@@ -145,7 +142,6 @@ void resetNode(Node_t *node, const Node_t *father, const uint64_t id, const uint
     node->isInWorkQueue = false;
 
     memcpy(&node->move, move, sizeof(Piece_t));
-    memset(node->moves, 0xff, sizeof(node->moves));
     memset(node->childs, 0x00, sizeof(node->childs));
     copyHAIveContext(&father->context, &node->context);
     addHAIveMove(&node->context, move);
@@ -277,14 +273,18 @@ void *expandNode(void *args)
             continue;
         }
 
+
+        Piece_t moves[MOVES_SIZE];
+        getMoves(&node->context, moves);
+
         bool passBool = true;
-        for (int_fast16_t i = 0; node->moves[i].id != NULLPIECE; ++i)
+        for (int_fast16_t i = 0; moves[i].id != NULLPIECE; ++i)
         {
             passBool = false;
             //Se sto figlio è gia stato fatto precedentemente
             if (i < node->cCount)
                 continue;
-            auto *child = getNewNode(node, i, level + 1, &node->moves[i]);
+            auto *child = getNewNode(node, i, level + 1, &moves[i]);
             if (!child)
             {
                 node->isInWorkQueue = true;
@@ -314,7 +314,6 @@ void *expandNode(void *args)
 
             if (!alreadySeen(child))
             {
-                getMoves(&child->context, child->moves);
                 const double val = mzingaHeuristic(&child->context);
                 hashmap[child->hash] = val;
 
@@ -328,8 +327,8 @@ void *expandNode(void *args)
         if (passBool)
         {
             //FIXME: se cambiamo il modo in cui i nodi sono messi nella queue allora tocca passa il relative depth in modo diverso
-            node->moves[0] = pass;
-            auto *child = getNewNode(node, 0, level + 1, &node->moves[0]);
+            moves[0] = pass;
+            auto *child = getNewNode(node, 0, level + 1, &moves[0]);
 
             if (!child)
             {
@@ -360,7 +359,6 @@ void *expandNode(void *args)
 
             if (!alreadySeen(child))
             {
-                getMoves(&child->context, child->moves);
                 const double val = mzingaHeuristic(&child->context);
                 hashmap[child->hash] = val;
 
