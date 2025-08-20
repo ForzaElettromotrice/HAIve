@@ -274,7 +274,7 @@ void *expandNode(void *args)
         if (level == LEVELS - 1)
         {
             node->isInWorkQueue = true;
-            hpush(workQueue, level, node);
+            hpush(workQueue, 0, node);
             continue;
         }
 
@@ -335,7 +335,7 @@ void *expandNode(void *args)
 
             if (!child)
             {
-                hpush(workQueue, level, node);
+                hpush(workQueue, 0, node);
                 continue;
             }
             node->childs[0] = child;
@@ -508,7 +508,6 @@ const Node_t *getBestChild()
         pthread_create(&chrootThread, nullptr, changeRoot, root->childs[0]);
         return root->childs[0];
         logE(stderr, "Best child is null\nProbably not enough time to perform a dfs");
-        return nullptr;
     }
     const Node_t *bestChild = root->bestChild;
     pthread_create(&chrootThread, nullptr, changeRoot, root->bestChild);
