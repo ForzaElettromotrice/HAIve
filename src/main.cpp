@@ -4,6 +4,8 @@
 
 
 #include <cstring>
+#include <thread>
+#include <chrono>
 #include <utils.h>
 #include <logger.h>
 #include <trainings.hpp>
@@ -68,6 +70,7 @@ int main()
             }
             case BESTMOVE:
             {
+                std::this_thread::sleep_for(std::chrono::duration<double>(4.7));
                 const Node_t *bestChild = getBestChild();
                 printMove(&bestChild->context, bestChild->move);
                 break;
