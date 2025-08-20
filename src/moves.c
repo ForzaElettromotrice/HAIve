@@ -90,7 +90,6 @@ bool dfs(const Position_t *start, const HAIveContext_t *context, bool *visited, 
 
     const int_fast8_t y = start->y;
     const int_fast8_t x = start->x;
-
     for (uint_fast8_t i = 0; i < 6; ++i)
     {
         const int_fast8_t newY = (int_fast8_t) (y + directions[i][0]);
