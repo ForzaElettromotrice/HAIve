@@ -604,8 +604,10 @@ void printMove(const HAIveContext_t *context, const Piece_t *move)
         break;
     }
 
-    if (hover)
+    if (hover) {
+        strcat(out, context->board[MtA(z-1, y, x)] < 14 ? "b" : "w");
         parsePieceToMazinga(context->board[MtA(z-1, y, x)], out);
+    }
 
     printf("%s\nok\n", out);
 }
