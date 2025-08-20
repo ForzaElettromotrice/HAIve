@@ -86,42 +86,42 @@ void HiveCNNImpl::load_model(const std::shared_ptr<torch::optim::Optimizer> &opt
     }
 }
 
-void HiveCNNImpl::batchForward(BatchContext_t *batchContext)
-{
-    const auto options = torch::TensorOptions().dtype(torch::kFloat32);
-    torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
-    pthread_t threads[batchContext->count];
-    ProcessorArgs_t args[batchContext->count];
-    for (uint8_t i = 0; i < batchContext->count; i++)
-    {
-        args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
-        pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args);
-    }
-
-    for (uint8_t i = 0; i < batchContext->count; i++)
-    {
-        pthread_join(threads[i], nullptr);
-    }
-
-    x = x.clone().set_requires_grad(true);
-    x = x.to(torch::kFloat);
-    if (torch::cuda::is_available())
-        x = x.to(torch::kCUDA);
-
-    pthread_mutex_lock(&this->mutex);
-
-    x = conv_layers->forward(x);
-    x = x.mean({2, 3});
-    x = x.view({1, -1});
-    x = fc_layers->forward(x);
-
-    pthread_mutex_unlock(&this->mutex);
-
-    for (uint8_t i = 0; i < batchContext->count; i++)
-    {
-        batchContext->result[i] = x[i].item<float>();
-    }
-}
+// void HiveCNNImpl::batchForward(BatchContext_t *batchContext)
+// {
+//     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
+//     torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
+//     pthread_t threads[batchContext->count];
+//     ProcessorArgs_t args[batchContext->count];
+//     for (uint8_t i = 0; i < batchContext->count; i++)
+//     {
+//         args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
+//         pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args);
+//     }
+//
+//     for (uint8_t i = 0; i < batchContext->count; i++)
+//     {
+//         pthread_join(threads[i], nullptr);
+//     }
+//
+//     x = x.clone().set_requires_grad(true);
+//     x = x.to(torch::kFloat);
+//     if (torch::cuda::is_available())
+//         x = x.to(torch::kCUDA);
+//
+//     pthread_mutex_lock(&this->mutex);
+//
+//     x = conv_layers->forward(x);
+//     x = x.mean({2, 3});
+//     x = x.view({1, -1});
+//     x = fc_layers->forward(x);
+//
+//     pthread_mutex_unlock(&this->mutex);
+//
+//     for (uint8_t i = 0; i < batchContext->count; i++)
+//     {
+//         batchContext->result[i] = x[i].item<float>();
+//     }
+// }
 
 
 // HiveCNNEnhanced
@@ -163,57 +163,57 @@ torch::Tensor HiveCNNEnhancedImpl::forward(const HAIveContext_t *context)
     return x;
 }
 
-void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext)
-{
-    const auto options = torch::TensorOptions().dtype(torch::kFloat32);
-    torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
-    pthread_t threads[batchContext->count];
-    ProcessorArgs_t args[batchContext->count];
-    for (uint8_t i = 0; i < batchContext->count; i++)
-    {
-        args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
-        pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args[i]);
-    }
-
-    for (uint8_t i = 0; i < batchContext->count; i++)
-    {
-        pthread_join(threads[i], nullptr);
-    }
-
-    x = x.clone().set_requires_grad(true);
-    x = x.to(torch::kFloat);
-    if (torch::cuda::is_available())
-        x = x.to(torch::kCUDA);
-
-    pthread_mutex_lock(&this->mutex);
-
-    if (use_jit_model && jit_module.has_value())
-    {
-        // Process each sample individually with JIT model
-        for (uint8_t i = 0; i < batchContext->count; i++)
-        {
-            std::vector<torch::jit::IValue> inputs;
-            inputs.push_back(x[i]);
-
-            auto result = jit_module.value().forward(inputs).toTensor();
-            batchContext->result[i] = result.item<float>();
-        }
-    } else
-    {
-        // Original batch processing
-        x = conv_layers->forward(x);
-        x = x.mean({2, 3});
-        x = x.view({1, -1});
-        x = fc_layers->forward(x);
-
-        for (uint8_t i = 0; i < batchContext->count; i++)
-        {
-            batchContext->result[i] = x[i].item<float>();
-        }
-    }
-
-    pthread_mutex_unlock(&this->mutex);
-}
+// void HiveCNNEnhancedImpl::batchForward(BatchContext_t *batchContext)
+// {
+//     const auto options = torch::TensorOptions().dtype(torch::kFloat32);
+//     torch::Tensor x = torch::zeros({batchContext->count, sizeLayer, BOARD_Y / 2, BOARD_X}, options);
+//     pthread_t threads[batchContext->count];
+//     ProcessorArgs_t args[batchContext->count];
+//     for (uint8_t i = 0; i < batchContext->count; i++)
+//     {
+//         args[i] = {x[i], batchContext->nodes[i]->context.idToPos};
+//         pthread_create(&threads[i], nullptr, Processor::boardToTensor_mt, &args[i]);
+//     }
+//
+//     for (uint8_t i = 0; i < batchContext->count; i++)
+//     {
+//         pthread_join(threads[i], nullptr);
+//     }
+//
+//     x = x.clone().set_requires_grad(true);
+//     x = x.to(torch::kFloat);
+//     if (torch::cuda::is_available())
+//         x = x.to(torch::kCUDA);
+//
+//     pthread_mutex_lock(&this->mutex);
+//
+//     if (use_jit_model && jit_module.has_value())
+//     {
+//         // Process each sample individually with JIT model
+//         for (uint8_t i = 0; i < batchContext->count; i++)
+//         {
+//             std::vector<torch::jit::IValue> inputs;
+//             inputs.push_back(x[i]);
+//
+//             auto result = jit_module.value().forward(inputs).toTensor();
+//             batchContext->result[i] = result.item<float>();
+//         }
+//     } else
+//     {
+//         // Original batch processing
+//         x = conv_layers->forward(x);
+//         x = x.mean({2, 3});
+//         x = x.view({1, -1});
+//         x = fc_layers->forward(x);
+//
+//         for (uint8_t i = 0; i < batchContext->count; i++)
+//         {
+//             batchContext->result[i] = x[i].item<float>();
+//         }
+//     }
+//
+//     pthread_mutex_unlock(&this->mutex);
+// }
 
 
 void HiveCNNEnhancedImpl::save_model(const std::shared_ptr<torch::optim::Optimizer> &optimizer) const

@@ -15,16 +15,12 @@
 
 
 HQueue_t *workQueue;
-HInnerQueue_t *batchQueue;
 HInnerQueue_t *garbageQueue;
 
 Map hashmap;
-HiveNet *model;
-static HiveCNNEnhanced modelBase;
 
 pthread_t threads[THREADS_NUM];
 pthread_t dfsThread;
-pthread_t batchThread;
 pthread_t chrootThread;
 
 volatile bool stop;
@@ -316,8 +312,6 @@ void *expandNode(void *args)
             {
                 const double val = mzingaHeuristic(&child->context);
                 hashmap[child->hash] = val;
-
-                simplehpush(batchQueue, child);
             }
 
             child->isInWorkQueue = true;
@@ -361,8 +355,6 @@ void *expandNode(void *args)
             {
                 const double val = mzingaHeuristic(&child->context);
                 hashmap[child->hash] = val;
-
-                simplehpush(batchQueue, child);
             }
 
             child->isInWorkQueue = true;
@@ -378,40 +370,6 @@ void *evaluateTree(void *args)
     {
         checkPause();
         dfs(root, 0);
-    }
-
-    return nullptr;
-}
-void *evaluateNodes(void *args)
-{
-    BatchContext_t bContext = {};
-    timespec t1 = {};
-    timespec t2 = {};
-    while (!stop)
-    {
-        bContext.count = 0;
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        while (bContext.count < BATCH_NUM)
-        {
-            checkPause();
-            clock_gettime(CLOCK_MONOTONIC, &t2);
-            if (static_cast<double>(t2.tv_sec - t1.tv_sec) + static_cast<double>(t2.tv_nsec - t1.tv_nsec) * 1e-9 > MIN_T)
-                break;
-
-            const auto node = static_cast<Node_t *>(simplehpop(batchQueue));
-            if (node == nullptr)
-                continue;
-            bContext.nodes[bContext.count++] = node;
-        }
-
-        model->batchForward(&bContext);
-        for (uint_fast8_t i = 0; i < bContext.count; ++i)
-        {
-            Node_t *node = bContext.nodes[i];
-            node->score = bContext.result[i];
-
-            hashmap[node->hash] = node->score;
-        }
     }
 
     return nullptr;
@@ -434,14 +392,8 @@ void *changeRoot(void *args)
 
 int initTree()
 {
-    //Init rete
-    modelBase = HiveCNNEnhanced(MODEL_PATH);
-    model = modelBase.get();
-    model->load_model();
-
     //Init queues
     workQueue = initHQueue();
-    batchQueue = initSimpleHQueue();
     garbageQueue = initSimpleHQueue();
     //Init changeRoots
     changeRootsCount = 0;
@@ -450,7 +402,7 @@ int initTree()
     initRoot();
 
     //Init barrier
-    pthread_barrier_init(&pauseBarrier, nullptr, THREADS_NUM + 3); //numero di thread + dfs + batch + chroot
+    pthread_barrier_init(&pauseBarrier, nullptr, THREADS_NUM + 2); //numero di thread + dfs + chroot
 
     //Init threads
     stop = false;
@@ -460,7 +412,6 @@ int initTree()
         pthread_create(&thread, nullptr, expandNode, nullptr);
     }
     pthread_create(&dfsThread, nullptr, evaluateTree, nullptr);
-    pthread_create(&batchThread, nullptr, evaluateNodes, nullptr);
 
     chrootThread = 0;
 
@@ -475,7 +426,6 @@ void cleanTree()
         pthread_join(thread, nullptr);
     }
     pthread_join(dfsThread, nullptr);
-    pthread_join(batchThread, nullptr);
     if (chrootThread != 0)
         pthread_join(chrootThread, nullptr);
 
@@ -487,7 +437,6 @@ void cleanTree()
 
     //Clean queues
     cleanHQueue(workQueue, true);
-    cleanSimpleHQueue(batchQueue, true);
     cleanSimpleHQueue(garbageQueue, true);
 
     //TODO: clean rete

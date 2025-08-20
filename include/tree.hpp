@@ -10,10 +10,7 @@
 #include <phmap.h>
 
 #define THREADS_NUM 1
-#define BATCH_NUM 64
 
-//TODO: da rivedere
-#define MIN_T 1.0
 //TODO: da rivedere
 #define KK 400
 //TODO: da rivedere
@@ -37,14 +34,6 @@ typedef struct Node
 
     uint64_t hash;
 } Node_t;
-
-
-typedef struct BatchContext
-{
-    Node_t *nodes[BATCH_NUM];
-    uint8_t count;
-    double result[BATCH_NUM];
-} BatchContext_t;
 
 struct IdentityHash
 {
