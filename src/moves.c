@@ -36,11 +36,6 @@ void alertMoves(const Pieces_t piece, const uint16_t idx)
         logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
         return;
     }
-    if (idx > 140)
-    {
-        logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
-        return;
-    }
 }
 Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
 {
