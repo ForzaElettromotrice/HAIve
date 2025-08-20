@@ -36,11 +36,6 @@ void alertMoves(const Pieces_t piece, const uint16_t idx)
         logE(stderr, "Piece %d idx > 140! idx = %d\n", piece, idx);
         return;
     }
-    if (idx > 120)
-    {
-        logE(stderr, "Piece %d idx > 120!\n", piece);
-        return;
-    }
 }
 Pieces_t chooseStartingPoint(const Pieces_t toMove, const Colors_t color, const Position_t *idToPos)
 {
@@ -724,7 +719,6 @@ void getMoves(const HAIveContext_t *context, Piece_t *moves)
     const Colors_t color = context->curColor;
 
     memset(moves, 0xff, MOVES_SIZE * sizeof(Piece_t));
-
 
     //Calcolo mosse nel turno 1 e 2 (hardcoded)
     if (context->turn == 1)
