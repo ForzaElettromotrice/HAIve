@@ -72,7 +72,7 @@ int main()
             {
                 // std::this_thread::sleep_for(std::chrono::duration<double>(4.7));
                 const Node_t *bestChild = getBestChild();
-                printMove(&bestChild->context, bestChild->move);
+                printMove(&bestChild->context, &bestChild->move);
                 break;
             }
             case INVALID:
