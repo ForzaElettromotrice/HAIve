@@ -288,8 +288,6 @@ void *expandNode(void *args)
             auto *child = getNewNode(node, i, level + 1, &node->moves[i]);
             if (!child)
             {
-                // Requeue this node to retry later (e.g., after memory pressure eases)
-                node->isInWorkQueue = true;
                 hpush(workQueue, level, node);
                 break;
             }
@@ -337,8 +335,6 @@ void *expandNode(void *args)
 
             if (!child)
             {
-                // Requeue at the same level for a later retry
-                node->isInWorkQueue = true;
                 hpush(workQueue, level, node);
                 continue;
             }
