@@ -90,10 +90,7 @@ bool dfs(const Position_t *start, const HAIveContext_t *context, bool *visited, 
 
     const int_fast8_t y = start->y;
     const int_fast8_t x = start->x;
-    // FIXME: Va bene?
-    const Pieces_t here = board[MtA(0, y, x)];
-    if (here != NULLPIECE && !visited[here])
-        visited[here] = true;
+
     for (uint_fast8_t i = 0; i < 6; ++i)
     {
         const int_fast8_t newY = (int_fast8_t) (y + directions[i][0]);
