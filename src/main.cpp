@@ -15,7 +15,7 @@
 int main()
 {
 #ifdef Debug
-    logD(stdout, "Launched in Debug Mode!\n");
+    logD(stderr, "Launched in Debug Mode!\n");
 #endif
 
     bool firstTime = true;
