@@ -518,7 +518,7 @@ const Node_t *getBestChild()
 void adversaryMove(char *mzingaMove)
 {
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
-    if (equalsPiece(&move, root->move))
+    if (equalsPiece(&move, &root->move))
         return;
 
     pause = true;
