@@ -55,3 +55,4 @@ void cleanTree();
 
 const Node_t *getBestChild();
 void adversaryMove(char *mzingaMove);
+void ensureRootQueuedTop();

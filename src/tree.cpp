@@ -384,6 +384,7 @@ void *changeRoot(void *args)
     changeRootsCount++;
 
     pause = false;
+    ensureRootQueuedTop();
     pthread_barrier_wait(&pauseBarrier);
 
     garbageCollector(oldRoot, true);
@@ -438,8 +439,6 @@ void cleanTree()
     //Clean queues
     cleanHQueue(workQueue, true);
     cleanSimpleHQueue(garbageQueue, true);
-
-    //TODO: clean rete
 }
 
 const Node_t *getBestChild()
@@ -449,6 +448,8 @@ const Node_t *getBestChild()
     if (root->bestChild == nullptr)
     {
         // FIXME: Momentaneo
+        if (root->childs[0] == nullptr)
+            logE(stderr, "Best child is null\nProbably not enough time to perform a dfs");
         pthread_create(&chrootThread, nullptr, changeRoot, root->childs[0]);
         return root->childs[0];
         logE(stderr, "Best child is null\nProbably not enough time to perform a dfs");
@@ -458,6 +459,18 @@ const Node_t *getBestChild()
 
     return bestChild;
 }
+
+void ensureRootQueuedTop()
+{
+    if (!root) return;
+
+    if (!root->isInWorkQueue)
+    {
+        root->isInWorkQueue = true;
+        hpush(workQueue, 0, root);
+    }
+}
+
 void adversaryMove(char *mzingaMove)
 {
     const Piece_t move = parseMove(root->context.idToPos, mzingaMove);
