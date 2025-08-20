@@ -39,11 +39,6 @@ typedef struct Node
     uint64_t hash;
 } Node_t;
 
-typedef struct HashValue
-{
-    double score;
-    Piece_t moves[MOVES_SIZE];
-} HashValue_t;
 
 typedef struct BatchContext
 {
@@ -59,10 +54,10 @@ struct IdentityHash
 
 using Map = phmap::parallel_flat_hash_map<
     uint64_t, //tipo chiave
-    HashValue_t, //tipo valore
+    double, //tipo valore
     IdentityHash, //hash che usa
     std::equal_to<>, //comparatore fra chiavi
-    std::allocator<std::pair<uint64_t, HashValue_t> >, //allocatore
+    std::allocator<std::pair<uint64_t, double> >, //allocatore
     6, //sub-map (2^6)
     std::mutex //per la concorrenza
 >;
